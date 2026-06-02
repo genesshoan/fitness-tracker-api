@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.error;
+package dev.genesshoan.fitnesstrackerapi.common.exception.handler;
 
 import java.time.Instant;
 import java.util.Collection;

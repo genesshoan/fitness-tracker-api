@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.error;
+package dev.genesshoan.fitnesstrackerapi.common.exception.handler;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.List;
 import java.util.Map;
 
-import static dev.genesshoan.fitnesstrackerapi.error.ProblemDetailUtils.*;
+import static dev.genesshoan.fitnesstrackerapi.common.exception.handler.ProblemDetailUtils.*;
 
 /**
  * Centralized validation exception handler for the REST API.

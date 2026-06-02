@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.error;
+package dev.genesshoan.fitnesstrackerapi.common.exception.handler;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-import static dev.genesshoan.fitnesstrackerapi.error.ProblemDetailUtils.errorResponse;
+import static dev.genesshoan.fitnesstrackerapi.common.exception.handler.ProblemDetailUtils.errorResponse;
 
 /**
  * Centralized HTTP exception handler for the REST API.
