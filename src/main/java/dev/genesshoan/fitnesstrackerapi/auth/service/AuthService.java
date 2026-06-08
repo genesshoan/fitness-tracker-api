@@ -181,6 +181,8 @@ public class AuthService {
       throw new JwtException("Refresh token reuse detected. Family revoked");
     }
 
+    token.setRevoked(true);
+
     var response = generateAndPersistTokens(user, familyId);
 
     log.info("Token refresh successful. userId={}, oldTokenId={}, newTokenId={}",
