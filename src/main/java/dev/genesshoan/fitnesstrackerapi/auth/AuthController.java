@@ -1,6 +1,14 @@
 package dev.genesshoan.fitnesstrackerapi.auth;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.validation.annotation.Validated;
@@ -42,6 +50,10 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
+@Tag(
+        name = "Authentication",
+        description = "JWT authentication, refresh token rotation, logout"
+)
 public class AuthController {
 
   /**
@@ -50,96 +62,128 @@ public class AuthController {
    */
   private final AuthService authService;
 
-  /**
-   * Registers a new user and returns a JWT token pair.
-   *
-   * <p>
-   * On success:
-   * <ul>
-   * <li>Creates a new user in the system</li>
-   * <li>Encodes password securely</li>
-   * <li>Issues access token and refresh token</li>
-   * </ul>
-   *
-   * @param dto registration request containing user credentials
-   * @return HTTP 201 (CREATED) with JWT token pair
-   */
+  @Operation(
+          summary = "Register a new user",
+          description = "Creates a new user account, encodes password securely, and returns JWT access and refresh tokens."
+  )
+  @ApiResponses(value = {
+          @ApiResponse(
+                  responseCode = "201",
+                  description = "User successfully created",
+                  content = @Content(
+                          mediaType = "application/json",
+                          schema = @Schema(implementation = TokenResponseDTO.class)
+                  )
+          ),
+          @ApiResponse(
+                  responseCode = "400",
+                  description = "Invalid request data",
+                  content = @Content(
+                          mediaType = "application/problem+json",
+                          schema = @Schema(implementation = ProblemDetail.class)
+                  )
+          ),
+          @ApiResponse(
+                  responseCode = "409",
+                  description = "User already exists",
+                  content = @Content(
+                          mediaType = "application/problem+json",
+                          schema = @Schema(implementation = ProblemDetail.class)
+                  )
+          )
+  })
   @PostMapping("/register")
   public ResponseEntity<TokenResponseDTO> register(
-      @Valid @RequestBody RegisterRequestDTO dto) {
+          @Valid @RequestBody RegisterRequestDTO dto) {
 
     return ResponseEntity
-        .status(HttpStatus.CREATED)
-        .body(authService.register(dto));
+            .status(HttpStatus.CREATED)
+            .body(authService.register(dto));
   }
 
-  /**
-   * Authenticates a user and returns a JWT token pair.
-   *
-   * <p>
-   * On success:
-   * <ul>
-   * <li>Validates user credentials</li>
-   * <li>Generates access token</li>
-   * <li>Generates refresh token (stored in DB)</li>
-   * </ul>
-   *
-   * @param dto login request containing email and password
-   * @return HTTP 200 (OK) with JWT token pair
-   */
+  @Operation(
+          summary = "Authenticate user",
+          description = "Validates credentials and returns JWT access and refresh tokens."
+  )
+  @ApiResponses(value = {
+          @ApiResponse(
+                  responseCode = "200",
+                  description = "Authentication successful",
+                  content = @Content(
+                          mediaType = "application/json",
+                          schema = @Schema(implementation = TokenResponseDTO.class)
+                  )
+          ),
+          @ApiResponse(
+                  responseCode = "401",
+                  description = "Invalid credentials",
+                  content = @Content(
+                          mediaType = "application/problem+json",
+                          schema = @Schema(implementation = ProblemDetail.class)
+                  )
+          )
+  })
   @PostMapping("/login")
   public ResponseEntity<TokenResponseDTO> login(
-      @Valid @RequestBody LoginRequestDTO dto) {
+          @Valid @RequestBody LoginRequestDTO dto) {
 
-    return ResponseEntity
-        .ok(authService.login(dto));
+    return ResponseEntity.ok(authService.login(dto));
   }
 
-  /**
-   * Rotates refresh token and issues a new token pair.
-   *
-   * <p>
-   * Flow:
-   * <ul>
-   * <li>Extracts Bearer token from Authorization header</li>
-   * <li>Validates refresh token integrity</li>
-   * <li>Checks database for revocation status</li>
-   * <li>Detects token reuse and revokes entire family if needed</li>
-   * <li>Generates new access and refresh tokens</li>
-   * </ul>
-   *
-   * @param request HTTP request containing Authorization header
-   * @return HTTP 200 (OK) with new token pair
-   */
+  @Operation(
+          summary = "Refresh JWT tokens",
+          description = "Rotates refresh token and issues a new access + refresh token pair."
+  )
+  @ApiResponses(value = {
+          @ApiResponse(
+                  responseCode = "200",
+                  description = "Token refreshed successfully",
+                  content = @Content(
+                          mediaType = "application/json",
+                          schema = @Schema(implementation = TokenResponseDTO.class)
+                  )
+          ),
+          @ApiResponse(
+                  responseCode = "401",
+                  description = "Invalid or expired refresh token",
+                  content = @Content(
+                          mediaType = "application/problem+json",
+                          schema = @Schema(implementation = ProblemDetail.class)
+                  )
+          )
+  })
   @PostMapping("/refresh")
-  public ResponseEntity<TokenResponseDTO> refresh(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+  public ResponseEntity<TokenResponseDTO> refresh(
+          @Parameter(description = "Bearer refresh token")
+          @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
 
     return ResponseEntity.ok(authService.refreshToken(authHeader));
   }
 
-  /**
-   * Logs out the user by revoking all refresh tokens belonging to the same
-   * family.
-   *
-   * <p>
-   * Flow:
-   * <ul>
-   * <li>Extracts Bearer token from Authorization header</li>
-   * <li>Identifies token family</li>
-   * <li>Revokes all tokens in that family</li>
-   * </ul>
-   *
-   * <p>
-   * Access tokens remain valid until expiration (stateless nature).
-   *
-   * @param request HTTP request containing Authorization header
-   * @return HTTP 204 (NO CONTENT)
-   */
+  @Operation(
+          summary = "Logout user",
+          description = "Revokes all refresh tokens belonging to the same token family. Access token remains valid until expiration."
+  )
+  @ApiResponses(value = {
+          @ApiResponse(
+                  responseCode = "204",
+                  description = "Logout successful"
+          ),
+          @ApiResponse(
+                  responseCode = "401",
+                  description = "Invalid token",
+                  content = @Content(
+                          mediaType = "application/problem+json",
+                          schema = @Schema(implementation = ProblemDetail.class)
+                  )
+          )
+  })
   @DeleteMapping("/logout")
-  public ResponseEntity<Void> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+  public ResponseEntity<Void> logout(
+          @Parameter(description = "Bearer access token")
+          @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
 
     authService.logout(authHeader);
-
     return ResponseEntity.noContent().build();
   }
 }
