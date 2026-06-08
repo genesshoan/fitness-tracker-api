@@ -1,0 +1,82 @@
+@startuml
+!theme plain
+actor Client
+
+participant AuthController
+participant AuthService
+participant JwtService
+database UserRepository
+database TokenRepository
+
+' =========================
+' REGISTER
+' =========================
+group REGISTER
+  Client -> AuthController : POST /register
+  AuthController -> AuthService : register(dto)
+  AuthService -> UserRepository : existsByUsername / existsByEmail
+  AuthService -> AuthService : passwordEncoder.encode(password)
+  AuthService -> UserRepository : save(user)
+  AuthService -> JwtService : getRefreshTokenExpirationInstant()
+  AuthService -> TokenRepository : save(token entity)
+  AuthService -> JwtService : generateToken(userDetails)
+  AuthService -> JwtService : generateRefreshToken(userDetails, jti, familyId)
+  AuthService --> Client : 201 TokenResponseDTO
+end
+
+' =========================
+' LOGIN
+' =========================
+group LOGIN
+  Client -> AuthController : POST /login
+  AuthController -> AuthService : login(dto)
+  AuthService -> AuthService : authenticationManager.authenticate()
+  AuthService -> UserRepository : findByEmail
+  AuthService -> JwtService : getRefreshTokenExpirationInstant()
+  AuthService -> TokenRepository : save(token entity)
+  AuthService -> JwtService : generateToken(userDetails)
+  AuthService -> JwtService : generateRefreshToken(userDetails, jti, familyId)
+  AuthService --> Client : 200 TokenResponseDTO
+end
+
+' =========================
+' REFRESH
+' =========================
+group REFRESH TOKEN
+  Client -> AuthController : POST /refresh
+  AuthController -> AuthService : refreshToken(authHeader)
+  AuthService -> AuthService : extractBearerToken(authHeader)
+  AuthService -> JwtService : extractJti(token)
+  AuthService -> JwtService : extractFamilyId(token)
+  AuthService -> JwtService : extractUsername(token)
+  AuthService -> UserRepository : findByEmail
+  AuthService -> TokenRepository : findById(jti)
+  alt token.isRevoked() == true
+    AuthService -> TokenRepository : revokeByFamily(familyId)
+    AuthService --> Client : 401 reuse detected
+  else token valid
+    note right of AuthService : dirty checking — Hibernate\ndetects token.setRevoked(true)\nand issues UPDATE automatically
+    AuthService -> AuthService : token.setRevoked(true)
+    AuthService -> JwtService : getRefreshTokenExpirationInstant()
+    AuthService -> TokenRepository : save(new token entity)
+    AuthService -> JwtService : generateToken(userDetails)
+    AuthService -> JwtService : generateRefreshToken(userDetails, newJti, familyId)
+    AuthService --> Client : 200 TokenResponseDTO
+  end
+end
+
+' =========================
+' LOGOUT
+' =========================
+group LOGOUT
+  Client -> AuthController : DELETE /logout
+  AuthController -> AuthService : logout(authHeader)
+  AuthService -> AuthService : extractBearerToken(authHeader)
+  AuthService -> JwtService : extractFamilyId(token)
+  AuthService -> JwtService : extractUsername(token)
+  AuthService -> UserRepository : findByEmail
+  AuthService -> TokenRepository : revokeByFamily(familyId)
+  AuthService --> Client : 204 No Content
+end
+
+@enduml
