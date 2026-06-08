@@ -1,9 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.common.error.handler;
 
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidCredentialsException;
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyExistsException;
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.*;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -117,22 +114,22 @@ public class DomainExceptionHandler {
    * @param request current HTTP request
    * @return 401 Unauthorized ProblemDetail response
    */
-  @ExceptionHandler(JwtException.class)
-  public ResponseEntity<ProblemDetail> handleJwtException(
-      JwtException ex,
-      HttpServletRequest request) {
+  @ExceptionHandler(InvalidJwtException.class)
+  public ResponseEntity<ProblemDetail> handleInvalidJwtException(
+          InvalidJwtException ex,
+          HttpServletRequest request) {
 
     log.warn("JWT error: {} {} -> {}",
-        request.getMethod(),
-        request.getRequestURI(),
-        ex.getMessage());
+            request.getMethod(),
+            request.getRequestURI(),
+            ex.getMessage());
 
     ProblemDetail problem = errorResponse(
-        HttpStatus.UNAUTHORIZED,
-        "Invalid or expired token",
-        ex.getMessage(),
-        null,
-        request);
+            HttpStatus.UNAUTHORIZED,
+            "Invalid or expired token",
+            ex.getMessage(),
+            null,
+            request);
 
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
   }
