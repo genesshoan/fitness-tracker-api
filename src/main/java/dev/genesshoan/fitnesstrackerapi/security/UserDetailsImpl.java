@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.common.security;
+package dev.genesshoan.fitnesstrackerapi.security;
 
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import lombok.AllArgsConstructor;

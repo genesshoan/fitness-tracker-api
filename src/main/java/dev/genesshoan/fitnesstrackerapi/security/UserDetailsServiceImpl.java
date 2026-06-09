@@ -1,7 +1,7 @@
-package dev.genesshoan.fitnesstrackerapi.common.security;
+package dev.genesshoan.fitnesstrackerapi.security;
 
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
-import dev.genesshoan.fitnesstrackerapi.user.domain.UserRepository;
+import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

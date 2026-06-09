@@ -1,9 +1,7 @@
-package dev.genesshoan.fitnesstrackerapi.common.security;
+package dev.genesshoan.fitnesstrackerapi.security;
 
 import dev.genesshoan.fitnesstrackerapi.auth.service.JwtService;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidJwtException;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.common.security;
+package dev.genesshoan.fitnesstrackerapi.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

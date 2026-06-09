@@ -1,5 +1,6 @@
-package dev.genesshoan.fitnesstrackerapi.user.domain;
+package dev.genesshoan.fitnesstrackerapi.user;
 
+import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

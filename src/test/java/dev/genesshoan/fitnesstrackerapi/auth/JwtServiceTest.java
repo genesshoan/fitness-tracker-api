@@ -20,7 +20,7 @@ import org.springframework.test.context.TestPropertySource;
 
 import dev.genesshoan.fitnesstrackerapi.auth.service.JwtService;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidJwtException;
-import dev.genesshoan.fitnesstrackerapi.common.security.UserDetailsImpl;
+import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
