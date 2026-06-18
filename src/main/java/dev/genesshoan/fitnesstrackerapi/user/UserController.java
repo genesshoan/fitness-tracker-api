@@ -63,9 +63,10 @@ public class UserController {
     return ResponseEntity.noContent().build();
   }
 
-  @Operation(summary = "Changes the username", description = "Changes the username of the authenticated useer.")
+  @Operation(summary = "Changes the username", description = "Changes the username of the authenticated user.")
   @ApiResponses({
-      @ApiResponse(responseCode = "204", description = "User's password changed successfully"),
+      @ApiResponse(responseCode = "204", description = "User's username changed successfully"),
+      @ApiResponse(responseCode = "400", description = "The new username is the same as the current one", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
       @ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
   })
   @PutMapping("/me/username")
