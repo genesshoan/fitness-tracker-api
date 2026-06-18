@@ -165,7 +165,7 @@ public class DomainExceptionHandler {
   }
 
   /**
-   * Handles business-level nauthorized request errors.
+   * Handles business-level unauthorized request errors.
    *
    * Typical cases:
    * - Wrong username or password

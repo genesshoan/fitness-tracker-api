@@ -32,9 +32,7 @@ import java.io.IOException;
  * <li>Sets the authenticated user in the SecurityContext</li>
  * </ul>
  *
- * <p>
- * Requests targeting /auth endpoints are excluded from filtering.
- */
+ * Requests targeting /auth endpoints are not explicitly excluded from filtering; the filter only skips processing when no Bearer token is present.
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
