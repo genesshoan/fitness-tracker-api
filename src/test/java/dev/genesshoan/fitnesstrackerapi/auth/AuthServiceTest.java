@@ -195,9 +195,8 @@ class AuthServiceTest {
     when(tokenRepository.findById(jti)).thenReturn(Optional.of(dbToken));
 
     assertThatThrownBy(() -> authService.refreshToken("Bearer " + rawToken))
-            .isInstanceOf(JwtException.class)
+            .isInstanceOf(InvalidJwtException.class)
             .hasMessage("Refresh token reuse detected. Family revoked");
-
     verify(tokenRepository).revokeByFamily(familyId);
   }
 
