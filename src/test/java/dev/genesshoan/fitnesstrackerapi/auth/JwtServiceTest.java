@@ -123,7 +123,7 @@ class JwtServiceTest {
   void shouldRejectTokenSignedWithDifferentKey() {
 
     SecretKey otherKey = Keys.hmacShaKeyFor(
-            Decoders.BASE64.decode("v/mx8wsm2PoKQm05MYR+T30B8xKMIoW56EoybDugR0c=)"));
+            Decoders.BASE64.decode("v/mx8wsm2PoKQm05MYR+T30B8xKMIoW56EoybDugR0c="));
 
     String token = Jwts.builder()
             .subject("test@test.com")
