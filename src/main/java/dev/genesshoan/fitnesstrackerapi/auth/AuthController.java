@@ -105,8 +105,7 @@ public class AuthController {
   })
   @DeleteMapping("/logout")
   public ResponseEntity<Void> logout(
-      @Parameter(description = "Bearer access token") @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
-
+      @Parameter(description = "Bearer refresh token") @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
     authService.logout(authHeader);
     return ResponseEntity.noContent().build();
   }
