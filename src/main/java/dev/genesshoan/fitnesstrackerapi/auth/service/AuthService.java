@@ -7,6 +7,7 @@ import dev.genesshoan.fitnesstrackerapi.auth.dto.RegisterRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.auth.dto.TokenResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidCredentialsException;
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidJwtException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyExistsException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
@@ -14,7 +15,6 @@ import dev.genesshoan.fitnesstrackerapi.user.domain.Role;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
 import dev.genesshoan.fitnesstrackerapi.user.mapper.UserMapper;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -137,7 +137,8 @@ public class AuthService {
    *
    * Note:
    * JWT signature and expiration are validated during parsing of the token
-   * via JwtService. If the token is expired, malformed or has an invalid signature,
+   * via JwtService. If the token is expired, malformed or has an invalid
+   * signature,
    * a JwtException will be thrown before any business logic is executed.
    *
    * @param authHeader the Authorization header containing the Bearer refresh
@@ -148,7 +149,7 @@ public class AuthService {
    *                                   malformed
    * @throws MalformedJwtException     if the token does not contain a valid
    *                                   subject
-   * @throws JwtException              if the token is invalid or expired
+   * @throws InvalidJwtException       if the token is invalid or expired
    * @throws ResourceNotFoundException if the user associated with the token is
    *                                   not found
    */
@@ -160,7 +161,6 @@ public class AuthService {
     UUID oldTokenId = jwtService.extractJti(incomingRefreshToken);
     UUID familyId = jwtService.extractFamilyId(incomingRefreshToken);
 
-
     var user = extractUserFromToken(incomingRefreshToken);
 
     log.info("Refresh token attempt. userId={}, tokenId={}",
@@ -168,7 +168,7 @@ public class AuthService {
         oldTokenId);
 
     var token = tokenRepository.findById(oldTokenId)
-        .orElseThrow(() -> new JwtException("Unknown refresh token"));
+        .orElseThrow(() -> new InvalidJwtException("Unknown refresh token"));
 
     if (token.isRevoked()) {
       log.warn("Refresh token reuse detected. Revoking entire family. userId={}, tokenId={}, familyId={}",
@@ -178,7 +178,7 @@ public class AuthService {
 
       tokenRepository.revokeByFamily(familyId);
 
-      throw new JwtException("Refresh token reuse detected. Family revoked");
+      throw new InvalidJwtException("Refresh token reuse detected. Family revoked");
     }
 
     token.setRevoked(true);
@@ -201,7 +201,8 @@ public class AuthService {
    *
    * Note:
    * JWT signature and expiration are validated during parsing of the token
-   * via JwtService. If the token is expired, malformed or has an invalid signature,
+   * via JwtService. If the token is expired, malformed or has an invalid
+   * signature,
    * a JwtException will be thrown before any business logic is executed.
    *
    * @param authHeader the Authorization header containing the Bearer refresh
@@ -283,9 +284,9 @@ public class AuthService {
     String email = jwtService.extractUsername(token);
 
     return userRepository.findByEmail(email)
-            .orElseThrow(() -> {
-              log.warn("User not found for token subject={}", email);
-              return new ResourceNotFoundException("User not found");
-            });
+        .orElseThrow(() -> {
+          log.warn("User not found for token subject={}", email);
+          return new ResourceNotFoundException("User not found");
+        });
   }
 }

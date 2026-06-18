@@ -1,7 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.common.error.handler;
 
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.*;
-import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
@@ -116,20 +115,20 @@ public class DomainExceptionHandler {
    */
   @ExceptionHandler(InvalidJwtException.class)
   public ResponseEntity<ProblemDetail> handleInvalidJwtException(
-          InvalidJwtException ex,
-          HttpServletRequest request) {
+      InvalidJwtException ex,
+      HttpServletRequest request) {
 
     log.warn("JWT error: {} {} -> {}",
-            request.getMethod(),
-            request.getRequestURI(),
-            ex.getMessage());
+        request.getMethod(),
+        request.getRequestURI(),
+        ex.getMessage());
 
     ProblemDetail problem = errorResponse(
-            HttpStatus.UNAUTHORIZED,
-            "Invalid or expired token",
-            ex.getMessage(),
-            null,
-            request);
+        HttpStatus.UNAUTHORIZED,
+        "Invalid or expired token",
+        ex.getMessage(),
+        null,
+        request);
 
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
   }
