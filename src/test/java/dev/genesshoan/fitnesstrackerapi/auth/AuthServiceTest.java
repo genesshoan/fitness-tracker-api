@@ -56,7 +56,7 @@ class AuthServiceTest {
 
   @BeforeEach
   void setUp() {
-    registerDto = new RegisterRequestDTO("shoan", "shoan@test.com", "123456");
+    registerDto = new RegisterRequestDTO("shoan", "12345678", "shoan@test.com");
 
     user = User.builder()
             .username("shoan")
