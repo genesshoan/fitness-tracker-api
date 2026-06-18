@@ -1,11 +1,9 @@
 
-package dev.genesshoan.fitnesstrackerapi;
+package dev.genesshoan.fitnesstrackerapi.user;
 
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidCredentialsException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
-import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
-import dev.genesshoan.fitnesstrackerapi.user.UserService;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import dev.genesshoan.fitnesstrackerapi.user.dto.ChangePasswordRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.user.dto.ChangeUsernameRequestDTO;
