@@ -32,7 +32,9 @@ import java.io.IOException;
  * <li>Sets the authenticated user in the SecurityContext</li>
  * </ul>
  *
- * Requests targeting /auth endpoints are not explicitly excluded from filtering; the filter only skips processing when no Bearer token is present.
+ * Requests targeting /auth endpoints are not explicitly excluded from
+ * filtering; the filter only skips processing when no Bearer token is present.
+ */
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
@@ -85,12 +87,12 @@ public class JwtFilter extends OncePerRequestFilter {
       UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
       UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-            userDetails,
-            null,
-            userDetails.getAuthorities());
+          userDetails,
+          null,
+          userDetails.getAuthorities());
 
       authToken.setDetails(
-            new WebAuthenticationDetailsSource().buildDetails(request));
+          new WebAuthenticationDetailsSource().buildDetails(request));
 
       SecurityContextHolder.getContext().setAuthentication(authToken);
     }

@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import dev.genesshoan.fitnesstrackerapi.auth.service.AuthService;
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidJwtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
