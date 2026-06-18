@@ -1,0 +1,26 @@
+@startuml
+!theme plain
+
+entity "users" {
+  * id : BIGINT <<PK>>
+  --
+  * username : VARCHAR <<UK>>
+  * email : VARCHAR <<UK>>
+  * password_hash : VARCHAR
+  * role : VARCHAR
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+}
+
+entity "tokens" {
+  * jti : UUID <<PK>>
+  --
+  * family_id : UUID
+  * revoked : BOOLEAN
+  * expires_at : TIMESTAMP
+  * user_id : BIGINT <<FK>>
+}
+
+"users" ||--o{ "tokens" : "has"
+
+@enduml

@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.common.exception.handler;
+package dev.genesshoan.fitnesstrackerapi.common.error.handler;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import static dev.genesshoan.fitnesstrackerapi.common.exception.handler.ProblemDetailUtils.errorResponse;
+import static dev.genesshoan.fitnesstrackerapi.common.error.handler.ProblemDetailUtils.errorResponse;
 
 /**
  * Global catch-all exception handler for unexpected errors.

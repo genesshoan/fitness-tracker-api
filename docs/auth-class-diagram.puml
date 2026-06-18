@@ -1,0 +1,190 @@
+@startuml
+!theme plain
+
+' =========================
+' DTOs
+' =========================
+class LoginRequestDTO <<record>> {
+  + email: String
+  + password: String
+}
+
+class RegisterRequestDTO <<record>> {
+  + username: String
+  + password: String
+  + email: String
+}
+
+class TokenResponseDTO <<record>> {
+  + accessToken: String
+  + refreshToken: String
+}
+
+' =========================
+' DOMAIN
+' =========================
+class User <<external>> {
+}
+
+class Token {
+  - jti: UUID
+  - familyId: UUID
+  - revoked: boolean
+  - expiresAt: Instant
+}
+
+' =========================
+' REPOSITORY
+' =========================
+interface TokenRepository {
+  + existsByJtiAndRevokedFalse(jti: UUID): boolean
+  + revokeByFamily(familyId: UUID): void
+}
+
+' =========================
+' SECURITY
+' =========================
+interface UserDetails {
+  + getUsername(): String
+  + getPassword(): String
+  + getAuthorities(): Collection<GrantedAuthority>
+  + isAccountNonExpired(): boolean
+  + isAccountNonLocked(): boolean
+  + isCredentialsNonExpired(): boolean
+  + isEnabled(): boolean
+}
+
+interface UserDetailsService {
+  + loadUserByUsername(username: String): UserDetails
+}
+
+class UserDetailsImpl {
+  - user: User
+}
+
+class UserDetailsServiceImpl {
+  - userRepository: UserRepository
+}
+
+class JwtFilter {
+  - jwtService: JwtService
+  - userDetailsService: UserDetailsService
+  + doFilterInternal(request, response, filterChain): void
+}
+
+class SecurityConfig {
+  - jwtFilter: JwtFilter
+  + securityFilterChain(http: HttpSecurity): SecurityFilterChain
+  + authenticationManager(config: AuthenticationConfiguration): AuthenticationManager
+  + passwordEncoder(): PasswordEncoder
+}
+
+' =========================
+' SERVICES
+' =========================
+class JwtService {
+  - secretKeyBase64: String
+  - jwtExpiration: long
+  - refreshExpiration: long
+  - secretKey: SecretKey
+  --
+  + generateToken(userDetails: UserDetails): String
+  + generateRefreshToken(userDetails: UserDetails, jti: UUID, familyId: UUID): String
+  + extractUsername(token: String): String
+  + extractJti(token: String): UUID
+  + extractFamilyId(token: String): UUID
+  + getRefreshTokenExpirationInstant(): Instant
+}
+
+class AuthService {
+  - tokenRepository: TokenRepository
+  - userRepository: UserRepository
+  - passwordEncoder: PasswordEncoder
+  - jwtService: JwtService
+  - userMapper: UserMapper
+  - authenticationManager: AuthenticationManager
+  --
+  + register(dto: RegisterRequestDTO): TokenResponseDTO
+  + login(dto: LoginRequestDTO): TokenResponseDTO
+  + refreshToken(authHeader: String): TokenResponseDTO
+  + logout(authHeader: String): void
+  - generateAndPersistTokens(user: User, familyId: UUID): TokenResponseDTO
+  - extractBearerToken(authHeader: String): String
+  - extractUserFromToken(token: String): User
+}
+
+' =========================
+' MAPPER
+' =========================
+interface UserMapper <<external>> {
+}
+
+' =========================
+' CONTROLLER
+' =========================
+class AuthController {
+  - authService: AuthService
+  --
+  + register(dto: RegisterRequestDTO): ResponseEntity<TokenResponseDTO>
+  + login(dto: LoginRequestDTO): ResponseEntity<TokenResponseDTO>
+  + refresh(authHeader: String): ResponseEntity<TokenResponseDTO>
+  + logout(authHeader: String): ResponseEntity<Void>
+}
+
+' =========================
+' EXCEPCIONES
+' =========================
+class RuntimeException {}
+class BadRequestException {}
+class InvalidCredentialsException {}
+class InvalidJwtException {}
+class ResourceAlreadyExistsException {}
+class ResourceNotFoundException {}
+
+' =========================
+' HERENCIA
+' =========================
+RuntimeException <|-- BadRequestException
+RuntimeException <|-- InvalidCredentialsException
+RuntimeException <|-- InvalidJwtException
+RuntimeException <|-- ResourceAlreadyExistsException
+RuntimeException <|-- ResourceNotFoundException
+
+' =========================
+' REALIZACION
+' =========================
+UserDetails <|.. UserDetailsImpl
+UserDetailsService <|.. UserDetailsServiceImpl
+
+' =========================
+' COMPOSICION
+' =========================
+AuthController *-- AuthService
+AuthService *-- JwtService
+AuthService *-- TokenRepository
+JwtFilter *-- JwtService
+JwtFilter *-- UserDetailsService
+SecurityConfig *-- JwtFilter
+UserDetailsServiceImpl *-- UserRepository
+
+' =========================
+' AGREGACION
+' =========================
+Token "0..*" --o "1" User
+UserDetailsImpl o-- User
+
+' =========================
+' DEPENDENCIA
+' =========================
+UserDetailsServiceImpl ..> UserDetailsImpl : <<creates>>
+AuthService ..> TokenResponseDTO : <<returns>>
+AuthService ..> BadRequestException : <<throws>>
+AuthService ..> InvalidCredentialsException : <<throws>>
+AuthService ..> ResourceAlreadyExistsException : <<throws>>
+AuthService ..> ResourceNotFoundException : <<throws>>
+AuthController ..> LoginRequestDTO : <<uses>>
+AuthController ..> RegisterRequestDTO : <<uses>>
+AuthController ..> TokenResponseDTO : <<uses>>
+TokenRepository ..> Token : <<manages>>
+
+@enduml
