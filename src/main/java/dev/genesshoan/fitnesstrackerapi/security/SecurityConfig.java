@@ -70,17 +70,19 @@ public class SecurityConfig {
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
     return http
-        .csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/v1/auth/**").permitAll()
+            .csrf(AbstractHttpConfigurer::disable)
+            .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/api/v1/auth/**").permitAll()
 
-            .requestMatchers(HttpMethod.GET, "/api/v1/user/me").authenticated()
-            .requestMatchers(HttpMethod.PUT, "/api/v1/user/me/**").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/user/me").authenticated()
+                    .requestMatchers(HttpMethod.PUT, "/api/v1/user/me/**").authenticated()
 
-            .anyRequest().authenticated())
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-        .build();
+                    .requestMatchers(HttpMethod.GET, "/api/v1/muscles/**").authenticated()
+
+                    .anyRequest().authenticated())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+            .build();
   }
 
   /**
