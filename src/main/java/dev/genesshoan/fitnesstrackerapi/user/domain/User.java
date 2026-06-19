@@ -15,8 +15,6 @@ import lombok.experimental.SuperBuilder;
 @Table(name = "users", uniqueConstraints = {
     @UniqueConstraint(name = "uk_user_username", columnNames = "username"),
     @UniqueConstraint(name = "uk_user_email", columnNames = "email")
-}, indexes = {
-    @Index(name = "idx_user_email", columnList = "email")
 })
 public class User extends BaseEntity {
 
