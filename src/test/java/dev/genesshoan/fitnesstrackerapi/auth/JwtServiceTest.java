@@ -3,7 +3,6 @@ package dev.genesshoan.fitnesstrackerapi.auth;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import dev.genesshoan.fitnesstrackerapi.AbstractIntegrationTest;
 import dev.genesshoan.fitnesstrackerapi.auth.service.JwtService;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidJwtException;
 import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
