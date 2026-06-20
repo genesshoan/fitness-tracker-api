@@ -1,6 +1,5 @@
 package dev.genesshoan.fitnesstrackerapi.exercise.muscle;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.Muscle;
 import dev.genesshoan.fitnesstrackerapi.exercise.muscle.dto.MuscleResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -23,58 +22,67 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/muscles")
-@Tag(name = "Muscles", description = "Endpoints for managing and retrieving muscles")
+@Tag(
+    name = "Muscles",
+    description = "Endpoints for managing and retrieving muscles"
+)
 public class MuscleController {
 
     private final MuscleService muscleService;
 
     @Operation(
-            summary = "Gets all muscles",
-            description = "Returns a paginated list of all muscles"
+        summary = "Gets all muscles",
+        description = "Returns a paginated list of all muscles"
     )
-    @ApiResponses(value = {
+    @ApiResponses(
+        value = {
             @ApiResponse(
-                    responseCode = "200",
-                    description = "Muscles retrieved successfully",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = MuscleResponseDTO.class)
-                    )
-            )
-    })
+                responseCode = "200",
+                description = "Muscles retrieved successfully",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = MuscleResponseDTO.class)
+                )
+            ),
+        }
+    )
     @GetMapping
-    public ResponseEntity<Page<MuscleResponseDTO>> getMuscles(@ParameterObject Pageable pageable) {
-
+    public ResponseEntity<Page<MuscleResponseDTO>> getMuscles(
+        @ParameterObject Pageable pageable
+    ) {
         Page<MuscleResponseDTO> muscles = muscleService.getMuscles(pageable);
 
         return ResponseEntity.ok(muscles);
     }
 
     @Operation(
-            summary = "Gets a muscle by its slug",
-            description = "Returns a muscle by its slug"
+        summary = "Gets a muscle by its slug",
+        description = "Returns a muscle by its slug"
     )
-    @ApiResponses(value = {
+    @ApiResponses(
+        value = {
             @ApiResponse(
-                    responseCode = "200",
-                    description = "Muscle retrieved successfully",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = MuscleResponseDTO.class)
-                    )
+                responseCode = "200",
+                description = "Muscle retrieved successfully",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = MuscleResponseDTO.class)
+                )
             ),
             @ApiResponse(
-                    responseCode = "404",
-                    description = "Muscle not found",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation =  MuscleResponseDTO.class)
-                    )
-            )
-    })
+                responseCode = "404",
+                description = "Muscle not found",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = MuscleResponseDTO.class)
+                )
+            ),
+        }
+    )
     @GetMapping("/{slug}")
-    public ResponseEntity<MuscleResponseDTO> getMuscle(@PathVariable String slug) {
-
+    public ResponseEntity<MuscleResponseDTO> getMuscle(
+        @PathVariable String slug
+    ) {
         var muscle = muscleService.getMuscleBySlug(slug);
 
         return ResponseEntity.ok(muscle);
