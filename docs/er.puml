@@ -21,7 +21,7 @@ entity "tokens" {
   * user_id : BIGINT <<FK>>
 }
 
-entity "muscle_groups" {
+entity "muscles" {
   * id : BIGINT <<PK>>
   --
   * name : VARCHAR

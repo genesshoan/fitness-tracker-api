@@ -6,10 +6,37 @@ Controllers expose with prefix **`/api/v1`**.
 ## Roles
 'ROLE_ADMIN', 'ROLE_USER'.
 
-## Auth
-| Método | Endpoint | Roles | Request DTO | Response DTO |
-|--------|----------|-------|-------------|--------------|
-| POST | `/api/v1/auth/register` | PUBLIC | `RegisterRequestDTO` | `TokenResponseDTO` |
-| POST | `/api/v1/auth/login` | PUBLIC | `LoginRequestDTO` | `TokenResponseDTO` |
-| POST | `/api/v1/auth/refresh` | PUBLIC | - | `TokenResponseDTO` |
-| DELETE | `/api/v1/auth/logout` | PUBLIC (Authorization: Bearer <refresh_token>) | - | `204 No Content` |
+### Auth
+
+| Método | Endpoint | Auth | Request | Response | Status |
+|--------|----------|------|----------|----------|--------|
+| POST | `/api/v1/auth/register` | No | `RegisterRequestDTO` | `TokenResponseDTO` | 200 |
+| POST | `/api/v1/auth/login` | No | `LoginRequestDTO` | `TokenResponseDTO` | 200 |
+| POST | `/api/v1/auth/refresh` | No | None | `TokenResponseDTO` | 200 |
+| DELETE | `/api/v1/auth/logout` | Required | None | None | 204 |
+
+---
+
+## User
+
+### Profile
+
+| Método | Endpoint | Auth | Request | Response | Status |
+|--------|----------|------|----------|----------|--------|
+| GET | `/api/v1/user/me` | Required | None | `UserResponseDTO` | 200 |
+
+### Credentials
+
+| Método | Endpoint | Auth | Request | Response | Status |
+|--------|----------|------|----------|----------|--------|
+| PUT | `/api/v1/user/me/password` | Required | `ChangePasswordRequestDTO` | None | 204 |
+| PUT | `/api/v1/user/me/username` | Required | `ChangeUsernameRequestDTO` | None | 204 |
+
+---
+
+## Muscles
+
+| Método | Endpoint | Auth | Request | Response | Status |
+|--------|----------|------|----------|----------|--------|
+| GET | `/api/v1/muscles` | Required | None | `Page<MuscleResponseDTO>` | 200 |
+| GET | `/api/v1/muscles/{slug}` | Required | None | `MuscleResponseDTO` | 200 |
