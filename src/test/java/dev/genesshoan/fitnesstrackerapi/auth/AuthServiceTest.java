@@ -7,12 +7,24 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import dev.genesshoan.fitnesstrackerapi.auth.domain.Token;
+import dev.genesshoan.fitnesstrackerapi.auth.dto.LoginRequestDTO;
+import dev.genesshoan.fitnesstrackerapi.auth.dto.RegisterRequestDTO;
+import dev.genesshoan.fitnesstrackerapi.auth.dto.TokenResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.auth.service.AuthService;
+import dev.genesshoan.fitnesstrackerapi.auth.service.JwtService;
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidJwtException;
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyExistsException;
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
+import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
+import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
+import dev.genesshoan.fitnesstrackerapi.user.domain.Role;
+import dev.genesshoan.fitnesstrackerapi.user.domain.User;
+import dev.genesshoan.fitnesstrackerapi.user.mapper.UserMapper;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
-
-import dev.genesshoan.fitnesstrackerapi.auth.service.AuthService;
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidJwtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,226 +35,271 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import dev.genesshoan.fitnesstrackerapi.auth.domain.Token;
-import dev.genesshoan.fitnesstrackerapi.auth.dto.LoginRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.auth.dto.RegisterRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.auth.dto.TokenResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.auth.service.JwtService;
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyExistsException;
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
-import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
-import dev.genesshoan.fitnesstrackerapi.user.domain.Role;
-import dev.genesshoan.fitnesstrackerapi.user.domain.User;
-import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
-import dev.genesshoan.fitnesstrackerapi.user.mapper.UserMapper;
-import io.jsonwebtoken.JwtException;
-
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
-  @Mock private TokenRepository tokenRepository;
-  @Mock private UserRepository userRepository;
-  @Mock private PasswordEncoder passwordEncoder;
-  @Mock private JwtService jwtService;
-  @Mock private UserMapper userMapper;
-  @Mock private AuthenticationManager authenticationManager;
+    @Mock
+    private TokenRepository tokenRepository;
 
-  @InjectMocks private AuthService authService;
+    @Mock
+    private UserRepository userRepository;
 
-  private RegisterRequestDTO registerDto;
-  private User user;
-  private User savedUser;
-  private Token token;
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
-  @BeforeEach
-  void setUp() {
-    registerDto = new RegisterRequestDTO("shoan", "12345678", "shoan@test.com");
+    @Mock
+    private JwtService jwtService;
 
-    user = User.builder()
-            .username("shoan")
-            .email("shoan@test.com")
-            .build();
+    @Mock
+    private UserMapper userMapper;
 
-    savedUser = User.builder()
+    @Mock
+    private AuthenticationManager authenticationManager;
+
+    @InjectMocks
+    private AuthService authService;
+
+    private RegisterRequestDTO registerDto;
+    private User user;
+    private User savedUser;
+    private Token token;
+
+    @BeforeEach
+    void setUp() {
+        registerDto = new RegisterRequestDTO(
+            "shoan",
+            "12345678",
+            "shoan@test.com"
+        );
+
+        user = User.builder().username("shoan").email("shoan@test.com").build();
+
+        savedUser = User.builder()
             .id(1L)
             .username("shoan")
             .email("shoan@test.com")
             .build();
 
-    token = Token.builder()
+        token = Token.builder()
             .jti(UUID.randomUUID())
             .familyId(UUID.randomUUID())
             .build();
-  }
+    }
 
-  @Test
-  void register_shouldRegisterUserSuccessfully() {
+    @Test
+    void register_shouldRegisterUserSuccessfully() {
+        when(
+            userRepository.existsByUsername(registerDto.username())
+        ).thenReturn(false);
+        when(userRepository.existsByEmail(registerDto.email())).thenReturn(
+            false
+        );
 
-    when(userRepository.existsByUsername(registerDto.username())).thenReturn(false);
-    when(userRepository.existsByEmail(registerDto.email())).thenReturn(false);
+        when(userMapper.toEntity(registerDto)).thenReturn(user);
+        when(passwordEncoder.encode(registerDto.password())).thenReturn(
+            "encoded-password"
+        );
+        when(userRepository.save(user)).thenReturn(savedUser);
 
-    when(userMapper.toEntity(registerDto)).thenReturn(user);
-    when(passwordEncoder.encode(registerDto.password())).thenReturn("encoded-password");
-    when(userRepository.save(user)).thenReturn(savedUser);
+        when(tokenRepository.save(any(Token.class))).thenReturn(token);
+        when(jwtService.getRefreshTokenExpirationInstant()).thenReturn(
+            Instant.now().plusSeconds(86400)
+        );
 
-    when(tokenRepository.save(any(Token.class))).thenReturn(token);
-    when(jwtService.getRefreshTokenExpirationInstant()).thenReturn(Instant.now().plusSeconds(86400));
+        when(jwtService.generateToken(any(UserDetailsImpl.class))).thenReturn(
+            "access-token"
+        );
+        when(
+            jwtService.generateRefreshToken(
+                any(UserDetailsImpl.class),
+                eq(token.getJti()),
+                any(UUID.class)
+            )
+        ).thenReturn("refresh-token");
 
-    when(jwtService.generateToken(any(UserDetailsImpl.class))).thenReturn("access-token");
-    when(jwtService.generateRefreshToken(any(UserDetailsImpl.class), eq(token.getJti()), any(UUID.class)))
-            .thenReturn("refresh-token");
+        TokenResponseDTO result = authService.register(registerDto);
 
-    TokenResponseDTO result = authService.register(registerDto);
+        assertThat(result.accessToken()).isEqualTo("access-token");
+        assertThat(result.refreshToken()).isEqualTo("refresh-token");
 
-    assertThat(result.accessToken()).isEqualTo("access-token");
-    assertThat(result.refreshToken()).isEqualTo("refresh-token");
+        assertThat(user.getRole()).isEqualTo(Role.USER);
+        assertThat(user.getPasswordHash()).isEqualTo("encoded-password");
 
-    assertThat(user.getRole()).isEqualTo(Role.USER);
-    assertThat(user.getPasswordHash()).isEqualTo("encoded-password");
+        verify(userRepository).save(user);
+        verify(tokenRepository).save(any(Token.class));
+    }
 
-    verify(userRepository).save(user);
-    verify(tokenRepository).save(any(Token.class));
-  }
+    @Test
+    void register_shouldThrowWhenUsernameExists() {
+        when(
+            userRepository.existsByUsername(registerDto.username())
+        ).thenReturn(true);
 
-  @Test
-  void register_shouldThrowWhenUsernameExists() {
+        assertThatThrownBy(() ->
+            authService.register(registerDto)
+        ).isInstanceOf(ResourceAlreadyExistsException.class);
 
-    when(userRepository.existsByUsername(registerDto.username())).thenReturn(true);
+        verify(userRepository, never()).save(any());
+    }
 
-    assertThatThrownBy(() -> authService.register(registerDto))
-            .isInstanceOf(ResourceAlreadyExistsException.class);
+    @Test
+    void register_shouldThrowWhenEmailExists() {
+        when(userRepository.existsByEmail(registerDto.email())).thenReturn(
+            true
+        );
 
-    verify(userRepository, never()).save(any());
-  }
+        assertThatThrownBy(() ->
+            authService.register(registerDto)
+        ).isInstanceOf(ResourceAlreadyExistsException.class);
 
-  @Test
-  void register_shouldThrowWhenEmailExists() {
+        verify(userRepository, never()).save(any());
+    }
 
-    when(userRepository.existsByEmail(registerDto.email())).thenReturn(true);
+    @Test
+    void login_shouldThrowWhenUserNotFound() {
+        when(authenticationManager.authenticate(any())).thenReturn(
+            mock(Authentication.class)
+        );
+        when(userRepository.findByEmail(anyString())).thenReturn(
+            Optional.empty()
+        );
 
-    assertThatThrownBy(() -> authService.register(registerDto))
-            .isInstanceOf(ResourceAlreadyExistsException.class);
+        LoginRequestDTO dto = new LoginRequestDTO("test@test.com", "password");
 
-    verify(userRepository, never()).save(any());
-  }
+        assertThatThrownBy(() -> authService.login(dto)).isInstanceOf(
+            ResourceNotFoundException.class
+        );
+    }
 
-  @Test
-  void login_shouldThrowWhenUserNotFound() {
+    @Test
+    void login_shouldLoginSuccessfully() {
+        when(authenticationManager.authenticate(any())).thenReturn(
+            mock(Authentication.class)
+        );
+        when(userRepository.findByEmail(anyString())).thenReturn(
+            Optional.of(savedUser)
+        );
 
-    when(authenticationManager.authenticate(any())).thenReturn(mock(Authentication.class));
-    when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        when(tokenRepository.save(any(Token.class))).thenReturn(token);
+        when(jwtService.getRefreshTokenExpirationInstant()).thenReturn(
+            Instant.now().plusSeconds(86400)
+        );
 
-    LoginRequestDTO dto = new LoginRequestDTO("test@test.com", "password");
+        when(jwtService.generateToken(any(UserDetailsImpl.class))).thenReturn(
+            "access-token"
+        );
+        when(
+            jwtService.generateRefreshToken(
+                any(UserDetailsImpl.class),
+                eq(token.getJti()),
+                any(UUID.class)
+            )
+        ).thenReturn("refresh-token");
 
-    assertThatThrownBy(() -> authService.login(dto))
-            .isInstanceOf(ResourceNotFoundException.class);
-  }
+        TokenResponseDTO result = authService.login(
+            new LoginRequestDTO("shoan@test.com", "password")
+        );
 
-  @Test
-  void login_shouldLoginSuccessfully() {
+        assertThat(result.accessToken()).isEqualTo("access-token");
+        assertThat(result.refreshToken()).isEqualTo("refresh-token");
 
-    when(authenticationManager.authenticate(any())).thenReturn(mock(Authentication.class));
-    when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(savedUser));
+        verify(tokenRepository).save(any(Token.class));
+    }
 
-    when(tokenRepository.save(any(Token.class))).thenReturn(token);
-    when(jwtService.getRefreshTokenExpirationInstant()).thenReturn(Instant.now().plusSeconds(86400));
+    @Test
+    void refresh_shouldThrowWhenHeaderInvalid() {
+        assertThatThrownBy(() ->
+            authService.refreshToken("invalid")
+        ).isInstanceOf(BadRequestException.class);
 
-    when(jwtService.generateToken(any(UserDetailsImpl.class))).thenReturn("access-token");
-    when(jwtService.generateRefreshToken(any(UserDetailsImpl.class), eq(token.getJti()), any(UUID.class)))
-            .thenReturn("refresh-token");
+        assertThatThrownBy(() -> authService.refreshToken(null)).isInstanceOf(
+            BadRequestException.class
+        );
 
-    TokenResponseDTO result =
-            authService.login(new LoginRequestDTO("shoan@test.com", "password"));
+        verifyNoInteractions(tokenRepository);
+    }
 
-    assertThat(result.accessToken()).isEqualTo("access-token");
-    assertThat(result.refreshToken()).isEqualTo("refresh-token");
+    @Test
+    void refresh_shouldThrowWhenTokenReused() {
+        String rawToken = "token";
 
-    verify(tokenRepository).save(any(Token.class));
-  }
+        UUID jti = UUID.randomUUID();
+        UUID familyId = UUID.randomUUID();
 
-  @Test
-  void refresh_shouldThrowWhenHeaderInvalid() {
+        when(jwtService.extractJti(rawToken)).thenReturn(jti);
+        when(jwtService.extractFamilyId(rawToken)).thenReturn(familyId);
+        when(jwtService.extractUsername(rawToken)).thenReturn("test@test.com");
 
-    assertThatThrownBy(() -> authService.refreshToken("invalid"))
-            .isInstanceOf(BadRequestException.class);
+        when(userRepository.findByEmail(anyString())).thenReturn(
+            Optional.of(user)
+        );
 
-    assertThatThrownBy(() -> authService.refreshToken(null))
-            .isInstanceOf(BadRequestException.class);
+        Token dbToken = Token.builder().jti(jti).familyId(familyId).build();
+        dbToken.setRevoked(true);
 
-    verifyNoInteractions(tokenRepository);
-  }
+        when(tokenRepository.findById(jti)).thenReturn(Optional.of(dbToken));
 
-  @Test
-  void refresh_shouldThrowWhenTokenReused() {
-
-    String rawToken = "token";
-
-    UUID jti = UUID.randomUUID();
-    UUID familyId = UUID.randomUUID();
-
-    when(jwtService.extractJti(rawToken)).thenReturn(jti);
-    when(jwtService.extractFamilyId(rawToken)).thenReturn(familyId);
-    when(jwtService.extractUsername(rawToken)).thenReturn("test@test.com");
-
-    when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
-
-    Token dbToken = Token.builder()
-            .jti(jti)
-            .familyId(familyId)
-            .build();
-    dbToken.setRevoked(true);
-
-    when(tokenRepository.findById(jti)).thenReturn(Optional.of(dbToken));
-
-    assertThatThrownBy(() -> authService.refreshToken("Bearer " + rawToken))
+        assertThatThrownBy(() -> authService.refreshToken("Bearer " + rawToken))
             .isInstanceOf(InvalidJwtException.class)
             .hasMessage("Refresh token reuse detected. Family revoked");
-    verify(tokenRepository).revokeByFamily(familyId);
-  }
+        verify(tokenRepository).revokeByFamily(familyId);
+    }
 
-  @Test
-  void refresh_shouldRefreshSuccessfully() {
+    @Test
+    void refresh_shouldRefreshSuccessfully() {
+        String rawToken = "token";
 
-    String rawToken = "token";
+        UUID jti = UUID.randomUUID();
+        UUID familyId = UUID.randomUUID();
 
-    UUID jti = UUID.randomUUID();
-    UUID familyId = UUID.randomUUID();
+        when(jwtService.extractJti(rawToken)).thenReturn(jti);
+        when(jwtService.extractFamilyId(rawToken)).thenReturn(familyId);
+        when(jwtService.extractUsername(rawToken)).thenReturn("test@test.com");
 
-    when(jwtService.extractJti(rawToken)).thenReturn(jti);
-    when(jwtService.extractFamilyId(rawToken)).thenReturn(familyId);
-    when(jwtService.extractUsername(rawToken)).thenReturn("test@test.com");
+        when(userRepository.findByEmail(anyString())).thenReturn(
+            Optional.of(user)
+        );
 
-    when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
+        when(tokenRepository.findById(jti)).thenReturn(Optional.of(token));
+        when(tokenRepository.save(any(Token.class))).thenReturn(token);
 
-    when(tokenRepository.findById(jti)).thenReturn(Optional.of(token));
-    when(tokenRepository.save(any(Token.class))).thenReturn(token);
+        when(jwtService.getRefreshTokenExpirationInstant()).thenReturn(
+            Instant.now().plusSeconds(86400)
+        );
+        when(jwtService.generateToken(any(UserDetailsImpl.class))).thenReturn(
+            "access-token"
+        );
+        when(
+            jwtService.generateRefreshToken(
+                any(UserDetailsImpl.class),
+                eq(token.getJti()),
+                any(UUID.class)
+            )
+        ).thenReturn("refresh-token");
 
-    when(jwtService.getRefreshTokenExpirationInstant()).thenReturn(Instant.now().plusSeconds(86400));
-    when(jwtService.generateToken(any(UserDetailsImpl.class))).thenReturn("access-token");
-    when(jwtService.generateRefreshToken(any(UserDetailsImpl.class), eq(token.getJti()), any(UUID.class)))
-            .thenReturn("refresh-token");
+        TokenResponseDTO result = authService.refreshToken(
+            "Bearer " + rawToken
+        );
 
-    TokenResponseDTO result = authService.refreshToken("Bearer " + rawToken);
+        assertThat(result.accessToken()).isEqualTo("access-token");
+        assertThat(result.refreshToken()).isEqualTo("refresh-token");
 
-    assertThat(result.accessToken()).isEqualTo("access-token");
-    assertThat(result.refreshToken()).isEqualTo("refresh-token");
+        verify(tokenRepository).save(any(Token.class));
+    }
 
-    verify(tokenRepository).save(any(Token.class));
-  }
+    @Test
+    void logout_shouldRevokeFamily() {
+        String rawToken = "token";
+        UUID familyId = UUID.randomUUID();
 
-  @Test
-  void logout_shouldRevokeFamily() {
+        when(jwtService.extractUsername(rawToken)).thenReturn("test@test.com");
+        when(userRepository.findByEmail("test@test.com")).thenReturn(
+            Optional.of(user)
+        );
+        when(jwtService.extractFamilyId(rawToken)).thenReturn(familyId);
 
-    String rawToken = "token";
-    UUID familyId = UUID.randomUUID();
+        authService.logout("Bearer " + rawToken);
 
-    when(jwtService.extractUsername(rawToken)).thenReturn("test@test.com");
-    when(userRepository.findByEmail("test@test.com")).thenReturn(Optional.of(user));
-    when(jwtService.extractFamilyId(rawToken)).thenReturn(familyId);
-
-    authService.logout("Bearer " + rawToken);
-
-    verify(tokenRepository).revokeByFamily(familyId);
-  }
+        verify(tokenRepository).revokeByFamily(familyId);
+    }
 }
