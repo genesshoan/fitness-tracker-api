@@ -21,6 +21,16 @@ entity "tokens" {
   * user_id : BIGINT <<FK>>
 }
 
+entity "muscles" {
+  * id : BIGINT <<PK>>
+  --
+  * name : VARCHAR
+  * slug : VARCHAR
+  * body_region : VARCHAR
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+}
+
 "users" ||--o{ "tokens" : "has"
 
 @enduml
