@@ -1,6 +1,11 @@
-
 package dev.genesshoan.fitnesstrackerapi.user;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.github.f4b6a3.uuid.UuidCreator;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidCredentialsException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
@@ -9,6 +14,8 @@ import dev.genesshoan.fitnesstrackerapi.user.dto.ChangePasswordRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.user.dto.ChangeUsernameRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.user.dto.UserResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.user.mapper.UserMapper;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,194 +23,192 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
-  @Mock
-  private UserRepository userRepository;
+    @Mock
+    private UserRepository userRepository;
 
-  @Mock
-  private PasswordEncoder passwordEncoder;
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
-  @Mock
-  private UserMapper userMapper;
+    @Mock
+    private UserMapper userMapper;
 
-  @InjectMocks
-  private UserService userService;
+    @InjectMocks
+    private UserService userService;
 
-  @Test
-  void getProfile_ShouldReturnProfile() {
+    private static final UUID userId = UUID.fromString(
+        "01932f4a-1234-7000-8000-123456789abc"
+    );
 
-    User user = User.builder()
-        .id(1L)
-        .build();
+    @Test
+    void getProfile_ShouldReturnProfile() {
+        User user = User.builder()
+            .id(UuidCreator.getTimeOrderedEpoch())
+            .build();
 
-    UserResponseDTO dto = new UserResponseDTO("test@test.com", "tester");
+        UserResponseDTO dto = new UserResponseDTO("test@test.com", "tester");
 
-    when(userRepository.findById(1L))
-        .thenReturn(Optional.of(user));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-    when(userMapper.toResponseDTO(user))
-        .thenReturn(dto);
+        when(userMapper.toResponseDTO(user)).thenReturn(dto);
 
-    UserResponseDTO result = userService.getProfile(1L);
+        UserResponseDTO result = userService.getProfile(userId);
 
-    assertThat(result).isEqualTo(dto);
+        assertThat(result).isEqualTo(dto);
 
-    verify(userRepository).findById(1L);
-    verify(userMapper).toResponseDTO(user);
-  }
+        verify(userRepository).findById(userId);
+        verify(userMapper).toResponseDTO(user);
+    }
 
-  @Test
-  void getProfile_ShouldThrowException_WhenUserNotFound() {
+    @Test
+    void getProfile_ShouldThrowException_WhenUserNotFound() {
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-    when(userRepository.findById(1L))
-        .thenReturn(Optional.empty());
+        assertThatThrownBy(() -> userService.getProfile(userId)).isInstanceOf(
+            ResourceNotFoundException.class
+        );
+    }
 
-    assertThatThrownBy(() -> userService.getProfile(1L))
-        .isInstanceOf(ResourceNotFoundException.class);
-  }
+    @Test
+    void changePassword_ShouldThrowException_WhenUserNotFound() {
+        ChangePasswordRequestDTO dto = new ChangePasswordRequestDTO(
+            "oldPassword",
+            "newPassword"
+        );
 
-  @Test
-  void changePassword_ShouldThrowException_WhenUserNotFound() {
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-    ChangePasswordRequestDTO dto = new ChangePasswordRequestDTO("oldPassword", "newPassword");
+        assertThatThrownBy(() ->
+            userService.changePassword(userId, dto)
+        ).isInstanceOf(ResourceNotFoundException.class);
+    }
 
-    when(userRepository.findById(1L))
-        .thenReturn(Optional.empty());
+    @Test
+    void changePassword_ShouldChangePasswordSuccessfully() {
+        User user = User.builder()
+            .id(userId)
+            .email("test@test.com")
+            .passwordHash("oldHash")
+            .build();
 
-    assertThatThrownBy(() -> userService.changePassword(1L, dto))
-        .isInstanceOf(ResourceNotFoundException.class);
-  }
+        ChangePasswordRequestDTO dto = new ChangePasswordRequestDTO(
+            "oldPassword",
+            "newPassword"
+        );
 
-  @Test
-  void changePassword_ShouldChangePasswordSuccessfully() {
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-    User user = User.builder()
-        .id(1L)
-        .email("test@test.com")
-        .passwordHash("oldHash")
-        .build();
+        when(passwordEncoder.matches("oldPassword", "oldHash")).thenReturn(
+            true
+        );
 
-    ChangePasswordRequestDTO dto = new ChangePasswordRequestDTO("oldPassword", "newPassword");
+        when(passwordEncoder.matches("newPassword", "oldHash")).thenReturn(
+            false
+        );
 
-    when(userRepository.findById(1L))
-        .thenReturn(Optional.of(user));
+        when(passwordEncoder.encode("newPassword")).thenReturn("newHash");
 
-    when(passwordEncoder.matches("oldPassword", "oldHash"))
-        .thenReturn(true);
+        userService.changePassword(userId, dto);
 
-    when(passwordEncoder.matches("newPassword", "oldHash"))
-        .thenReturn(false);
+        assertThat(user.getPasswordHash()).isEqualTo("newHash");
 
-    when(passwordEncoder.encode("newPassword"))
-        .thenReturn("newHash");
+        verify(passwordEncoder).encode("newPassword");
+    }
 
-    userService.changePassword(1L, dto);
+    @Test
+    void changePassword_ShouldThrowException_WhenWrongPassword() {
+        User user = User.builder()
+            .id(userId)
+            .email("test@test.com")
+            .passwordHash("oldHash")
+            .build();
 
-    assertThat(user.getPasswordHash())
-        .isEqualTo("newHash");
+        ChangePasswordRequestDTO dto = new ChangePasswordRequestDTO(
+            "oldPassword",
+            "newPassword"
+        );
 
-    verify(passwordEncoder).encode("newPassword");
-  }
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-  @Test
-  void changePassword_ShouldThrowException_WhenWrongPassword() {
+        when(passwordEncoder.matches("oldPassword", "oldHash")).thenReturn(
+            false
+        );
 
-    User user = User.builder()
-        .id(1L)
-        .email("test@test.com")
-        .passwordHash("oldHash")
-        .build();
+        assertThatThrownBy(() ->
+            userService.changePassword(userId, dto)
+        ).isInstanceOf(InvalidCredentialsException.class);
+    }
 
-    ChangePasswordRequestDTO dto = new ChangePasswordRequestDTO("oldPassword", "newPassword");
+    @Test
+    void changePassword_ShouldThrowException_WhenSamePassword() {
+        User user = User.builder()
+            .id(userId)
+            .email("test@test.com")
+            .passwordHash("oldHash")
+            .build();
 
-    when(userRepository.findById(1L))
-        .thenReturn(Optional.of(user));
+        ChangePasswordRequestDTO dto = new ChangePasswordRequestDTO(
+            "oldPassword",
+            "newPassword"
+        );
 
-    when(passwordEncoder.matches("oldPassword", "oldHash"))
-        .thenReturn(false);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-    assertThatThrownBy(() -> userService.changePassword(1L, dto))
-        .isInstanceOf(InvalidCredentialsException.class);
-  }
+        when(passwordEncoder.matches("oldPassword", "oldHash")).thenReturn(
+            true
+        );
 
-  @Test
-  void changePassword_ShouldThrowException_WhenSamePassword() {
+        when(passwordEncoder.matches("newPassword", "oldHash")).thenReturn(
+            true
+        );
 
-    User user = User.builder()
-        .id(1L)
-        .email("test@test.com")
-        .passwordHash("oldHash")
-        .build();
+        assertThatThrownBy(() ->
+            userService.changePassword(userId, dto)
+        ).isInstanceOf(BadRequestException.class);
+    }
 
-    ChangePasswordRequestDTO dto = new ChangePasswordRequestDTO("oldPassword", "newPassword");
+    @Test
+    void changeUsername_ShouldChangeUsernameSuccessfully() {
+        User user = User.builder().id(userId).username("oldUsername").build();
 
-    when(userRepository.findById(1L))
-        .thenReturn(Optional.of(user));
+        ChangeUsernameRequestDTO dto = new ChangeUsernameRequestDTO(
+            "newUsername"
+        );
 
-    when(passwordEncoder.matches("oldPassword", "oldHash"))
-        .thenReturn(true);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-    when(passwordEncoder.matches("newPassword", "oldHash"))
-        .thenReturn(true);
+        userService.changeUsername(userId, dto);
 
-    assertThatThrownBy(() -> userService.changePassword(1L, dto))
-        .isInstanceOf(BadRequestException.class);
-  }
+        assertThat(user.getUsername()).isEqualTo("newUsername");
+    }
 
-  @Test
-  void changeUsername_ShouldChangeUsernameSuccessfully() {
+    @Test
+    void changeUsername_ShouldThrowException_WhenSameUsername() {
+        User user = User.builder().id(userId).username("oldUsername").build();
 
-    User user = User.builder()
-        .id(1L)
-        .username("oldUsername")
-        .build();
+        ChangeUsernameRequestDTO dto = new ChangeUsernameRequestDTO(
+            "oldUsername"
+        );
 
-    ChangeUsernameRequestDTO dto = new ChangeUsernameRequestDTO("newUsername");
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-    when(userRepository.findById(1L))
-        .thenReturn(Optional.of(user));
+        assertThatThrownBy(() ->
+            userService.changeUsername(userId, dto)
+        ).isInstanceOf(BadRequestException.class);
+    }
 
-    userService.changeUsername(1L, dto);
+    @Test
+    void changeUsername_ShouldThrowException_WhenUserNotFound() {
+        ChangeUsernameRequestDTO dto = new ChangeUsernameRequestDTO(
+            "newUsername"
+        );
 
-    assertThat(user.getUsername())
-        .isEqualTo("newUsername");
-  }
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-  @Test
-  void changeUsername_ShouldThrowException_WhenSameUsername() {
-
-    User user = User.builder()
-        .id(1L)
-        .username("oldUsername")
-        .build();
-
-    ChangeUsernameRequestDTO dto = new ChangeUsernameRequestDTO("oldUsername");
-
-    when(userRepository.findById(1L))
-        .thenReturn(Optional.of(user));
-
-    assertThatThrownBy(() -> userService.changeUsername(1L, dto))
-        .isInstanceOf(BadRequestException.class);
-  }
-
-  @Test
-  void changeUsername_ShouldThrowException_WhenUserNotFound() {
-
-    ChangeUsernameRequestDTO dto = new ChangeUsernameRequestDTO("newUsername");
-
-    when(userRepository.findById(1L))
-        .thenReturn(Optional.empty());
-
-    assertThatThrownBy(() -> userService.changeUsername(1L, dto))
-        .isInstanceOf(ResourceNotFoundException.class);
-  }
+        assertThatThrownBy(() ->
+            userService.changeUsername(userId, dto)
+        ).isInstanceOf(ResourceNotFoundException.class);
+    }
 }

@@ -63,6 +63,7 @@ class AuthServiceTest {
     private User user;
     private User savedUser;
     private Token token;
+    private UUID userId;
 
     @BeforeEach
     void setUp() {
@@ -72,10 +73,12 @@ class AuthServiceTest {
             "shoan@test.com"
         );
 
+        userId = UUID.randomUUID();
+
         user = User.builder().username("shoan").email("shoan@test.com").build();
 
         savedUser = User.builder()
-            .id(1L)
+            .id(userId)
             .username("shoan")
             .email("shoan@test.com")
             .build();
@@ -109,6 +112,7 @@ class AuthServiceTest {
         when(jwtService.generateToken(any(UserDetailsImpl.class))).thenReturn(
             "access-token"
         );
+
         when(
             jwtService.generateRefreshToken(
                 any(UserDetailsImpl.class),

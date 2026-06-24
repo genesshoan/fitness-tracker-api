@@ -3,6 +3,8 @@ package dev.genesshoan.fitnesstrackerapi.auth;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.github.f4b6a3.uuid.UuidCreator;
+import dev.genesshoan.fitnesstrackerapi.AbstractIntegrationTest;
 import dev.genesshoan.fitnesstrackerapi.auth.service.JwtService;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidJwtException;
 import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
@@ -21,11 +23,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
-@ActiveProfiles("test")
-class JwtServiceTest {
+class JwtServiceTest extends AbstractIntegrationTest {
 
     @Autowired
     private JwtService jwtService;
@@ -42,7 +42,7 @@ class JwtServiceTest {
             .username("test")
             .email("test@test.com")
             .role(Role.USER)
-            .id(1L)
+            .id(UuidCreator.getTimeOrderedEpoch())
             .build();
 
         userDetailsImpl = new UserDetailsImpl(user);

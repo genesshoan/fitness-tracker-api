@@ -1,41 +1,30 @@
-INSERT INTO muscles (name, slug, body_region)
-VALUES
--- CHEST
-('Pectoralis Major', 'pectoralis-major', 'CHEST'),
-('Pectoralis Minor', 'pectoralis-minor', 'CHEST'),
+INSERT INTO muscles (id, name, slug, body_region) VALUES
 
--- BACK
-('Latissimus Dorsi', 'latissimus-dorsi', 'BACK'),
-('Trapezius', 'trapezius', 'BACK'),
-('Rhomboids', 'rhomboids', 'BACK'),
-('Erector Spinae', 'erector-spinae', 'BACK'),
+-- CHEST
+(uuidv7(), 'Clavicular Pectoralis Major', 'chest-upper', 'CHEST'),
+(uuidv7(), 'Sternal Pectoralis Major',    'chest-lower', 'CHEST'),
 
 -- SHOULDERS
-('Anterior Deltoid', 'anterior-deltoid', 'SHOULDERS'),
-('Lateral Deltoid', 'lateral-deltoid', 'SHOULDERS'),
-('Posterior Deltoid', 'posterior-deltoid', 'SHOULDERS'),
+(uuidv7(), 'Anterior Deltoid', 'shoulder-front', 'SHOULDERS'),
+(uuidv7(), 'Lateral Deltoid',  'shoulder-side',  'SHOULDERS'),
 
 -- ARMS
-('Biceps Brachii', 'biceps-brachii', 'ARMS'),
-('Triceps Brachii', 'triceps-brachii', 'ARMS'),
-('Brachialis', 'brachialis', 'ARMS'),
-('Brachioradialis', 'brachioradialis', 'ARMS'),
-('Forearm Flexors', 'forearm-flexors', 'ARMS'),
-('Forearm Extensors', 'forearm-extensors', 'ARMS'),
+(uuidv7(), 'Biceps Brachii',  'biceps',  'ARMS'),
+(uuidv7(), 'Forearm Flexors', 'forearm', 'ARMS'),
 
 -- CORE
-('Rectus Abdominis', 'rectus-abdominis', 'CORE'),
-('Obliques', 'obliques', 'CORE'),
-('Transverse Abdominis', 'transverse-abdominis', 'CORE'),
+(uuidv7(), 'Upper Rectus Abdominis', 'abs-upper',          'CORE'),
+(uuidv7(), 'Lower Rectus Abdominis', 'abs-lower',          'CORE'),
+(uuidv7(), 'External Oblique',       'obliques',           'CORE'),
+(uuidv7(), 'Serratus Anterior',      'serratus-anterior',  'CORE'),
 
 -- LEGS
-('Quadriceps', 'quadriceps', 'LEGS'),
-('Hamstrings', 'hamstrings', 'LEGS'),
-('Gluteus Maximus', 'gluteus-maximus', 'LEGS'),
-('Gluteus Medius', 'gluteus-medius', 'LEGS'),
-('Gluteus Minimus', 'gluteus-minimus', 'LEGS'),
-('Adductors', 'adductors', 'LEGS'),
-('Abductors', 'abductors', 'LEGS'),
-('Calves (Gastrocnemius)', 'gastrocnemius', 'LEGS'),
-('Soleus', 'soleus', 'LEGS'),
-('Tibialis Anterior', 'tibialis-anterior', 'LEGS');
+(uuidv7(), 'Quadriceps',        'quads',       'LEGS'),
+(uuidv7(), 'Adductors',         'adductors',   'LEGS'),
+(uuidv7(), 'Hip Flexors',       'hip-flexor',  'LEGS'),
+(uuidv7(), 'Tibialis Anterior', 'tibialis-anterior', 'LEGS'),
+
+-- HEAD & NECK
+(uuidv7(), 'Head', 'head', 'OTHER'),
+(uuidv7(), 'Face', 'face', 'OTHER'),
+(uuidv7(), 'Neck', 'neck', 'OTHER');

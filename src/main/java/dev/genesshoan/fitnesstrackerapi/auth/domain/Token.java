@@ -1,10 +1,10 @@
 package dev.genesshoan.fitnesstrackerapi.auth.domain;
 
-import java.time.Instant;
-import java.util.UUID;
-
+import com.github.f4b6a3.uuid.UuidCreator;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -41,20 +41,21 @@ import lombok.Setter;
 @Table(name = "tokens")
 public class Token {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.UUID)
-  private UUID jti;
+    @Id
+    @Column(updatable = false, nullable = false, unique = true)
+    @Builder.Default
+    private UUID jti = UuidCreator.getTimeOrderedEpoch();
 
-  @Column(nullable = false)
-  private UUID familyId;
+    @Column(nullable = false)
+    private UUID familyId;
 
-  @Builder.Default
-  private boolean revoked = false;
+    @Builder.Default
+    private boolean revoked = false;
 
-  @Column(nullable = false)
-  private Instant expiresAt;
+    @Column(nullable = false)
+    private Instant expiresAt;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id", nullable = false)
-  private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }

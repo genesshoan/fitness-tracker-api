@@ -6,7 +6,7 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ExerciseMuscle;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.domain.Page;
+import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -14,23 +14,26 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ExerciseRepository extends JpaRepository<Exercise, Long> {
+public interface ExerciseRepository extends JpaRepository<Exercise, UUID> {
     Optional<Exercise> findBySlug(String slug);
 
     @Query(
         """
             SELECT e
             FROM Exercise e
-            WHERE (:category IS NULL OR e.category = :category)
-            AND (:difficulty IS NULL OR e.difficulty = :difficulty)
-            AND (:muscleSlugs IS NULL OR EXISTS (
-                SELECT 1
-                FROM e.exerciseMuscles em
-                WHERE em.muscle.slug IN :muscleSlugs
-            ))
+            WHERE (:cursor IS NULL OR e.id > :cursor)
+                AND (:category IS NULL OR e.category = :category)
+                AND (:difficulty IS NULL OR e.difficulty = :difficulty)
+                AND (:muscleSlugs IS NULL OR EXISTS (
+                    SELECT 1
+                    FROM e.exerciseMuscles em
+                    WHERE em.muscle.slug IN :muscleSlugs
+                ))
+            ORDER BY e.id ASC, e.createdAt ASC
         """
     )
-    Page<Exercise> findByFilters(
+    List<Exercise> findByFilters(
+        @Param("cursor") Long cursor,
         @Param("category") Category category,
         @Param("difficulty") Difficulty difficulty,
         @Param("muscleSlugs") List<String> muscleSlugs,

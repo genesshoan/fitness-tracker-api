@@ -33,12 +33,12 @@ public class ExerciseMuscle {
     @Enumerated(EnumType.STRING)
     private ImpactLevel impactLevel;
 
-    @MapsId("muscle_id")
+    @MapsId("muscleId")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "muscle_id", nullable = false)
     private Muscle muscle;
 
-    @MapsId("exercise_id")
+    @MapsId("exerciseId")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "exercise_id", nullable = false)
     private Exercise exercise;
