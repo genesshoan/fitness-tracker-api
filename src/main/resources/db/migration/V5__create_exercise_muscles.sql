@@ -1,6 +1,6 @@
 CREATE TABLE exercise_muscles
 (
-    exercise_id  UUID         NOT NULL DEFAULT uuidv7(),
+    exercise_id  UUID         NOT NULL,
     muscle_id    UUID         NOT NULL,
     impact_level VARCHAR(255) NOT NULL,
 

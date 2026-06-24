@@ -1,0 +1,339 @@
+# =====================
+# CHEST
+# =====================
+
+- name: Push Up
+  slug: push-up
+  description: Bodyweight push exercise targeting chest, shoulders, and triceps.
+  category: STRENGTH
+  difficulty: BEGINNER
+  muscles:
+    primary: [chest-upper, chest-lower]
+    secondary: [triceps-long, triceps-lateral, shoulder-front]
+    stabilizer: [serratus-anterior]
+
+- name: Incline Push Up
+  slug: incline-push-up
+  description: Easier variation of push up with elevated hands reducing load.
+  category: STRENGTH
+  difficulty: BEGINNER
+  muscles:
+    primary: [chest-lower]
+    secondary: [triceps-long, triceps-lateral, shoulder-front]
+    stabilizer: []
+
+- name: Decline Push Up
+  slug: decline-push-up
+  description: Advanced push up variation with feet elevated increasing load on upper chest.
+  category: STRENGTH
+  difficulty: INTERMEDIATE
+  muscles:
+    primary: [chest-upper]
+    secondary: [triceps-long, triceps-lateral, shoulder-front]
+    stabilizer: [serratus-anterior]
+
+- name: Bench Press
+  slug: bench-press
+  description: Compound chest exercise using barbell on a bench.
+  category: STRENGTH
+  difficulty: INTERMEDIATE
+  muscles:
+    primary: [chest-lower]
+    secondary: [triceps-long, triceps-lateral, shoulder-front]
+    stabilizer: []
+
+- name: Incline Bench Press
+  slug: incline-bench-press
+  description: Bench press variation targeting upper chest.
+  category: STRENGTH
+  difficulty: INTERMEDIATE
+  muscles:
+    primary: [chest-upper]
+    secondary: [triceps-long, triceps-lateral, shoulder-front]
+    stabilizer: []
+
+- name: Dumbbell Fly
+  slug: dumbbell-fly
+  description: Isolation chest exercise focusing on muscle stretch and contraction.
+  category: STRENGTH
+  difficulty: BEGINNER
+  muscles:
+    primary: [chest-upper, chest-lower]
+    secondary: []
+    stabilizer: []
+
+# =====================
+# SHOULDERS
+# =====================
+
+- name: Pike Push Up
+  slug: pike-push-up
+  description: Bodyweight shoulder-focused pressing movement.
+  category: STRENGTH
+  difficulty: INTERMEDIATE
+  muscles:
+    primary: [shoulder-front]
+    secondary: [triceps-long, triceps-lateral]
+    stabilizer: []
+
+- name: Overhead Press
+  slug: overhead-press
+  description: Vertical pressing movement for shoulders and triceps.
+  category: STRENGTH
+  difficulty: INTERMEDIATE
+  muscles:
+    primary: [shoulder-front]
+    secondary: [triceps-long, triceps-lateral]
+    stabilizer: [serratus-anterior, traps-upper]
+
+- name: Dumbbell Shoulder Press
+  slug: dumbbell-shoulder-press
+  description: Seated or standing dumbbell pressing for shoulders.
+  category: STRENGTH
+  difficulty: BEGINNER
+  muscles:
+    primary: [shoulder-front]
+    secondary: [triceps-long, triceps-lateral]
+    stabilizer: []
+
+- name: Lateral Raises
+  slug: lateral-raises
+  description: Isolation movement for lateral deltoid development.
+  category: STRENGTH
+  difficulty: BEGINNER
+  muscles:
+    primary: [shoulder-side]
+    secondary: []
+    stabilizer: [shoulder-front, traps-upper]
+
+- name: Front Raises
+  slug: front-raises
+  description: Isolation movement targeting anterior deltoids.
+  category: STRENGTH
+  difficulty: BEGINNER
+  muscles:
+    primary: [shoulder-front]
+    secondary: []
+    stabilizer: []
+
+- name: Face Pull
+  slug: face-pull
+  description: Cable exercise for rear delts and shoulder stability.
+  category: STRENGTH
+  difficulty: INTERMEDIATE
+  muscles:
+    primary: [deltoid-rear]
+    secondary: [traps-mid, traps-lower]
+    stabilizer: [shoulder-side]
+
+# =====================
+# BACK
+# =====================
+
+- name: Pull Up
+  slug: pull-up
+  description: Bodyweight pulling exercise targeting lats and biceps.
+  category: STRENGTH
+  difficulty: INTERMEDIATE
+  muscles:
+    primary: [lats-upper, lats-mid]
+    secondary: [biceps, lats-lower]
+    stabilizer: [forearm-flexors]
+
+- name: Chin Up
+  slug: chin-up
+  description: Pull up variation with supinated grip focusing more on biceps.
+  category: STRENGTH
+  difficulty: INTERMEDIATE
+  muscles:
+    primary: [biceps, lats-upper]
+    secondary: [lats-mid, lats-lower]
+    stabilizer: [forearm-flexors]
+
+- name: Lat Pulldown
+  slug: lat-pulldown
+  description: Machine-based vertical pulling exercise for lat development.
+  category: STRENGTH
+  difficulty: BEGINNER
+  muscles:
+    primary: [lats-upper, lats-mid]
+    secondary: [biceps, lats-lower]
+    stabilizer: [forearm-flexors]
+
+- name: Bent Over Row
+  slug: bent-over-row
+  description: Horizontal pulling movement for back thickness.
+  category: STRENGTH
+  difficulty: INTERMEDIATE
+  muscles:
+    primary: [lats-mid, lats-lower]
+    secondary: [biceps, traps-mid, traps-lower]
+    stabilizer: [lower-back-erectors, forearm-flexors]
+
+- name: Seated Cable Row
+  slug: seated-cable-row
+  description: Controlled rowing movement for mid-back development.
+  category: STRENGTH
+  difficulty: BEGINNER
+  muscles:
+    primary: [lats-mid, lats-lower]
+    secondary: [biceps, traps-mid]
+    stabilizer: [lower-back-erectors]
+
+- name: Deadlift
+  slug: deadlift
+  description: Full body compound lift focusing on posterior chain strength.
+  category: STRENGTH
+  difficulty: ADVANCED
+  muscles:
+    primary: [lower-back-erectors, gluteus-maximus]
+    secondary: [hamstrings-medial, hamstrings-lateral, traps-upper, traps-mid]
+    stabilizer: [forearm-flexors, adductors, lower-back-ql]
+
+# =====================
+# LEGS
+# =====================
+
+- name: Squat
+  slug: squat
+  description: Fundamental lower body compound movement.
+  category: STRENGTH
+  difficulty: BEGINNER
+  muscles:
+    primary: [quads]
+    secondary: [gluteus-maximus, adductors]
+    stabilizer: [lower-back-erectors, tibialis-anterior]
+
+- name: Front Squat
+  slug: front-squat
+  description: Squat variation with barbell in front rack position emphasizing quads.
+  category: STRENGTH
+  difficulty: INTERMEDIATE
+  muscles:
+    primary: [quads]
+    secondary: [gluteus-maximus, adductors]
+    stabilizer: [lower-back-erectors]
+
+- name: Lunges
+  slug: lunges
+  description: Unilateral leg exercise improving balance and strength.
+  category: STRENGTH
+  difficulty: BEGINNER
+  muscles:
+    primary: [quads]
+    secondary: [gluteus-maximus, adductors]
+    stabilizer: []
+
+- name: Bulgarian Split Squat
+  slug: bulgarian-split-squat
+  description: Elevated rear foot split squat increasing single-leg strength demand.
+  category: STRENGTH
+  difficulty: INTERMEDIATE
+  muscles:
+    primary: [quads, gluteus-maximus]
+    secondary: [hamstrings-medial, hamstrings-lateral]
+    stabilizer: [gluteus-medius]
+
+- name: Romanian Deadlift
+  slug: romanian-deadlift
+  description: Hip hinge movement targeting hamstrings and glutes.
+  category: STRENGTH
+  difficulty: INTERMEDIATE
+  muscles:
+    primary: [hamstrings-medial, hamstrings-lateral, gluteus-maximus]
+    secondary: [lower-back-erectors]
+    stabilizer: [adductors, lower-back-ql]
+
+- name: Leg Press
+  slug: leg-press
+  description: Machine-based lower body pressing movement.
+  category: STRENGTH
+  difficulty: BEGINNER
+  muscles:
+    primary: [quads]
+    secondary: [gluteus-maximus, adductors]
+    stabilizer: []
+
+- name: Calf Raises
+  slug: calf-raises
+  description: Isolation exercise for calf muscle development.
+  category: STRENGTH
+  difficulty: BEGINNER
+  muscles:
+    primary: [calves-gastroc-medial, calves-gastroc-lateral]
+    secondary: [calves-soleus]
+    stabilizer: [tibialis-anterior]
+
+# =====================
+# CORE
+# =====================
+
+- name: Plank
+  slug: plank
+  description: Isometric core stability exercise.
+  category: STRENGTH
+  difficulty: BEGINNER
+  muscles:
+    primary: [abs-upper, abs-lower]
+    secondary: []
+    stabilizer: [serratus-anterior, lower-back-erectors]
+
+- name: Side Plank
+  slug: side-plank
+  description: Core stability exercise targeting obliques.
+  category: STRENGTH
+  difficulty: BEGINNER
+  muscles:
+    primary: [obliques]
+    secondary: []
+    stabilizer: [serratus-anterior, gluteus-medius]
+
+- name: Hanging Leg Raise
+  slug: hanging-leg-raise
+  description: Advanced abdominal exercise targeting lower abs.
+  category: STRENGTH
+  difficulty: ADVANCED
+  muscles:
+    primary: [abs-lower]
+    secondary: [hip-flexor]
+    stabilizer: [forearm-flexors]
+
+- name: Russian Twist
+  slug: russian-twist
+  description: Rotational core exercise targeting obliques.
+  category: STRENGTH
+  difficulty: BEGINNER
+  muscles:
+    primary: [obliques]
+    secondary: []
+    stabilizer: [abs-upper]
+
+- name: Crunch
+  slug: crunch
+  description: Basic abdominal flexion exercise.
+  category: STRENGTH
+  difficulty: BEGINNER
+  muscles:
+    primary: [abs-upper]
+    secondary: []
+    stabilizer: []
+
+- name: Bicycle Crunch
+  slug: bicycle-crunch
+  description: Dynamic core exercise targeting abs and obliques.
+  category: STRENGTH
+  difficulty: BEGINNER
+  muscles:
+    primary: [obliques]
+    secondary: [abs-upper]
+    stabilizer: []
+
+- name: Ab Wheel Rollout
+  slug: ab-wheel-rollout
+  description: Advanced core stability and anti-extension exercise.
+  category: STRENGTH
+  difficulty: ADVANCED
+  muscles:
+    primary: [abs-upper, abs-lower]
+    secondary: []
+    stabilizer: [lower-back-erectors, serratus-anterior]

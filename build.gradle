@@ -74,3 +74,11 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+tasks.register('seed', JavaExec) {
+    group = "tools"
+    description = "Generates seed SQL"
+
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'dev.genesshoan.fitnesstrackerapi.common.script.SeedGenerator'
+}
