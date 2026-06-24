@@ -3,11 +3,11 @@ package dev.genesshoan.fitnesstrackerapi.exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.ExerciseMuscle;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -29,32 +29,21 @@ public interface ExerciseRepository extends JpaRepository<Exercise, UUID> {
                     FROM e.exerciseMuscles em
                     WHERE em.muscle.slug IN :muscleSlugs
                 ))
-            ORDER BY e.id ASC, e.createdAt ASC
+            ORDER BY e.id ASC
         """
     )
     List<Exercise> findByFilters(
-        @Param("cursor") Long cursor,
+        @Param("cursor") UUID cursor,
         @Param("category") Category category,
         @Param("difficulty") Difficulty difficulty,
         @Param("muscleSlugs") List<String> muscleSlugs,
         Pageable pageable
     );
 
-    @Query(
-        """
-            SELECT em
-            FROM ExerciseMuscle em
-            JOIN FETCH em.muscle
-            WHERE em.exercise.slug = :exerciseSlug
-            ORDER BY
-            CASE em.impactLevel
-                WHEN PRIMARY THEN 1
-                WHEN SECONDARY THEN 2
-                WHEN STABILIZER THEN 3
-            END ASC
-        """
+    @EntityGraph(
+        attributePaths = { "exerciseMuscles", "exerciseMuscles.muscle" }
     )
-    List<ExerciseMuscle> findMusclesByExerciseSlugOrderByImpactLevelASC(
+    Optional<Exercise> findMuscleBySlug(
         @Param("exerciseSlug") String exerciseSlug
     );
 }

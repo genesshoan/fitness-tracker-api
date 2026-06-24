@@ -37,7 +37,7 @@ public class MuscleControllerTest extends AbstractWebMvcTest {
     @WithMockUser
     void getMuscles_shouldReturn200AndPaginatedMuscles() throws Exception {
         Page<MuscleResponseDTO> page = new PageImpl<>(
-            List.of(new MuscleResponseDTO("Biceps", BodyRegion.ARMS))
+            List.of(new MuscleResponseDTO("Biceps", "biceps", BodyRegion.ARMS))
         );
         when(muscleService.getMuscles(any(Pageable.class))).thenReturn(page);
 
@@ -58,7 +58,7 @@ public class MuscleControllerTest extends AbstractWebMvcTest {
     @Test
     @WithMockUser
     void getMuscle_shouldReturn200AndPaginatedMuscles() throws Exception {
-        var dto = new MuscleResponseDTO("Biceps", BodyRegion.ARMS);
+        var dto = new MuscleResponseDTO("Biceps", "biceps", BodyRegion.ARMS);
         when(muscleService.getMuscleBySlug(anyString())).thenReturn(dto);
 
         mockMvc
