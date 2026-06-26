@@ -1,7 +1,8 @@
 package dev.genesshoan.fitnesstrackerapi.exercise;
 
-import dev.genesshoan.fitnesstrackerapi.common.CursorPageResponse;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
+import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPage;
+import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPageRequest;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
@@ -12,7 +13,6 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -23,35 +23,27 @@ public class ExerciseService {
     private final ExerciseRepository exerciseRepository;
     private final ExerciseMapper exerciseMapper;
 
-    public CursorPageResponse<ExerciseListItemDTO> getAllExercises(
-        UUID cursor,
-        int pageSize,
+    public CursorPage<ExerciseListItemDTO, UUID> getAllExercises(
+        CursorPageRequest<UUID> request,
         Category category,
         Difficulty difficulty,
         List<String> muscleSlugs
     ) {
         List<Exercise> exercises = exerciseRepository.findByFilters(
-            cursor,
+            request.cursor(),
             category,
             difficulty,
             muscleSlugs,
-            PageRequest.of(0, pageSize + 1)
+            request.pageable()
         );
 
         log.info("Found {} exercises", exercises.size());
 
-        var hasNext = exercises.size() > pageSize;
-
-        if (hasNext) {
-            exercises.removeLast();
-        }
-
-        var nextCursor = hasNext ? exercises.getLast().getId() : null;
-
-        return new CursorPageResponse<>(
-            exercises.stream().map(exerciseMapper::toItemDTO).toList(),
-            nextCursor,
-            hasNext
+        return CursorPage.of(
+            exercises,
+            request.size(),
+            Exercise::getId,
+            exerciseMapper::toItemDTO
         );
     }
 
