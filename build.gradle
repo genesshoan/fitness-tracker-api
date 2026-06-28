@@ -2,6 +2,8 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.14'
     id 'io.spring.dependency-management' version '1.1.7'
+
+    id 'com.diffplug.spotless' version '6.25.0'
 }
 
 group = 'dev.genesshoan'
@@ -83,4 +85,32 @@ tasks.register('seed', JavaExec) {
 
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'dev.genesshoan.fitnesstrackerapi.common.script.SeedGenerator'
+}
+
+spotless {
+    java {
+        palantirJavaFormat('2.39.0')
+
+        importOrder(
+            'java',
+            'javax',
+            'jakarta',
+            'org.springframework',
+            '',
+            '\\#'
+        )
+
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+
+        target 'src/**/*.java'
+        targetExclude('build/**')
+    }
+
+    format 'misc', {
+        target '*.gradle', '*.md', '.gitignore'
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
 }
