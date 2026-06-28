@@ -2,35 +2,57 @@
 !theme plain
 
 entity "users" {
-  * id : BIGINT <<PK>>
-  --
-  * username : VARCHAR <<UK>>
-  * email : VARCHAR <<UK>>
-  * password_hash : VARCHAR
-  * role : VARCHAR
-  * created_at : TIMESTAMP
-  * updated_at : TIMESTAMP
+    * id : UUID <<PK>>
+    --
+    * username : VARCHAR <<UK>>
+    * email : VARCHAR <<UK>>
+    * password_hash : VARCHAR
+    * role : VARCHAR
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
 }
 
 entity "tokens" {
-  * jti : UUID <<PK>>
-  --
-  * family_id : UUID
-  * revoked : BOOLEAN
-  * expires_at : TIMESTAMP
-  * user_id : BIGINT <<FK>>
+    * jti : UUID <<PK>>
+    --
+    * family_id : UUID
+    * revoked : BOOLEAN
+    * expires_at : TIMESTAMP
+    * user_id : UUID <<FK>>
 }
 
 entity "muscles" {
-  * id : BIGINT <<PK>>
-  --
-  * name : VARCHAR
-  * slug : VARCHAR
-  * body_region : VARCHAR
-  * created_at : TIMESTAMP
-  * updated_at : TIMESTAMP
+    * id : UUID <<PK>>
+    --
+    * name : VARCHAR <<UK>>
+    * slug : VARCHAR <<UK>>
+    * body_region : VARCHAR
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
 }
 
+entity "exercises" {
+    * id : UUID <<PK>>
+    --
+    * name : VARCHAR <<UK>>
+    * slug : VARCHAR <<UK>>
+    * description : VARCHAR
+    * category : VARCHAR
+    * difficulty : VARCHAR
+    * active : BOOLEAN
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
+}
+
+entity "exercise_muscles" {
+    * exercise_id : UUID <<FK>> <<PK>>
+    * muscle_id : UUID <<FK>> <<PK>>
+    --
+    * impact_level : VARCHAR
+}
+
+"exercises" ||--o{ "exercise_muscles" : "has"
+"muscles" ||--o{ "exercise_muscles" : "has"
 "users" ||--o{ "tokens" : "has"
 
 @enduml
