@@ -52,6 +52,10 @@ dependencies {
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
 
+    // UUID
+
+    implementation 'com.github.f4b6a3:uuid-creator:6.0.0'
+
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
@@ -64,9 +68,19 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'
 
+    testImplementation 'net.datafaker:datafaker:2.4.2'
+
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.register('seed', JavaExec) {
+    group = "tools"
+    description = "Generates seed SQL"
+
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'dev.genesshoan.fitnesstrackerapi.common.script.SeedGenerator'
 }

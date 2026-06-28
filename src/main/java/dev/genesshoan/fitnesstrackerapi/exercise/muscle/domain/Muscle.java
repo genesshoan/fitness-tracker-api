@@ -19,13 +19,13 @@ import lombok.experimental.SuperBuilder;
 @Table(name = "muscles")
 public class Muscle extends BaseEntity {
 
-  @Column(unique = true, nullable = false)
-  private String name;
+    @Column(unique = true, nullable = false)
+    private String name;
 
-  @Column(unique = true, nullable = true)
-  private String slug;
+    @Column(unique = true, nullable = false)
+    private String slug;
 
-  @Column(nullable = false)
-  @Enumerated(EnumType.STRING)
-  private BodyRegion bodyRegion;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private BodyRegion bodyRegion;
 }

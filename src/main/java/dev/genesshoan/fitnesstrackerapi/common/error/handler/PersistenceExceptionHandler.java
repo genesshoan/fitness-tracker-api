@@ -1,5 +1,7 @@
 package dev.genesshoan.fitnesstrackerapi.common.error.handler;
 
+import static dev.genesshoan.fitnesstrackerapi.common.error.handler.ProblemDetailUtils.errorResponse;
+
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -10,9 +12,6 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import static dev.genesshoan.fitnesstrackerapi.common.error.handler.ProblemDetailUtils.errorResponse;
-
 
 /**
  * Exception handler for persistence and database-related exceptions.
@@ -49,21 +48,23 @@ public class PersistenceExceptionHandler {
      */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ProblemDetail> handleDataIntegrityViolationException(
-            DataIntegrityViolationException ex,
-            HttpServletRequest request
+        DataIntegrityViolationException ex,
+        HttpServletRequest request
     ) {
-
-        log.warn("Data integrity violation: {} {} -> {}",
-                request.getMethod(),
-                request.getRequestURI(),
-                ex.getMostSpecificCause().getMessage());
+        log.warn(
+            "Data integrity violation: {} {} -> {}",
+            request.getMethod(),
+            request.getRequestURI(),
+            ex.getMostSpecificCause().getMessage()
+        );
 
         ProblemDetail problemDetail = errorResponse(
-                HttpStatus.CONFLICT,
-                "Data integrity violation",
-                "The request violates database constraints",
-                null,
-                request);
+            HttpStatus.CONFLICT,
+            "Data integrity violation",
+            "The request violates database constraints",
+            null,
+            request
+        );
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(problemDetail);
     }
@@ -81,24 +82,24 @@ public class PersistenceExceptionHandler {
      */
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleEntityNotFoundException(
-            EntityNotFoundException ex,
-            HttpServletRequest request
+        EntityNotFoundException ex,
+        HttpServletRequest request
     ) {
-
-        log.warn("Entity not found: {} {} -> {}",
-                request.getMethod(),
-                request.getRequestURI(),
-                ex.getMessage());
-
-        ProblemDetail problemDetail = errorResponse(
-                HttpStatus.NOT_FOUND,
-                "Resource not found",
-                "The requested resource was not found",
-                null,
-                request
+        log.warn(
+            "Entity not found: {} {} -> {}",
+            request.getMethod(),
+            request.getRequestURI(),
+            ex.getMessage()
         );
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(problemDetail);
+        ProblemDetail problemDetail = errorResponse(
+            HttpStatus.NOT_FOUND,
+            "Resource not found",
+            "The requested resource was not found",
+            null,
+            request
+        );
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
     }
 }

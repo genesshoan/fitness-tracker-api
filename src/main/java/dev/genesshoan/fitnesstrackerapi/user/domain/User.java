@@ -12,22 +12,25 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @SuperBuilder
 @NoArgsConstructor
-@Table(name = "users", uniqueConstraints = {
-    @UniqueConstraint(name = "uk_user_username", columnNames = "username"),
-    @UniqueConstraint(name = "uk_user_email", columnNames = "email")
-})
+@Table(
+    name = "users",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_user_username", columnNames = "username"),
+        @UniqueConstraint(name = "uk_user_email", columnNames = "email"),
+    }
+)
 public class User extends BaseEntity {
 
-  @Column(nullable = false)
-  private String username;
+    @Column(nullable = false)
+    private String username;
 
-  @Column(nullable = false)
-  private String email;
+    @Column(nullable = false)
+    private String email;
 
-  @Column(nullable = false)
-  private String passwordHash;
+    @Column(nullable = false)
+    private String passwordHash;
 
-  @Column(nullable = false)
-  @Enumerated(EnumType.STRING)
-  private Role role;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Role role;
 }

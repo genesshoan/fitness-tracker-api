@@ -1,5 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.security;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -13,8 +14,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * Central security configuration for the application.
@@ -44,71 +43,95 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-  /**
-   * Custom JWT authentication filter that extracts and validates
-   * JWT tokens from incoming requests and populates the SecurityContext.
-   */
-  private final JwtFilter jwtFilter;
+    /**
+     * Custom JWT authentication filter that extracts and validates
+     * JWT tokens from incoming requests and populates the SecurityContext.
+     */
+    private final JwtFilter jwtFilter;
 
-  /**
-   * Defines the Spring Security filter chain.
-   *
-   * <p>
-   * Configures:
-   * <ul>
-   * <li>CSRF disabled (stateless API)</li>
-   * <li>Public and secured endpoints</li>
-   * <li>Stateless session management</li>
-   * <li>JWT filter integration before UsernamePasswordAuthenticationFilter</li>
-   * </ul>
-   *
-   * @param http HttpSecurity configuration object
-   * @return configured SecurityFilterChain
-   * @throws Exception in case of security configuration errors
-   */
-  @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
-    return http
+    /**
+     * Defines the Spring Security filter chain.
+     *
+     * <p>
+     * Configures:
+     * <ul>
+     * <li>CSRF disabled (stateless API)</li>
+     * <li>Public and secured endpoints</li>
+     * <li>Stateless session management</li>
+     * <li>JWT filter integration before UsernamePasswordAuthenticationFilter</li>
+     * </ul>
+     *
+     * @param http HttpSecurity configuration object
+     * @return configured SecurityFilterChain
+     * @throws Exception in case of security configuration errors
+     */
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+        throws Exception {
+        return http
             .csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/v1/auth/**").permitAll()
+            .authorizeHttpRequests(auth ->
+                auth
+                    .requestMatchers("/api/v1/auth/**")
+                    .permitAll()
 
-                    .requestMatchers(HttpMethod.GET, "/api/v1/user/me").authenticated()
-                    .requestMatchers(HttpMethod.PUT, "/api/v1/user/me/**").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/user/me")
+                    .authenticated()
+                    .requestMatchers(HttpMethod.PUT, "/api/v1/user/me/**")
+                    .authenticated()
 
-                    .requestMatchers(HttpMethod.GET, "/api/v1/muscles/**").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/muscles/**")
+                    .authenticated()
 
-                    .anyRequest().authenticated())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                    .requestMatchers(HttpMethod.GET, "/api/v1/exercises/**")
+                    .authenticated()
+
+                    .requestMatchers(
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/v3/api-docs/**",
+                        "/v3/api-docs"
+                    )
+                    .permitAll()
+
+                    .anyRequest()
+                    .authenticated()
+            )
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .addFilterBefore(
+                jwtFilter,
+                UsernamePasswordAuthenticationFilter.class
+            )
             .build();
-  }
+    }
 
-  /**
-   * Exposes the AuthenticationManager used for authentication operations
-   * such as login via UsernamePasswordAuthenticationToken.
-   *
-   * @param config Spring AuthenticationConfiguration
-   * @return AuthenticationManager instance
-   * @throws Exception if authentication manager cannot be retrieved
-   */
-  @Bean
-  public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
-      throws Exception {
-    return config.getAuthenticationManager();
-  }
+    /**
+     * Exposes the AuthenticationManager used for authentication operations
+     * such as login via UsernamePasswordAuthenticationToken.
+     *
+     * @param config Spring AuthenticationConfiguration
+     * @return AuthenticationManager instance
+     * @throws Exception if authentication manager cannot be retrieved
+     */
+    @Bean
+    public AuthenticationManager authenticationManager(
+        AuthenticationConfiguration config
+    ) throws Exception {
+        return config.getAuthenticationManager();
+    }
 
-  /**
-   * Password encoder used for hashing user passwords.
-   *
-   * <p>
-   * BCrypt is used due to its adaptive hashing strength and industry adoption.
-   *
-   * @return BCryptPasswordEncoder instance
-   */
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
+    /**
+     * Password encoder used for hashing user passwords.
+     *
+     * <p>
+     * BCrypt is used due to its adaptive hashing strength and industry adoption.
+     *
+     * @return BCryptPasswordEncoder instance
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 }

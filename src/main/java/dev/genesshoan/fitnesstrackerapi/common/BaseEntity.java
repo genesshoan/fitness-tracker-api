@@ -1,14 +1,16 @@
 package dev.genesshoan.fitnesstrackerapi.common;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.UUID;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDateTime;
 
 /**
  * Base entity for all JPA entities in the system.
@@ -22,31 +24,32 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public abstract class BaseEntity {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+    @Id
+    @Column(updatable = false, nullable = false, unique = true)
+    @Builder.Default
+    private UUID id = UuidCreator.getTimeOrderedEpoch();
 
-  @CreationTimestamp
-  @Column(updatable = false)
-  private LocalDateTime createdAt;
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
 
-  @UpdateTimestamp
-  private LocalDateTime updatedAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 
-  @Override
-  public final boolean equals(Object o) {
-    if (this == o) {
-      return true;
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        BaseEntity that = (BaseEntity) o;
+        return id != null && id.equals(that.id);
     }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    BaseEntity that = (BaseEntity) o;
-    return id != null && id.equals(that.id);
-  }
 
-  @Override
-  public final int hashCode() {
-    return getClass().hashCode();
-  }
+    @Override
+    public final int hashCode() {
+        return getClass().hashCode();
+    }
 }

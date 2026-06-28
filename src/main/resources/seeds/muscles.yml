@@ -1,0 +1,154 @@
+# HEAD & NECK
+- name: Head
+  slug: head
+  region: OTHER
+
+- name: Face
+  slug: face
+  region: OTHER
+
+- name: Neck
+  slug: neck
+  region: OTHER
+
+- name: Nape
+  slug: nape
+  region: OTHER
+
+# CHEST
+- name: Clavicular Pectoralis Major
+  slug: chest-upper
+  region: CHEST
+
+- name: Sternal Pectoralis Major
+  slug: chest-lower
+  region: CHEST
+
+# SHOULDERS
+- name: Anterior Deltoid
+  slug: shoulder-front
+  region: SHOULDERS
+
+- name: Lateral Deltoid
+  slug: shoulder-side
+  region: SHOULDERS
+
+- name: Posterior Deltoid
+  slug: deltoid-rear
+  region: SHOULDERS
+
+- name: Upper Trapezius
+  slug: traps-upper
+  region: SHOULDERS
+
+- name: Mid Trapezius
+  slug: traps-mid
+  region: SHOULDERS
+
+- name: Lower Trapezius
+  slug: traps-lower
+  region: SHOULDERS
+
+# ARMS
+- name: Biceps Brachii
+  slug: biceps
+  region: ARMS
+
+- name: Triceps Long Head
+  slug: triceps-long
+  region: ARMS
+
+- name: Triceps Lateral Head
+  slug: triceps-lateral
+  region: ARMS
+
+- name: Forearm Flexors
+  slug: forearm-flexors
+  region: ARMS
+
+- name: Forearm Extensors
+  slug: forearm-extensors
+  region: ARMS
+
+# BACK
+- name: Upper Latissimus Dorsi
+  slug: lats-upper
+  region: BACK
+
+- name: Mid Latissimus Dorsi
+  slug: lats-mid
+  region: BACK
+
+- name: Lower Latissimus Dorsi
+  slug: lats-lower
+  region: BACK
+
+- name: Erector Spinae
+  slug: lower-back-erectors
+  region: BACK
+
+- name: Quadratus Lumborum
+  slug: lower-back-ql
+  region: BACK
+
+- name: Gluteus Maximus
+  slug: gluteus-maximus
+  region: BACK
+
+- name: Gluteus Medius
+  slug: gluteus-medius
+  region: BACK
+
+# ABDOMINALS
+- name: Upper Rectus Abdominis
+  slug: abs-upper
+  region: CORE
+
+- name: Lower Rectus Abdominis
+  slug: abs-lower
+  region: CORE
+
+- name: External Oblique
+  slug: obliques
+  region: CORE
+
+- name: Serratus Anterior
+  slug: serratus-anterior
+  region: CORE
+
+# LEGS
+- name: Quadriceps
+  slug: quads
+  region: LEGS
+
+- name: Medial Hamstrings
+  slug: hamstrings-medial
+  region: LEGS
+
+- name: Lateral Hamstrings
+  slug: hamstrings-lateral
+  region: LEGS
+
+- name: Adductors
+  slug: adductors
+  region: LEGS
+
+- name: Tibialis Anterior
+  slug: tibialis-anterior
+  region: LEGS
+
+- name: Gastrocnemius Medial
+  slug: calves-gastroc-medial
+  region: LEGS
+
+- name: Gastrocnemius Lateral
+  slug: calves-gastroc-lateral
+  region: LEGS
+
+- name: Soleus
+  slug: calves-soleus
+  region: LEGS
+
+- name: Hip Flexors
+  slug: hip-flexor
+  region: LEGS
