@@ -7,13 +7,11 @@ import net.datafaker.Faker;
 
 public class MuscleBuilder {
 
-    private final Faker faker;
     private String name;
     private String slug;
     private BodyRegion bodyRegion = BodyRegion.ARMS;
 
     public MuscleBuilder(Faker faker) {
-        this.faker = faker;
         this.name = faker.funnyName().name() + UUID.randomUUID().toString();
         this.slug = faker.internet().slug() + UUID.randomUUID().toString();
     }

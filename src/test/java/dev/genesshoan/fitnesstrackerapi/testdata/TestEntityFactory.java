@@ -9,6 +9,9 @@ import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.Muscle;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.ExerciseBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.ExerciseMuscleBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.MuscleBuilder;
+import dev.genesshoan.fitnesstrackerapi.testdata.builder.UserBuilder;
+import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
+import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,14 +25,17 @@ public class TestEntityFactory {
 
     private final ExerciseRepository exerciseRepository;
     private final MuscleRepository muscleRepository;
+    private final UserRepository userRepository;
     private final Faker faker = new Faker();
 
     public TestEntityFactory(
         ExerciseRepository exerciseRepository,
-        MuscleRepository muscleRepository
+        MuscleRepository muscleRepository,
+        UserRepository userRepository
     ) {
         this.exerciseRepository = exerciseRepository;
         this.muscleRepository = muscleRepository;
+        this.userRepository = userRepository;
     }
 
     public Faker faker() {
@@ -50,6 +56,14 @@ public class TestEntityFactory {
 
     public Exercise createAndPersistExercise() {
         return createAndPersistExercise(ExerciseBuilder.anExercise(faker));
+    }
+
+    public User createAndPersistUser(UserBuilder builder) {
+        return userRepository.save(builder.build());
+    }
+
+    public User createAndPersistUser() {
+        return createAndPersistUser(UserBuilder.aUser(faker));
     }
 
     /**

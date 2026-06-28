@@ -11,7 +11,6 @@ import net.datafaker.Faker;
 
 public class ExerciseBuilder {
 
-    private final Faker faker;
     private String name;
     private String slug;
     private String description;
@@ -21,7 +20,6 @@ public class ExerciseBuilder {
     private Set<ExerciseMuscle> exerciseMuscles = new HashSet<>();
 
     public ExerciseBuilder(Faker faker) {
-        this.faker = faker;
         this.name = faker.ancient().hero() + UUID.randomUUID().toString();
         this.slug = faker.internet().slug() + UUID.randomUUID().toString();
         this.description = faker.lorem().sentence();

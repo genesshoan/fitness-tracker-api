@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -231,6 +232,31 @@ public class HttpExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(
+            problemDetail
+        );
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<ProblemDetail> handleException(
+        Exception ex,
+        HttpServletRequest request
+    ) {
+        log.warn(
+            "Missing request header: {} {} -> {}",
+            request.getMethod(),
+            request.getRequestURI(),
+            ex.getMessage()
+        );
+
+        ProblemDetail problemDetail = errorResponse(
+            HttpStatus.BAD_REQUEST,
+            "Missing request header",
+            "The request is missing a required header",
+            null,
+            request
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
             problemDetail
         );
     }

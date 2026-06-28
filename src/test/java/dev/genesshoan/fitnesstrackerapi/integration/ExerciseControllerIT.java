@@ -6,22 +6,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import dev.genesshoan.fitnesstrackerapi.base.AbstractIntegrationTest;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
-import dev.genesshoan.fitnesstrackerapi.testdata.TestEntityFactory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public class ExerciseControllerIT extends AbstractIntegrationTest {
-
-    @Autowired
-    MockMvc mockMvc;
-
-    @Autowired
-    TestEntityFactory testEntityFactory;
 
     @Test
     @DisplayName("Should return 200 with exercises list")
