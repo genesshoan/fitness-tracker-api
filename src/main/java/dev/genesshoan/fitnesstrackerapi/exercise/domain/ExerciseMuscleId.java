@@ -1,9 +1,11 @@
 package dev.genesshoan.fitnesstrackerapi.exercise.domain;
 
-import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
+
+import jakarta.persistence.Embeddable;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,10 +26,7 @@ public class ExerciseMuscleId implements Serializable {
         if (this == o) return true;
         if (!(o instanceof ExerciseMuscleId)) return false;
         ExerciseMuscleId that = (ExerciseMuscleId) o;
-        return (
-            Objects.equals(exerciseId, that.exerciseId) &&
-            Objects.equals(muscleId, that.muscleId)
-        );
+        return (Objects.equals(exerciseId, that.exerciseId) && Objects.equals(muscleId, that.muscleId));
     }
 
     @Override

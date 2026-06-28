@@ -1,8 +1,9 @@
 package dev.genesshoan.fitnesstrackerapi.testdata.builder;
 
+import java.util.UUID;
+
 import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.BodyRegion;
 import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.Muscle;
-import java.util.UUID;
 import net.datafaker.Faker;
 
 public class MuscleBuilder {
@@ -36,10 +37,6 @@ public class MuscleBuilder {
     }
 
     public Muscle build() {
-        return Muscle.builder()
-            .name(name)
-            .slug(slug)
-            .bodyRegion(bodyRegion)
-            .build();
+        return Muscle.builder().name(name).slug(slug).bodyRegion(bodyRegion).build();
     }
 }

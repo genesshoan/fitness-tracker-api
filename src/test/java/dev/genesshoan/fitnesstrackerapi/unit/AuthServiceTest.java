@@ -1,11 +1,12 @@
 package dev.genesshoan.fitnesstrackerapi.unit;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import java.time.Instant;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import dev.genesshoan.fitnesstrackerapi.auth.TokenRepository;
 import dev.genesshoan.fitnesstrackerapi.auth.domain.Token;
@@ -24,9 +25,6 @@ import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
 import dev.genesshoan.fitnesstrackerapi.user.domain.Role;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import dev.genesshoan.fitnesstrackerapi.user.mapper.UserMapper;
-import java.time.Instant;
-import java.util.Optional;
-import java.util.UUID;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,9 +33,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -73,68 +75,50 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        registerDto = new RegisterRequestDTO(
-            "shoan",
-            "12345678",
-            "shoan@test.com"
-        );
+        registerDto = new RegisterRequestDTO("shoan", "12345678", "shoan@test.com");
 
         userId = UUID.randomUUID();
 
         user = UserBuilder.aUser(FAKER)
-            .withUsername("shoan")
-            .withEmail("shoan@test.com")
-            .build();
+                .withUsername("shoan")
+                .withEmail("shoan@test.com")
+                .build();
 
         savedUser = UserBuilder.aUser(FAKER)
-            .withId(userId)
-            .withUsername("shoan")
-            .withEmail("shoan@test.com")
-            .build();
+                .withId(userId)
+                .withUsername("shoan")
+                .withEmail("shoan@test.com")
+                .build();
 
         token = Token.builder()
-            .jti(UUID.randomUUID())
-            .familyId(UUID.randomUUID())
-            .build();
+                .jti(UUID.randomUUID())
+                .familyId(UUID.randomUUID())
+                .build();
     }
 
     @Test
     @DisplayName("Should register user successfully")
     void register_shouldRegisterUserSuccessfully() {
         // Given
-        when(
-            userRepository.existsByUsername(registerDto.username())
-        ).thenReturn(false);
+        when(userRepository.existsByUsername(registerDto.username())).thenReturn(false);
 
-        when(userRepository.existsByEmail(registerDto.email())).thenReturn(
-            false
-        );
+        when(userRepository.existsByEmail(registerDto.email())).thenReturn(false);
 
         when(userMapper.toEntity(registerDto)).thenReturn(user);
 
-        when(passwordEncoder.encode(registerDto.password())).thenReturn(
-            "encoded-password"
-        );
+        when(passwordEncoder.encode(registerDto.password())).thenReturn("encoded-password");
 
         when(userRepository.save(user)).thenReturn(savedUser);
 
         when(tokenRepository.save(any(Token.class))).thenReturn(token);
 
-        when(jwtService.getRefreshTokenExpirationInstant()).thenReturn(
-            Instant.now().plusSeconds(86400)
-        );
+        when(jwtService.getRefreshTokenExpirationInstant())
+                .thenReturn(Instant.now().plusSeconds(86400));
 
-        when(jwtService.generateToken(any(UserDetailsImpl.class))).thenReturn(
-            "access-token"
-        );
+        when(jwtService.generateToken(any(UserDetailsImpl.class))).thenReturn("access-token");
 
-        when(
-            jwtService.generateRefreshToken(
-                any(UserDetailsImpl.class),
-                eq(token.getJti()),
-                any(UUID.class)
-            )
-        ).thenReturn("refresh-token");
+        when(jwtService.generateRefreshToken(any(UserDetailsImpl.class), eq(token.getJti()), any(UUID.class)))
+                .thenReturn("refresh-token");
 
         // When
         TokenResponseDTO result = authService.register(registerDto);
@@ -154,14 +138,10 @@ class AuthServiceTest {
     @DisplayName("Should throw when username already exists")
     void register_shouldThrowWhenUsernameExists() {
         // Given
-        when(
-            userRepository.existsByUsername(registerDto.username())
-        ).thenReturn(true);
+        when(userRepository.existsByUsername(registerDto.username())).thenReturn(true);
 
         // When / Then
-        assertThatThrownBy(() ->
-            authService.register(registerDto)
-        ).isInstanceOf(ResourceAlreadyExistsException.class);
+        assertThatThrownBy(() -> authService.register(registerDto)).isInstanceOf(ResourceAlreadyExistsException.class);
 
         verify(userRepository, never()).save(any());
         verifyNoInteractions(tokenRepository);
@@ -171,14 +151,10 @@ class AuthServiceTest {
     @DisplayName("Should throw when email already exists")
     void register_shouldThrowWhenEmailExists() {
         // Given
-        when(userRepository.existsByEmail(registerDto.email())).thenReturn(
-            true
-        );
+        when(userRepository.existsByEmail(registerDto.email())).thenReturn(true);
 
         // When / Then
-        assertThatThrownBy(() ->
-            authService.register(registerDto)
-        ).isInstanceOf(ResourceAlreadyExistsException.class);
+        assertThatThrownBy(() -> authService.register(registerDto)).isInstanceOf(ResourceAlreadyExistsException.class);
 
         verify(userRepository, never()).save(any());
         verifyNoInteractions(tokenRepository);
@@ -188,56 +164,36 @@ class AuthServiceTest {
     @DisplayName("Should throw when user is not found during login")
     void login_shouldThrowWhenUserNotFound() {
         // Given
-        when(authenticationManager.authenticate(any())).thenReturn(
-            mock(Authentication.class)
-        );
+        when(authenticationManager.authenticate(any())).thenReturn(mock(Authentication.class));
 
-        when(userRepository.findByEmail(anyString())).thenReturn(
-            Optional.empty()
-        );
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
 
         var dto = new LoginRequestDTO("test@test.com", "password");
 
         // When / Then
-        assertThatThrownBy(() -> authService.login(dto)).isInstanceOf(
-            ResourceNotFoundException.class
-        );
+        assertThatThrownBy(() -> authService.login(dto)).isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
     @DisplayName("Should login successfully")
     void login_shouldLoginSuccessfully() {
         // Given
-        when(authenticationManager.authenticate(any())).thenReturn(
-            mock(Authentication.class)
-        );
+        when(authenticationManager.authenticate(any())).thenReturn(mock(Authentication.class));
 
-        when(userRepository.findByEmail(anyString())).thenReturn(
-            Optional.of(savedUser)
-        );
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(savedUser));
 
         when(tokenRepository.save(any(Token.class))).thenReturn(token);
 
-        when(jwtService.getRefreshTokenExpirationInstant()).thenReturn(
-            Instant.now().plusSeconds(86400)
-        );
+        when(jwtService.getRefreshTokenExpirationInstant())
+                .thenReturn(Instant.now().plusSeconds(86400));
 
-        when(jwtService.generateToken(any(UserDetailsImpl.class))).thenReturn(
-            "access-token"
-        );
+        when(jwtService.generateToken(any(UserDetailsImpl.class))).thenReturn("access-token");
 
-        when(
-            jwtService.generateRefreshToken(
-                any(UserDetailsImpl.class),
-                eq(token.getJti()),
-                any(UUID.class)
-            )
-        ).thenReturn("refresh-token");
+        when(jwtService.generateRefreshToken(any(UserDetailsImpl.class), eq(token.getJti()), any(UUID.class)))
+                .thenReturn("refresh-token");
 
         // When
-        TokenResponseDTO result = authService.login(
-            new LoginRequestDTO("shoan@test.com", "password")
-        );
+        TokenResponseDTO result = authService.login(new LoginRequestDTO("shoan@test.com", "password"));
 
         // Then
         assertThat(result.accessToken()).isEqualTo("access-token");
@@ -251,13 +207,9 @@ class AuthServiceTest {
     @DisplayName("Should throw when refresh header is invalid")
     void refresh_shouldThrowWhenHeaderInvalid() {
         // When / Then
-        assertThatThrownBy(() ->
-            authService.refreshToken("invalid")
-        ).isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> authService.refreshToken("invalid")).isInstanceOf(BadRequestException.class);
 
-        assertThatThrownBy(() -> authService.refreshToken(null)).isInstanceOf(
-            BadRequestException.class
-        );
+        assertThatThrownBy(() -> authService.refreshToken(null)).isInstanceOf(BadRequestException.class);
 
         verifyNoInteractions(tokenRepository);
     }
@@ -277,9 +229,7 @@ class AuthServiceTest {
 
         when(jwtService.extractUsername(rawToken)).thenReturn("test@test.com");
 
-        when(userRepository.findByEmail(anyString())).thenReturn(
-            Optional.of(user)
-        );
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
 
         Token dbToken = Token.builder().jti(jti).familyId(familyId).build();
 
@@ -289,8 +239,8 @@ class AuthServiceTest {
 
         // When / Then
         assertThatThrownBy(() -> authService.refreshToken("Bearer " + rawToken))
-            .isInstanceOf(InvalidJwtException.class)
-            .hasMessage("Refresh token reuse detected. Family revoked");
+                .isInstanceOf(InvalidJwtException.class)
+                .hasMessage("Refresh token reuse detected. Family revoked");
 
         verify(tokenRepository).revokeByFamily(familyId);
     }
@@ -310,34 +260,22 @@ class AuthServiceTest {
 
         when(jwtService.extractUsername(rawToken)).thenReturn("test@test.com");
 
-        when(userRepository.findByEmail(anyString())).thenReturn(
-            Optional.of(user)
-        );
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
 
         when(tokenRepository.findById(jti)).thenReturn(Optional.of(token));
 
         when(tokenRepository.save(any(Token.class))).thenReturn(token);
 
-        when(jwtService.getRefreshTokenExpirationInstant()).thenReturn(
-            Instant.now().plusSeconds(86400)
-        );
+        when(jwtService.getRefreshTokenExpirationInstant())
+                .thenReturn(Instant.now().plusSeconds(86400));
 
-        when(jwtService.generateToken(any(UserDetailsImpl.class))).thenReturn(
-            "access-token"
-        );
+        when(jwtService.generateToken(any(UserDetailsImpl.class))).thenReturn("access-token");
 
-        when(
-            jwtService.generateRefreshToken(
-                any(UserDetailsImpl.class),
-                eq(token.getJti()),
-                any(UUID.class)
-            )
-        ).thenReturn("refresh-token");
+        when(jwtService.generateRefreshToken(any(UserDetailsImpl.class), eq(token.getJti()), any(UUID.class)))
+                .thenReturn("refresh-token");
 
         // When
-        TokenResponseDTO result = authService.refreshToken(
-            "Bearer " + rawToken
-        );
+        TokenResponseDTO result = authService.refreshToken("Bearer " + rawToken);
 
         // Then
         assertThat(result.accessToken()).isEqualTo("access-token");
@@ -356,9 +294,7 @@ class AuthServiceTest {
 
         when(jwtService.extractUsername(rawToken)).thenReturn("test@test.com");
 
-        when(userRepository.findByEmail("test@test.com")).thenReturn(
-            Optional.of(user)
-        );
+        when(userRepository.findByEmail("test@test.com")).thenReturn(Optional.of(user));
 
         when(jwtService.extractFamilyId(rawToken)).thenReturn(familyId);
 

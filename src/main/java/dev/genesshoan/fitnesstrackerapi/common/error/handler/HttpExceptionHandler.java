@@ -1,9 +1,7 @@
 package dev.genesshoan.fitnesstrackerapi.common.error.handler;
 
-import static dev.genesshoan.fitnesstrackerapi.common.error.handler.ProblemDetailUtils.errorResponse;
-
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -16,6 +14,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
+
+import lombok.extern.slf4j.Slf4j;
+
+import static dev.genesshoan.fitnesstrackerapi.common.error.handler.ProblemDetailUtils.errorResponse;
 
 /**
  * Centralized HTTP exception handler for the REST API.
@@ -57,23 +59,15 @@ public class HttpExceptionHandler {
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ProblemDetail> handleHttpMessageNotReadableException(
-        HttpMessageNotReadableException ex,
-        HttpServletRequest request
-    ) {
-        log.warn(
-            "Malformed JSON body: {} {} -> {}",
-            request.getMethod(),
-            request.getRequestURI(),
-            ex.getMessage()
-        );
+            HttpMessageNotReadableException ex, HttpServletRequest request) {
+        log.warn("Malformed JSON body: {} {} -> {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ProblemDetail problemDetail = errorResponse(
-            HttpStatus.BAD_REQUEST,
-            "Malformed JSON body",
-            "The request contains invalid JSON content",
-            null,
-            request
-        );
+                HttpStatus.BAD_REQUEST,
+                "Malformed JSON body",
+                "The request contains invalid JSON content",
+                null,
+                request);
 
         return ResponseEntity.badRequest().body(problemDetail);
     }
@@ -93,32 +87,17 @@ public class HttpExceptionHandler {
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ProblemDetail> handleMethodArgumentTypeMismatchException(
-        MethodArgumentTypeMismatchException ex,
-        HttpServletRequest request
-    ) {
-        log.warn(
-            "Invalid parameter type: {} {} -> {}",
-            request.getMethod(),
-            request.getRequestURI(),
-            ex.getMessage()
-        );
+            MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
+        log.warn("Invalid parameter type: {} {} -> {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         String detail = String.format(
-            "Invalid value '%s' for parameter '%s'. Expected type: %s",
-            ex.getValue(),
-            ex.getName(),
-            ex.getRequiredType() != null
-                ? ex.getRequiredType().getSimpleName()
-                : "unknown"
-        );
+                "Invalid value '%s' for parameter '%s'. Expected type: %s",
+                ex.getValue(),
+                ex.getName(),
+                ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown");
 
-        ProblemDetail problemDetail = errorResponse(
-            HttpStatus.BAD_REQUEST,
-            "Invalid parameter type",
-            detail,
-            null,
-            request
-        );
+        ProblemDetail problemDetail =
+                errorResponse(HttpStatus.BAD_REQUEST, "Invalid parameter type", detail, null, request);
 
         return ResponseEntity.badRequest().body(problemDetail);
     }
@@ -138,22 +117,11 @@ public class HttpExceptionHandler {
      */
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ProblemDetail> handleNoHandlerFoundException(
-        NoHandlerFoundException ex,
-        HttpServletRequest request
-    ) {
-        log.warn(
-            "No handler found: {} {} (resource not available)",
-            request.getMethod(),
-            request.getRequestURI()
-        );
+            NoHandlerFoundException ex, HttpServletRequest request) {
+        log.warn("No handler found: {} {} (resource not available)", request.getMethod(), request.getRequestURI());
 
         ProblemDetail problemDetail = errorResponse(
-            HttpStatus.NOT_FOUND,
-            "Resource not found",
-            "The requested endpoint does not exist",
-            null,
-            request
-        );
+                HttpStatus.NOT_FOUND, "Resource not found", "The requested endpoint does not exist", null, request);
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
     }
@@ -172,30 +140,17 @@ public class HttpExceptionHandler {
      */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ProblemDetail> handleHttpRequestMethodNotSupportedException(
-        HttpRequestMethodNotSupportedException ex,
-        HttpServletRequest request
-    ) {
-        log.warn(
-            "Method not supported: {} {} -> {}",
-            request.getMethod(),
-            request.getRequestURI(),
-            ex.getMethod()
-        );
+            HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
+        log.warn("Method not supported: {} {} -> {}", request.getMethod(), request.getRequestURI(), ex.getMethod());
 
         ProblemDetail problemDetail = errorResponse(
-            HttpStatus.METHOD_NOT_ALLOWED,
-            "Method not allowed",
-            String.format(
-                "Http method '%s' is not supported for this endpoint",
-                ex.getMethod()
-            ),
-            null,
-            request
-        );
+                HttpStatus.METHOD_NOT_ALLOWED,
+                "Method not allowed",
+                String.format("Http method '%s' is not supported for this endpoint", ex.getMethod()),
+                null,
+                request);
 
-        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(
-            problemDetail
-        );
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(problemDetail);
     }
 
     /**
@@ -213,51 +168,34 @@ public class HttpExceptionHandler {
      */
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<ProblemDetail> handleHttpMediaTypeNotSupportedException(
-        HttpMediaTypeNotSupportedException ex,
-        HttpServletRequest request
-    ) {
+            HttpMediaTypeNotSupportedException ex, HttpServletRequest request) {
         log.warn(
-            "Media type not supported: {} {} -> {}",
-            request.getMethod(),
-            request.getRequestURI(),
-            ex.getContentType()
-        );
+                "Media type not supported: {} {} -> {}",
+                request.getMethod(),
+                request.getRequestURI(),
+                ex.getContentType());
 
         ProblemDetail problemDetail = errorResponse(
-            HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-            "Unsupported media type",
-            "Content type in not supported. Use application/json",
-            null,
-            request
-        );
+                HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                "Unsupported media type",
+                "Content type in not supported. Use application/json",
+                null,
+                request);
 
-        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(
-            problemDetail
-        );
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(problemDetail);
     }
 
     @ExceptionHandler(MissingRequestHeaderException.class)
-    public ResponseEntity<ProblemDetail> handleException(
-        Exception ex,
-        HttpServletRequest request
-    ) {
-        log.warn(
-            "Missing request header: {} {} -> {}",
-            request.getMethod(),
-            request.getRequestURI(),
-            ex.getMessage()
-        );
+    public ResponseEntity<ProblemDetail> handleException(Exception ex, HttpServletRequest request) {
+        log.warn("Missing request header: {} {} -> {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ProblemDetail problemDetail = errorResponse(
-            HttpStatus.BAD_REQUEST,
-            "Missing request header",
-            "The request is missing a required header",
-            null,
-            request
-        );
+                HttpStatus.BAD_REQUEST,
+                "Missing request header",
+                "The request is missing a required header",
+                null,
+                request);
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-            problemDetail
-        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
     }
 }

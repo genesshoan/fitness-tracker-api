@@ -1,10 +1,11 @@
 package dev.genesshoan.fitnesstrackerapi.common.script.data;
 
+import java.io.InputStream;
+import java.util.Set;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import java.io.InputStream;
-import java.util.Set;
 
 public class SeedData {
 
@@ -22,8 +23,7 @@ public class SeedData {
         }
     }
 
-    private <T> Set<T> load(String path, TypeReference<Set<T>> type)
-        throws Exception {
+    private <T> Set<T> load(String path, TypeReference<Set<T>> type) throws Exception {
         InputStream is = getClass().getClassLoader().getResourceAsStream(path);
 
         if (is == null) {

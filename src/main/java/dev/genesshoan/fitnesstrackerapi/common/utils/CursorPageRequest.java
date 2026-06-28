@@ -9,10 +9,7 @@ public record CursorPageRequest<C>(C cursor, Integer size) {
 
     @Override
     public Integer size() {
-        return Math.min(
-            size == null || size < 1 ? DEFAULT_SIZE : size,
-            MAX_SIZE
-        );
+        return Math.min(size == null || size < 1 ? DEFAULT_SIZE : size, MAX_SIZE);
     }
 
     public Pageable pageable() {

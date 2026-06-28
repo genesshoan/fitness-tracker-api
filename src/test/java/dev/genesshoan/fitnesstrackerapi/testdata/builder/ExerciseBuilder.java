@@ -1,12 +1,13 @@
 package dev.genesshoan.fitnesstrackerapi.testdata.builder;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ExerciseMuscle;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
 import net.datafaker.Faker;
 
 public class ExerciseBuilder {
@@ -59,22 +60,20 @@ public class ExerciseBuilder {
         return this;
     }
 
-    public ExerciseBuilder withExerciseMuscles(
-        Set<ExerciseMuscle> exerciseMuscles
-    ) {
+    public ExerciseBuilder withExerciseMuscles(Set<ExerciseMuscle> exerciseMuscles) {
         this.exerciseMuscles = exerciseMuscles;
         return this;
     }
 
     public Exercise build() {
         return Exercise.builder()
-            .name(name)
-            .slug(slug)
-            .description(description)
-            .category(category)
-            .difficulty(difficulty)
-            .active(active)
-            .exerciseMuscles(exerciseMuscles)
-            .build();
+                .name(name)
+                .slug(slug)
+                .description(description)
+                .category(category)
+                .difficulty(difficulty)
+                .active(active)
+                .exerciseMuscles(exerciseMuscles)
+                .build();
     }
 }

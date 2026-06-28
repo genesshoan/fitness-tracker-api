@@ -1,12 +1,9 @@
 package dev.genesshoan.fitnesstrackerapi.unit;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
@@ -18,10 +15,6 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseDetailDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.mapper.ExerciseMapper;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.ExerciseBuilder;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +25,14 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ExerciseServiceTest {
@@ -57,26 +58,16 @@ class ExerciseServiceTest {
 
         CursorPageRequest<UUID> request = new CursorPageRequest<>(null, 10);
 
-        when(
-            exerciseRepository.findByFilters(any(), any(), any(), any(), any())
-        ).thenReturn(Collections.emptyList());
+        when(exerciseRepository.findByFilters(any(), any(), any(), any(), any()))
+                .thenReturn(Collections.emptyList());
 
         // When
-        exerciseService.getAllExercises(
-            request,
-            category,
-            difficulty,
-            muscleSlugs
-        );
+        exerciseService.getAllExercises(request, category, difficulty, muscleSlugs);
 
         // Then
-        verify(exerciseRepository).findByFilters(
-            eq(request.cursor()),
-            eq(category),
-            eq(difficulty),
-            eq(muscleSlugs),
-            eq(request.pageable())
-        );
+        verify(exerciseRepository)
+                .findByFilters(
+                        eq(request.cursor()), eq(category), eq(difficulty), eq(muscleSlugs), eq(request.pageable()));
 
         verifyNoInteractions(exerciseMapper);
     }
@@ -90,18 +81,15 @@ class ExerciseServiceTest {
         var exercise = ExerciseBuilder.anExercise(FAKER).withSlug(slug).build();
 
         var detailDTO = new ExerciseDetailDTO(
-            UUID.randomUUID(),
-            exercise.getName(),
-            exercise.getSlug(),
-            exercise.getDescription(),
-            exercise.getCategory(),
-            exercise.getDifficulty(),
-            List.of()
-        );
+                UUID.randomUUID(),
+                exercise.getName(),
+                exercise.getSlug(),
+                exercise.getDescription(),
+                exercise.getCategory(),
+                exercise.getDifficulty(),
+                List.of());
 
-        when(exerciseRepository.findBySlugAndActiveTrue(slug)).thenReturn(
-            Optional.of(exercise)
-        );
+        when(exerciseRepository.findBySlugAndActiveTrue(slug)).thenReturn(Optional.of(exercise));
 
         when(exerciseMapper.toDetailDTO(exercise)).thenReturn(detailDTO);
 
@@ -117,21 +105,17 @@ class ExerciseServiceTest {
     }
 
     @Test
-    @DisplayName(
-        "Should throw ResourceNotFoundException when exercise does not exist"
-    )
+    @DisplayName("Should throw ResourceNotFoundException when exercise does not exist")
     void getExerciseBySlug_shouldThrowExceptionWhenExerciseDoesNotExist() {
         // Given
         String slug = "bench-press";
 
-        when(exerciseRepository.findBySlugAndActiveTrue(slug)).thenReturn(
-            Optional.empty()
-        );
+        when(exerciseRepository.findBySlugAndActiveTrue(slug)).thenReturn(Optional.empty());
 
         // When / Then
         assertThatThrownBy(() -> exerciseService.getExerciseBySlug(slug))
-            .isInstanceOf(ResourceNotFoundException.class)
-            .hasMessage("Exercise with slug " + slug + " not found");
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Exercise with slug " + slug + " not found");
 
         verify(exerciseRepository).findBySlugAndActiveTrue(slug);
 
@@ -140,13 +124,13 @@ class ExerciseServiceTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    @ValueSource(strings = { " ", "   " })
+    @ValueSource(strings = {" ", "   "})
     @DisplayName("Should throw BadRequestException when slug is invalid")
     void getExerciseBySlug_shouldThrowExceptionWhenSlugIsInvalid(String slug) {
         // When / Then
         assertThatThrownBy(() -> exerciseService.getExerciseBySlug(slug))
-            .isInstanceOf(BadRequestException.class)
-            .hasMessage("Slug is required");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Slug is required");
 
         verifyNoInteractions(exerciseRepository);
         verifyNoInteractions(exerciseMapper);

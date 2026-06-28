@@ -1,13 +1,14 @@
 package dev.genesshoan.fitnesstrackerapi.unit;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPage;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
+
+import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CursorPageTest {
 
@@ -22,12 +23,7 @@ public class CursorPageTest {
         var items = List.of(id1, id2, id3);
 
         // When
-        var cursorPage = CursorPage.of(
-            items,
-            2,
-            Function.identity(),
-            Function.identity()
-        );
+        var cursorPage = CursorPage.of(items, 2, Function.identity(), Function.identity());
 
         // Then
         assertThat(cursorPage.page()).hasSize(2);
@@ -39,12 +35,7 @@ public class CursorPageTest {
     @DisplayName("Should handle empty list")
     void cursorPagination_EmptyList() {
         // When
-        var cursorPage = CursorPage.of(
-            List.of(),
-            2,
-            Function.identity(),
-            Function.identity()
-        );
+        var cursorPage = CursorPage.of(List.of(), 2, Function.identity(), Function.identity());
 
         // Then
         assertThat(cursorPage.page()).isEmpty();
@@ -56,12 +47,7 @@ public class CursorPageTest {
     @DisplayName("Should handle less items than page size")
     void cursorPagination_LessItemsThanPageSize() {
         // When
-        var cursorPage = CursorPage.of(
-            List.of(UUID.randomUUID()),
-            20,
-            Function.identity(),
-            Function.identity()
-        );
+        var cursorPage = CursorPage.of(List.of(UUID.randomUUID()), 20, Function.identity(), Function.identity());
 
         // Then
         assertThat(cursorPage.page()).hasSize(1);
@@ -74,14 +60,12 @@ public class CursorPageTest {
     void cursorPagination_ExactPageSize() {
         // When
         var cursorPage = CursorPage.of(
-            List.of(
-                UUID.fromString("11111111-1111-1111-1111-111111111111"),
-                UUID.fromString("22222222-2222-2222-2222-222222222222")
-            ),
-            2,
-            Function.identity(),
-            Function.identity()
-        );
+                List.of(
+                        UUID.fromString("11111111-1111-1111-1111-111111111111"),
+                        UUID.fromString("22222222-2222-2222-2222-222222222222")),
+                2,
+                Function.identity(),
+                Function.identity());
 
         // Then
         assertThat(cursorPage.page()).hasSize(2);
@@ -96,12 +80,7 @@ public class CursorPageTest {
         var items = List.of(1, 2, 3);
 
         // When
-        var cursorPage = CursorPage.of(
-            items,
-            2,
-            Function.identity(),
-            i -> "Item " + i
-        );
+        var cursorPage = CursorPage.of(items, 2, Function.identity(), i -> "Item " + i);
 
         // Then
         assertThat(cursorPage.page()).containsExactly("Item 1", "Item 2");

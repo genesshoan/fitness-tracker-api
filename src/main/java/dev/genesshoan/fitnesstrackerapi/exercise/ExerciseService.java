@@ -1,5 +1,11 @@
 package dev.genesshoan.fitnesstrackerapi.exercise;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPage;
@@ -10,12 +16,8 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseDetailDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseListItemDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.mapper.ExerciseMapper;
-import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -27,30 +29,13 @@ public class ExerciseService {
     private final ExerciseMapper exerciseMapper;
 
     public CursorPage<ExerciseListItemDTO, UUID> getAllExercises(
-        CursorPageRequest<UUID> request,
-        Category category,
-        Difficulty difficulty,
-        List<String> muscleSlugs
-    ) {
+            CursorPageRequest<UUID> request, Category category, Difficulty difficulty, List<String> muscleSlugs) {
         List<Exercise> exercises = exerciseRepository.findByFilters(
-            request.cursor(),
-            category,
-            difficulty,
-            muscleSlugs,
-            request.pageable()
-        );
+                request.cursor(), category, difficulty, muscleSlugs, request.pageable());
 
-        log.info(
-            "Found {} exercises",
-            exercises == null ? 0 : exercises.size()
-        );
+        log.info("Found {} exercises", exercises == null ? 0 : exercises.size());
 
-        return CursorPage.of(
-            exercises,
-            request.size(),
-            Exercise::getId,
-            exerciseMapper::toItemDTO
-        );
+        return CursorPage.of(exercises, request.size(), Exercise::getId, exerciseMapper::toItemDTO);
     }
 
     public ExerciseDetailDTO getExerciseBySlug(String slug) {
@@ -58,14 +43,10 @@ public class ExerciseService {
             throw new BadRequestException("Slug is required");
         }
 
-        var exercise = exerciseRepository
-            .findBySlugAndActiveTrue(slug)
-            .orElseThrow(() -> {
-                log.warn("Exercise with slug {} not found", slug);
-                return new ResourceNotFoundException(
-                    "Exercise with slug " + slug + " not found"
-                );
-            });
+        var exercise = exerciseRepository.findBySlugAndActiveTrue(slug).orElseThrow(() -> {
+            log.warn("Exercise with slug {} not found", slug);
+            return new ResourceNotFoundException("Exercise with slug " + slug + " not found");
+        });
 
         log.info("Found exercise with slug {}", slug);
 

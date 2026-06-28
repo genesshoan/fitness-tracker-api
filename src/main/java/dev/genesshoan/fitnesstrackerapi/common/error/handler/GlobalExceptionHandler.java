@@ -1,9 +1,7 @@
 package dev.genesshoan.fitnesstrackerapi.common.error.handler;
 
-import static dev.genesshoan.fitnesstrackerapi.common.error.handler.ProblemDetailUtils.errorResponse;
-
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -12,6 +10,10 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import lombok.extern.slf4j.Slf4j;
+
+import static dev.genesshoan.fitnesstrackerapi.common.error.handler.ProblemDetailUtils.errorResponse;
 
 /**
  * Global catch-all exception handler for unexpected errors.
@@ -65,31 +67,14 @@ public class GlobalExceptionHandler {
      *         error message based on the active profile
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ProblemDetail> handleUnexpected(
-        Exception ex,
-        HttpServletRequest request
-    ) {
-        log.error(
-            "Unexpected error at {} {}",
-            request.getMethod(),
-            request.getRequestURI(),
-            ex
-        );
+    public ResponseEntity<ProblemDetail> handleUnexpected(Exception ex, HttpServletRequest request) {
+        log.error("Unexpected error at {} {}", request.getMethod(), request.getRequestURI(), ex);
 
-        String detail = "dev".equals(activeProfile)
-            ? ex.getMessage()
-            : "An unexpected error occurred";
+        String detail = "dev".equals(activeProfile) ? ex.getMessage() : "An unexpected error occurred";
 
-        ProblemDetail problemDetail = errorResponse(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "Internal server error",
-            detail,
-            null,
-            request
-        );
+        ProblemDetail problemDetail =
+                errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error", detail, null, request);
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-            problemDetail
-        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problemDetail);
     }
 }

@@ -1,6 +1,7 @@
 package dev.genesshoan.fitnesstrackerapi.exercise.domain;
 
-import dev.genesshoan.fitnesstrackerapi.common.BaseEntity;
+import java.util.Set;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,7 +10,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.util.Set;
+
+import dev.genesshoan.fitnesstrackerapi.common.BaseEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -46,11 +48,6 @@ public class Exercise extends BaseEntity {
     @Builder.Default
     private boolean active = true;
 
-    @OneToMany(
-        mappedBy = "exercise",
-        cascade = CascadeType.ALL,
-        orphanRemoval = true,
-        fetch = FetchType.LAZY
-    )
+    @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<ExerciseMuscle> exerciseMuscles;
 }
