@@ -3,7 +3,7 @@ package dev.genesshoan.fitnesstrackerapi.exercise.dto;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 @Schema(description = "Exercise list item DTO")
@@ -17,7 +17,7 @@ public record ExerciseDetailDTO(
     @Schema(description = "Exercise slug", example = "bicep-curl") String slug,
     @Schema(
         description = "Exercise description",
-        example = "Exercise description"
+        example = "Made with a bicep curl bar"
     )
     String description,
     @Schema(description = "Exercise category", example = "ARM")
@@ -25,5 +25,5 @@ public record ExerciseDetailDTO(
     @Schema(description = "Exercise difficulty", example = "INTERMEDIATE")
     Difficulty difficulty,
     @Schema(description = "Exercise muscles")
-    Set<ExerciseMuscleDTO> exerciseMuscles
+    List<ExerciseMuscleDTO> exerciseMuscles
 ) {}

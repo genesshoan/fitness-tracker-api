@@ -23,7 +23,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "exercise_muscle")
+@Table(name = "exercise_muscles")
 public class ExerciseMuscle {
 
     @EmbeddedId

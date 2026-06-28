@@ -4,7 +4,7 @@ CREATE TABLE muscles
     created_at  TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at  TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
     name        VARCHAR(255)                NOT NULL,
-    slug        VARCHAR(255),
+    slug        VARCHAR(255)                NOT NULL,
     body_region VARCHAR(255)                NOT NULL,
 
     CONSTRAINT pk_muscles PRIMARY KEY (id),

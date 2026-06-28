@@ -83,6 +83,9 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/v1/muscles/**")
                     .authenticated()
 
+                    .requestMatchers(HttpMethod.GET, "/api/v1/exercises/**")
+                    .authenticated()
+
                     .requestMatchers(
                         "/swagger-ui/**",
                         "/swagger-ui.html",

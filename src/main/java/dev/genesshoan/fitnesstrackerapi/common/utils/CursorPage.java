@@ -1,9 +1,11 @@
 package dev.genesshoan.fitnesstrackerapi.common.utils;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
+@Schema(description = "A page of results with a cursor for pagination")
 public record CursorPage<T, C>(
     List<T> page,
     Optional<C> nextCursor,

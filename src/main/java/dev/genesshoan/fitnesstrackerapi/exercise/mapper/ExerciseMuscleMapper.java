@@ -12,5 +12,5 @@ import org.mapstruct.Mapper;
     uses = { MuscleMapper.class }
 )
 public interface ExerciseMuscleMapper {
-    ExerciseMuscleDTO tDto(ExerciseMuscle exerciseMuscle);
+    ExerciseMuscleDTO toExerciseMuscleDto(ExerciseMuscle exerciseMuscle);
 }

@@ -15,13 +15,17 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ExerciseRepository extends JpaRepository<Exercise, UUID> {
-    Optional<Exercise> findBySlug(String slug);
+    @EntityGraph(
+        attributePaths = { "exerciseMuscles", "exerciseMuscles.muscle" }
+    )
+    Optional<Exercise> findBySlugAndActiveTrue(String slug);
 
     @Query(
         """
             SELECT e
             FROM Exercise e
             WHERE (:cursor IS NULL OR e.id > :cursor)
+                AND e.active = true
                 AND (:category IS NULL OR e.category = :category)
                 AND (:difficulty IS NULL OR e.difficulty = :difficulty)
                 AND (:muscleSlugs IS NULL OR EXISTS (
@@ -38,12 +42,5 @@ public interface ExerciseRepository extends JpaRepository<Exercise, UUID> {
         @Param("difficulty") Difficulty difficulty,
         @Param("muscleSlugs") List<String> muscleSlugs,
         Pageable pageable
-    );
-
-    @EntityGraph(
-        attributePaths = { "exerciseMuscles", "exerciseMuscles.muscle" }
-    )
-    Optional<Exercise> findMuscleBySlug(
-        @Param("exerciseSlug") String exerciseSlug
     );
 }

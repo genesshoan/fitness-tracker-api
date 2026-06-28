@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi;
+package dev.genesshoan.fitnesstrackerapi.base;
 
 import dev.genesshoan.fitnesstrackerapi.auth.service.JwtService;
 import org.springframework.security.core.userdetails.UserDetailsService;

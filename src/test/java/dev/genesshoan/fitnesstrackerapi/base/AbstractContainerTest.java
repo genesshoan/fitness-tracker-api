@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi;
+package dev.genesshoan.fitnesstrackerapi.base;
 
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.context.ActiveProfiles;
@@ -8,7 +8,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @ActiveProfiles("test")
-public abstract class AbstractIntegrationTest {
+public abstract class AbstractContainerTest {
 
     @Container
     @ServiceConnection

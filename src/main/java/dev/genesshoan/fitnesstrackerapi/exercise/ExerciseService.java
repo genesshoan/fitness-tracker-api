@@ -1,5 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.exercise;
 
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPage;
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPageRequest;
@@ -14,10 +15,12 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ExerciseService {
 
     private final ExerciseRepository exerciseRepository;
@@ -37,7 +40,10 @@ public class ExerciseService {
             request.pageable()
         );
 
-        log.info("Found {} exercises", exercises.size());
+        log.info(
+            "Found {} exercises",
+            exercises == null ? 0 : exercises.size()
+        );
 
         return CursorPage.of(
             exercises,
@@ -48,12 +54,18 @@ public class ExerciseService {
     }
 
     public ExerciseDetailDTO getExerciseBySlug(String slug) {
-        var exercise = exerciseRepository.findBySlug(slug).orElseThrow(() -> {
-            log.warn("Exercise with slug {} not found", slug);
-            return new ResourceNotFoundException(
-                "Exercise with slug " + slug + " not found"
-            );
-        });
+        if (slug == null || slug.isBlank()) {
+            throw new BadRequestException("Slug is required");
+        }
+
+        var exercise = exerciseRepository
+            .findBySlugAndActiveTrue(slug)
+            .orElseThrow(() -> {
+                log.warn("Exercise with slug {} not found", slug);
+                return new ResourceNotFoundException(
+                    "Exercise with slug " + slug + " not found"
+                );
+            });
 
         log.info("Found exercise with slug {}", slug);
 

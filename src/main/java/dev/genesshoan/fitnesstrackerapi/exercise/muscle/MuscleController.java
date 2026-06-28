@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,10 +39,26 @@ public class MuscleController {
         value = {
             @ApiResponse(
                 responseCode = "200",
-                description = "Muscles retrieved successfully",
+                description = "Muscle retrieved successfully",
                 content = @Content(
                     mediaType = "application/json",
                     schema = @Schema(implementation = MuscleResponseDTO.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized",
+                content = @Content(
+                    mediaType = "application/problem+json",
+                    schema = @Schema(implementation = ProblemDetail.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "500",
+                description = "Internal server error",
+                content = @Content(
+                    mediaType = "application/problem+json",
+                    schema = @Schema(implementation = ProblemDetail.class)
                 )
             ),
         }
@@ -70,11 +87,27 @@ public class MuscleController {
                 )
             ),
             @ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized",
+                content = @Content(
+                    mediaType = "application/problem+json",
+                    schema = @Schema(implementation = ProblemDetail.class)
+                )
+            ),
+            @ApiResponse(
                 responseCode = "404",
                 description = "Muscle not found",
                 content = @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = MuscleResponseDTO.class)
+                    mediaType = "application/problem+json",
+                    schema = @Schema(implementation = ProblemDetail.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "500",
+                description = "Internal server error",
+                content = @Content(
+                    mediaType = "application/problem+json",
+                    schema = @Schema(implementation = ProblemDetail.class)
                 )
             ),
         }

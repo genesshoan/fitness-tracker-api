@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.f4b6a3.uuid.UuidCreator;
-import dev.genesshoan.fitnesstrackerapi.AbstractIntegrationTest;
 import dev.genesshoan.fitnesstrackerapi.auth.service.JwtService;
+import dev.genesshoan.fitnesstrackerapi.base.AbstractPostgresTest;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidJwtException;
 import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
 import dev.genesshoan.fitnesstrackerapi.user.domain.Role;
@@ -25,7 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class JwtServiceTest extends AbstractIntegrationTest {
+class JwtServiceTest extends AbstractPostgresTest {
 
     @Autowired
     private JwtService jwtService;

@@ -11,11 +11,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.genesshoan.fitnesstrackerapi.AbstractWebMvcTest;
 import dev.genesshoan.fitnesstrackerapi.auth.dto.LoginRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.auth.dto.RegisterRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.auth.dto.TokenResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.auth.service.AuthService;
+import dev.genesshoan.fitnesstrackerapi.base.AbstractWebMvcTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

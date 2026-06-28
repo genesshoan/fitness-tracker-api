@@ -68,6 +68,8 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'
 
+    testImplementation 'net.datafaker:datafaker:2.4.2'
+
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
