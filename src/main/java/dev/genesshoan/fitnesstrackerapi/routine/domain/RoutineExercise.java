@@ -1,14 +1,17 @@
 package dev.genesshoan.fitnesstrackerapi.routine.domain;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
+import java.util.UUID;
+
 import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,43 +25,46 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(
-    name = "routine_exercises",
-    uniqueConstraints = @UniqueConstraint(
-        name = "uk_routine_exercise_position",
-        columnNames = { "routine_id", "position" }
-    )
-)
+        name = "routine_exercises",
+        uniqueConstraints =
+                @UniqueConstraint(
+                        name = "uk_routine_exercise_position",
+                        columnNames = {"routine_id", "position"}))
 public class RoutineExercise {
 
-    @EmbeddedId
-    private RoutineExerciseId id;
+    @Id
+    @Column(updatable = false, nullable = false, unique = true)
+    UUID id;
 
     @Column(nullable = false)
-    private int position;
+    private Integer position;
 
     @Column(nullable = false)
-    private int defaultSets;
+    private Integer defaultRestSeconds;
+
+    @Column(nullable = false)
+    private Integer defaultSets;
 
     @Column
-    private int defaultReps;
+    private Integer defaultReps;
 
     @Column
-    private int defaultWeightKg;
+    private Double defaultWeightKg;
 
     @Column
-    private int defaultDurationSeconds;
+    private Integer defaultDurationSeconds;
 
     @Column
-    private int defaultDistanceMeters;
+    private Double defaultDistanceKm;
 
     @Column
     private String notes;
 
-    @MapsId("routineId")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "routine_id")
     private Routine routine;
 
-    @MapsId("exerciseId")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "exercise_id")
     private Exercise exercise;
 }

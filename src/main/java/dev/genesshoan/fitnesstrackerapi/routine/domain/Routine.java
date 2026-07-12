@@ -1,14 +1,19 @@
 package dev.genesshoan.fitnesstrackerapi.routine.domain;
 
-import dev.genesshoan.fitnesstrackerapi.common.BaseEntity;
-import dev.genesshoan.fitnesstrackerapi.user.domain.User;
+import java.util.Set;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+
+import dev.genesshoan.fitnesstrackerapi.common.BaseEntity;
+import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,10 +27,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(
-    name = "routines",
-    uniqueConstraints = @UniqueConstraint(columnNames = "name, user_id")
-)
+@Table(name = "routines", uniqueConstraints = @UniqueConstraint(columnNames = "name, user_id"))
 public class Routine extends BaseEntity {
 
     @Column(nullable = false)
@@ -40,4 +42,7 @@ public class Routine extends BaseEntity {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @OneToMany(mappedBy = "routine", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<RoutineExercise> exercises;
 }
