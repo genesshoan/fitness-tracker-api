@@ -138,9 +138,25 @@ public class DomainExceptionHandler {
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ProblemDetail> handleInvalidCredentials(
             InvalidCredentialsException ex, HttpServletRequest request) {
-        ProblemDetail problem =
-                errorResponse(HttpStatus.UNAUTHORIZED, "Unauthorized", "Invalid email or password", null, request);
+        ProblemDetail problem = errorResponse(HttpStatus.UNAUTHORIZED, "Unauthorized", ex.getMessage(), null, request);
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
+    }
+
+    /**
+     * Handles unauthorized request errors.
+     *
+     * Typical cases:
+     * -
+     *
+     * @param ex      unauthorized exception from service layer
+     * @param request current HTTP request
+     * @return 403 Forbidden ProblemDetail response
+     */
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ProblemDetail> handleUnauthorized(UnauthorizedException ex, HttpServletRequest request) {
+        ProblemDetail problem = errorResponse(HttpStatus.FORBIDDEN, "Unauthorized", ex.getMessage(), null, request);
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problem);
     }
 }
