@@ -1,5 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.security;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -13,8 +14,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * Central security configuration for the application.
@@ -69,18 +68,32 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/auth/**")
+                .authorizeHttpRequests(auth -> auth
+                        // Public endpoints
+                        .requestMatchers("/api/v1/auth/**")
                         .permitAll()
+
+                        // Documentation
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs")
+                        .permitAll()
+
+                        // User endpoints
                         .requestMatchers(HttpMethod.GET, "/api/v1/user/me")
                         .authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/v1/user/me/**")
                         .authenticated()
+
+                        // Exercise catalog
                         .requestMatchers(HttpMethod.GET, "/api/v1/muscles/**")
                         .authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/exercises/**")
                         .authenticated()
-                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs")
-                        .permitAll()
+
+                        // Routine management
+                        .requestMatchers("/api/v1/routines/**")
+                        .authenticated()
+
+                        // Everything else
                         .anyRequest()
                         .authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -1,21 +1,5 @@
 package dev.genesshoan.fitnesstrackerapi.routine;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyExistsException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
@@ -31,8 +15,21 @@ import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.routine.mapper.RoutineMapper;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -45,14 +42,11 @@ public class RoutineService {
     private final RoutineMapper routineMapper;
 
     public Page<RoutineListItemDTO> getRoutinesByUserId(User user, Pageable pageable) {
-        Page<RoutineListItemDTO> routines =
-                routineRepository.findAllByUserIdAndActiveTrueWithExerciseCount(user.getId(), pageable);
-        return routines;
+        return routineRepository.findAllByUserIdAndActiveTrueWithExerciseCount(user.getId(), pageable);
     }
 
     public RoutineResponseDTO getRoutineById(UUID routineId, User user) {
-        var routine = findAndValidateRoutine(routineId, user);
-        return routineMapper.toRoutineResponseDTO(routine);
+        return routineMapper.toRoutineResponseDTO(findAndValidateRoutine(routineId, user));
     }
 
     @Transactional
@@ -107,27 +101,32 @@ public class RoutineService {
     }
 
     @Transactional
-    public void addRoutineExercise(UUID routineId, RoutineExerciseRequestDTO dto, int position, User user) {
+    public RoutineResponseDTO addRoutineExercise(
+            UUID routineId, int position, RoutineExerciseRequestDTO dto, User user) {
         var routine = findAndValidateRoutine(routineId, user);
 
         var exercise = exerciseRepository
                 .findById(dto.exerciseId())
                 .orElseThrow(() -> new ResourceNotFoundException("Exercise not found"));
 
-        var newRoutineExercise = buildRoutineExercise(routine, exercise, dto, position);
+        var maxPosition = routine.getExercises().size();
 
-        var maxPosition = routine.getExercises().stream()
-                .max(Comparator.comparing(RoutineExercise::getPosition))
-                .map(RoutineExercise::getPosition)
-                .orElse(1);
+        var adjustedPosition = Math.max(1, Math.min(position, maxPosition + 1));
 
-        var adjustedPosition = Math.max(0, Math.min(position, maxPosition + 1));
+        if (!exercise.getCategory().validate(dto)) {
+            throw new ValidationException(Map.of(
+                    exercise.getId().toString(), List.of("Invalid data for category " + exercise.getCategory())));
+        }
+
+        var newRoutineExercise = buildRoutineExercise(routine, exercise, dto, adjustedPosition);
 
         routine.getExercises().stream()
                 .filter(e -> e.getPosition() >= adjustedPosition)
                 .forEach(e -> e.setPosition(e.getPosition() + 1));
 
         routine.getExercises().add(newRoutineExercise);
+
+        return routineMapper.toRoutineResponseDTO(routine);
     }
 
     @Transactional
@@ -148,6 +147,7 @@ public class RoutineService {
                 .forEach(e -> e.setPosition(e.getPosition() - 1));
     }
 
+    @Transactional
     public RoutineResponseDTO updateRoutineExercise(
             UUID routineId, int position, RoutineExerciseRequestDTO dto, User user) {
         var routine = findAndValidateRoutine(routineId, user);
@@ -156,10 +156,9 @@ public class RoutineService {
                 .findById(dto.exerciseId())
                 .orElseThrow(() -> new ResourceNotFoundException("Exercise not found"));
 
-        boolean exists = routine.getExercises().stream().anyMatch(e -> e.getPosition() == position);
-
-        if (!exists) {
-            throw new ResourceNotFoundException("Not exercise found for position " + position);
+        if (!exercise.getCategory().validate(dto)) {
+            throw new ValidationException(Map.of(
+                    exercise.getId().toString(), List.of("Invalid data for category " + exercise.getCategory())));
         }
 
         var newRoutineExercise = buildRoutineExercise(routine, exercise, dto, position);
@@ -167,8 +166,7 @@ public class RoutineService {
         var routineExercise = routine.getExercises().stream()
                 .filter(re -> re.getPosition() == position)
                 .findFirst()
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("No existing exercise int hte indicated position was found"));
+                .orElseThrow(() -> new ResourceNotFoundException("No exercise found at position " + position));
 
         routine.getExercises().remove(routineExercise);
 
@@ -179,11 +177,6 @@ public class RoutineService {
 
     private RoutineExercise buildRoutineExercise(
             Routine routine, Exercise exercise, RoutineExerciseRequestDTO dto, int position) {
-        if (!exercise.getCategory().validate(dto)) {
-            throw new ValidationException(Map.of(
-                    exercise.getId().toString(), List.of("Invalid data for category " + exercise.getCategory())));
-        }
-
         return RoutineExercise.builder()
                 .position(position)
                 .defaultRestSeconds(dto.defaultRestSeconds())
@@ -204,7 +197,7 @@ public class RoutineService {
         int position = 1;
 
         for (RoutineExerciseRequestDTO dto : exerciseDTOs) {
-            routineExercises.add(buildRoutineExercise(routine, exercises.get(dto.exerciseId()), dto, position));
+            routineExercises.add(buildRoutineExercise(routine, exercises.get(dto.exerciseId()), dto, position++));
         }
 
         return routineExercises;
