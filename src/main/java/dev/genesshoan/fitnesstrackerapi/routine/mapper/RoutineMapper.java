@@ -11,6 +11,6 @@ import org.mapstruct.Mapping;
 public interface RoutineMapper {
     RoutineResponseDTO toRoutineResponseDTO(Routine routine);
 
-    @Mapping(target = "exerciseCount", expression = "java(routine.getExercises().size())")
+    @Mapping(target = "exerciseCount", expression = "java((long) routine.getExercises().size())")
     RoutineListItemDTO toRoutineListItemDTO(Routine routine);
 }

@@ -1,5 +1,20 @@
 package dev.genesshoan.fitnesstrackerapi.routine;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyExistsException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
@@ -15,21 +30,8 @@ import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.routine.mapper.RoutineMapper;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
