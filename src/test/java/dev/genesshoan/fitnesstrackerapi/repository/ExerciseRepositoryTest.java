@@ -80,8 +80,9 @@ public class ExerciseRepositoryTest extends AbstractPostgresTest {
 
         // Then
         assertThat(result).isPresent();
-        assertThat(result.get().getExerciseMuscles()).isNotEmpty().allSatisfy(em -> assertThat(em.getMuscle())
-                .isNotNull());
+        assertThat(result.get().getExerciseMuscles())
+                .isNotEmpty()
+                .allSatisfy(em -> assertThat(em.getMuscle()).isNotNull());
     }
 
     @Test

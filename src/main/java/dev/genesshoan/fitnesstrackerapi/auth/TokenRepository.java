@@ -14,8 +14,7 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
     boolean existsByJtiAndRevokedFalse(UUID jti);
 
     @Modifying
-    @Query(
-            """
+    @Query("""
         UPDATE Token t
         SET t.revoked = true
         WHERE t.familyId = :familyId

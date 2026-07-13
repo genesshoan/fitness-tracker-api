@@ -20,8 +20,7 @@ public interface ExerciseRepository extends JpaRepository<Exercise, UUID> {
     @EntityGraph(attributePaths = {"exerciseMuscles", "exerciseMuscles.muscle"})
     Optional<Exercise> findBySlugAndActiveTrue(String slug);
 
-    @Query(
-            """
+    @Query("""
             SELECT e
             FROM Exercise e
             WHERE (:cursor IS NULL OR e.id > :cursor)

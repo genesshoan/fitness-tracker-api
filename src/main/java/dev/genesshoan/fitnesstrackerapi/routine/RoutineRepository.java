@@ -17,9 +17,7 @@ import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineListItemDTO;
 public interface RoutineRepository extends JpaRepository<Routine, UUID> {
     boolean existsByNameAndUserIdAndActiveTrue(String name, UUID userId);
 
-    @Query(
-            value =
-                    """
+    @Query(value = """
             SELECT
                 new dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineListItemDTO(
                     r.id,
@@ -32,9 +30,7 @@ public interface RoutineRepository extends JpaRepository<Routine, UUID> {
             WHERE r.user.id = :userId
                 AND r.active = true
             GROUP BY r.id, r.name, r.updatedAt
-        """,
-            countQuery =
-                    """
+        """, countQuery = """
             SELECT COUNT(r)
             FROM Routine r
             WHERE r.user.id = :userId

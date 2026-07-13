@@ -89,7 +89,7 @@ tasks.register('seed', JavaExec) {
 
 spotless {
     java {
-        palantirJavaFormat('2.39.0')
+        palantirJavaFormat('2.96.0')
 
         importOrder(
             'java',
