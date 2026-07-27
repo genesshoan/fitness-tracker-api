@@ -27,6 +27,7 @@ application:
 
 logging:
   level:
+    d.g.f: DEBUG
     org:
       hibernate:
-        SQL: DEBUG
+        SQL: WARN

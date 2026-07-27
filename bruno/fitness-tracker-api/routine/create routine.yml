@@ -1,0 +1,46 @@
+info:
+  name: create routine
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{base_url}}/routines"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Push Day",
+        "description": "Chest, shoulders and triceps workout",
+        "exercises": [
+          {
+            "exercise_id": "019efb47-586b-76a1-a9f0-14a497203ee0",
+            "default_rest_seconds": 90,
+            "default_sets": 4,
+            "default_reps": 10,
+            "default_weight_kg": 60.0,
+            "default_duration_seconds": null,
+            "default_distance_km": null,
+            "notes": "Focus on controlled movement"
+          },
+          {
+            "exercise_id": "019efb47-586b-76a1-a9f1-b9f32309771a",
+            "default_rest_seconds": 60,
+            "default_sets": 3,
+            "default_reps": 12,
+            "default_weight_kg": 20.0,
+            "default_duration_seconds": null,
+            "default_distance_km": null,
+            "notes": null
+          }
+        ]
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

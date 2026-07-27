@@ -44,16 +44,21 @@ public class RoutineService {
     private final RoutineMapper routineMapper;
 
     public Page<RoutineListItemDTO> getRoutinesByUserId(User user, Pageable pageable) {
+        log.info("Getting routines for user: {} with pageable: {}", user.getId(), pageable);
         return routineRepository.findAllByUserIdAndActiveTrueWithExerciseCount(user.getId(), pageable);
     }
 
     public RoutineResponseDTO getRoutineById(UUID routineId, User user) {
+        log.info("Getting routine by id: {} for user: {}", routineId, user.getId());
         return routineMapper.toRoutineResponseDTO(findAndValidateRoutine(routineId, user));
     }
 
     @Transactional
     public RoutineResponseDTO createRoutine(RoutineRequestDTO dto, User user) {
+        log.info("Creating routine with name: {} for user: {}", dto.name(), user.getId());
+
         if (routineRepository.existsByNameAndUserIdAndActiveTrue(dto.name(), user.getId())) {
+            log.warn("Routine with name '{}' already exists for user: {}", dto.name(), user.getId());
             throw new ResourceAlreadyExistsException(
                     "A routine with the name '" + dto.name() + "' already exists for this user");
         }
@@ -66,56 +71,72 @@ public class RoutineService {
                 .build();
 
         routineRepository.save(routine);
+        log.debug("Routine saved with id: {}", routine.getId());
 
         Map<UUID, Exercise> exercises = resolveAndValidateExercises(dto.exercises());
+        log.debug("Validated {} exercises for routine", exercises.size());
 
         List<RoutineExercise> routineExercises = buildRoutineExercises(dto.exercises(), routine, exercises);
 
         routine.setExercises(new HashSet<>(routineExercises));
+        log.info("Routine created successfully with id: {} and {} exercises", routine.getId(), routineExercises.size());
 
         return routineMapper.toRoutineResponseDTO(routine);
     }
 
     @Transactional
     public RoutineResponseDTO updateRoutine(UUID routineId, RoutineRequestDTO dto, User user) {
+        log.info("Updating routine: {} for user: {}", routineId, user.getId());
+
         var routine = findAndValidateRoutine(routineId, user);
 
         if (!dto.name().equals(routine.getName())
                 && routineRepository.existsByNameAndUserIdAndActiveTrue(dto.name(), user.getId())) {
+            log.warn("Routine with name '{}' already exists for user: {}", dto.name(), user.getId());
             throw new ResourceAlreadyExistsException(
                     "A routine with the name '" + dto.name() + "' already exists for this user");
         }
 
         routine.setName(dto.name());
         routine.setDescription(dto.description());
+        log.debug("Updated routine metadata: name={}, description={}", dto.name(), dto.description());
 
         Map<UUID, Exercise> exercisesMap = resolveAndValidateExercises(dto.exercises());
 
         replaceRoutineExercises(routine, exercisesMap, dto.exercises());
+        log.info("Routine updated successfully: {}", routineId);
 
         return routineMapper.toRoutineResponseDTO(routine);
     }
 
     @Transactional
     public void deleteRoutine(UUID routineId, User user) {
+        log.info("Deleting routine: {} for user: {}", routineId, user.getId());
+        // TODO: Prevent deletion when an active workout session exists.
         var routine = findAndValidateRoutine(routineId, user);
         routine.setActive(false);
+        log.info("Routine deactivated: {}", routineId);
     }
 
     @Transactional
     public RoutineResponseDTO addRoutineExercise(
             UUID routineId, int position, RoutineExerciseRequestDTO dto, User user) {
+        log.info("Adding exercise to routine: {}, position: {}, for user: {}", routineId, position, user.getId());
+
         var routine = findAndValidateRoutine(routineId, user);
 
-        var exercise = exerciseRepository
-                .findById(dto.exerciseId())
-                .orElseThrow(() -> new ResourceNotFoundException("Exercise not found"));
+        var exercise = exerciseRepository.findById(dto.exerciseId()).orElseThrow(() -> {
+            log.warn("Exercise not found: {}", dto.exerciseId());
+            return new ResourceNotFoundException("Exercise not found");
+        });
 
         var maxPosition = routine.getExercises().size();
 
         var adjustedPosition = Math.max(1, Math.min(position, maxPosition + 1));
+        log.debug("Adjusted position from {} to {}", position, adjustedPosition);
 
         if (!exercise.getCategory().validate(dto)) {
+            log.warn("Invalid data for category {} with exercise: {}", exercise.getCategory(), exercise.getId());
             throw new ValidationException(Map.of(
                     exercise.getId().toString(), List.of("Invalid data for category " + exercise.getCategory())));
         }
@@ -127,18 +148,24 @@ public class RoutineService {
                 .forEach(e -> e.setPosition(e.getPosition() + 1));
 
         routine.getExercises().add(newRoutineExercise);
+        log.info("Exercise added to routine: {}, new exercise position: {}", routineId, adjustedPosition);
 
         return routineMapper.toRoutineResponseDTO(routine);
     }
 
     @Transactional
     public void deleteRoutineExercise(UUID routineId, int position, User user) {
+        log.info("Deleting exercise at position: {} from routine: {} for user: {}", position, routineId, user.getId());
+        // TODO: Prevent deletion when an active workout session exists.
         var routine = findAndValidateRoutine(routineId, user);
 
         var routineExercise = routine.getExercises().stream()
                 .filter(re -> re.getPosition() == position)
                 .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("Routine exercise not found"));
+                .orElseThrow(() -> {
+                    log.warn("Routine exercise not found at position: {} for routine: {}", position, routineId);
+                    return new ResourceNotFoundException("Routine exercise not found");
+                });
 
         int deletedPosition = routineExercise.getPosition();
 
@@ -147,18 +174,24 @@ public class RoutineService {
         routine.getExercises().stream()
                 .filter(e -> e.getPosition() > deletedPosition)
                 .forEach(e -> e.setPosition(e.getPosition() - 1));
+
+        log.info("Exercise at position {} removed from routine: {}", deletedPosition, routineId);
     }
 
     @Transactional
     public RoutineResponseDTO updateRoutineExercise(
             UUID routineId, int position, RoutineExerciseRequestDTO dto, User user) {
+        log.info("Updating exercise at position: {} from routine: {} for user: {}", position, routineId, user.getId());
+
         var routine = findAndValidateRoutine(routineId, user);
 
-        var exercise = exerciseRepository
-                .findById(dto.exerciseId())
-                .orElseThrow(() -> new ResourceNotFoundException("Exercise not found"));
+        var exercise = exerciseRepository.findById(dto.exerciseId()).orElseThrow(() -> {
+            log.warn("Exercise not found: {}", dto.exerciseId());
+            return new ResourceNotFoundException("Exercise not found");
+        });
 
         if (!exercise.getCategory().validate(dto)) {
+            log.warn("Invalid data for category {} with exercise: {}", exercise.getCategory(), exercise.getId());
             throw new ValidationException(Map.of(
                     exercise.getId().toString(), List.of("Invalid data for category " + exercise.getCategory())));
         }
@@ -168,17 +201,26 @@ public class RoutineService {
         var routineExercise = routine.getExercises().stream()
                 .filter(re -> re.getPosition() == position)
                 .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("No exercise found at position " + position));
+                .orElseThrow(() -> {
+                    log.warn("No exercise found at position: {} for routine: {}", position, routineId);
+                    return new ResourceNotFoundException("No exercise found at position " + position);
+                });
 
         routine.getExercises().remove(routineExercise);
 
         routine.getExercises().add(newRoutineExercise);
+        log.info("Exercise at position {} updated in routine: {}", position, routineId);
 
         return routineMapper.toRoutineResponseDTO(routine);
     }
 
     private RoutineExercise buildRoutineExercise(
             Routine routine, Exercise exercise, RoutineExerciseRequestDTO dto, int position) {
+        log.debug(
+                "Building RoutineExercise: routine={}, exercise={}, position={}",
+                routine.getId(),
+                exercise.getId(),
+                position);
         return RoutineExercise.builder()
                 .position(position)
                 .defaultRestSeconds(dto.defaultRestSeconds())
@@ -195,6 +237,7 @@ public class RoutineService {
 
     private List<RoutineExercise> buildRoutineExercises(
             List<RoutineExerciseRequestDTO> exerciseDTOs, Routine routine, Map<UUID, Exercise> exercises) {
+        log.debug("Building {} routine exercises for routine: {}", exerciseDTOs.size(), routine.getId());
         List<RoutineExercise> routineExercises = new ArrayList<>();
         int position = 1;
 
@@ -206,12 +249,16 @@ public class RoutineService {
     }
 
     private Map<UUID, Exercise> resolveAndValidateExercises(List<RoutineExerciseRequestDTO> exerciseDTOs) {
+        log.debug("Resolving and validating {} exercises", exerciseDTOs.size());
         Set<UUID> exerciseIds =
                 exerciseDTOs.stream().map(RoutineExerciseRequestDTO::exerciseId).collect(Collectors.toSet());
+
+        log.debug("Exercise IDs requested: {}", exerciseIds);
 
         List<Exercise> exercises = exerciseRepository.findAllById(exerciseIds);
 
         if (exercises.size() != exerciseIds.size()) {
+            log.warn("One or more exercises not found. Expected: {}, Found: {}", exerciseIds.size(), exercises.size());
             throw new BadRequestException("One or more exercises not found");
         }
 
@@ -223,12 +270,17 @@ public class RoutineService {
         for (RoutineExerciseRequestDTO dto : exerciseDTOs) {
             Exercise exercise = exerciseMap.get(dto.exerciseId());
             if (!exercise.getCategory().validate(dto)) {
+                log.warn(
+                        "Validation failed for exercise: {} with category: {}",
+                        exercise.getId(),
+                        exercise.getCategory());
                 errors.computeIfAbsent(dto.exerciseId().toString(), k -> new ArrayList<>())
                         .add("Invalid data for category: " + exercise.getCategory());
             }
         }
 
         if (!errors.isEmpty()) {
+            log.error("Validation errors found: {}", errors);
             throw new ValidationException(errors);
         }
 
@@ -236,11 +288,14 @@ public class RoutineService {
     }
 
     private Routine findAndValidateRoutine(UUID routineId, User user) {
-        Routine routine = routineRepository
-                .findByIdAndActiveTrue(routineId)
-                .orElseThrow(() -> new ResourceNotFoundException("Routine not found"));
+        log.debug("Finding and validating routine: {} for user: {}", routineId, user.getId());
+        Routine routine = routineRepository.findByIdAndActiveTrue(routineId).orElseThrow(() -> {
+            log.warn("Routine not found: {}", routineId);
+            return new ResourceNotFoundException("Routine not found");
+        });
 
         if (!routine.getUser().getId().equals(user.getId())) {
+            log.warn("User: {} does not have permission to access routine: {}", user.getId(), routineId);
             throw new UnauthorizedException("You do not have permission to access this routine");
         }
 
@@ -249,10 +304,12 @@ public class RoutineService {
 
     private void replaceRoutineExercises(
             Routine routine, Map<UUID, Exercise> exercisesMap, List<RoutineExerciseRequestDTO> exerciseDTOs) {
+        log.debug("Replacing exercises for routine: {}", routine.getId());
         routine.getExercises().clear();
 
         List<RoutineExercise> newExercises = buildRoutineExercises(exerciseDTOs, routine, exercisesMap);
 
         routine.getExercises().addAll(newExercises);
+        log.debug("Exercises replaced successfully for routine: {}", routine.getId());
     }
 }
