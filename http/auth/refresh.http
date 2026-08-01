@@ -1,0 +1,7 @@
+POST {{baseUrl}}/auth/refresh
+Authorization: Bearer {{refreshToken}}
+
+> {%
+    client.global.set("accessToken", response.body.access_token);
+    client.global.set("refreshToken", response.body.refresh_token);
+%}

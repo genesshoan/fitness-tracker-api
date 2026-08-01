@@ -1,0 +1,3 @@
+# Get muscle by slug
+GET {{baseUrl}}/muscles/{{muscleSlug}}
+Authorization: Bearer {{accessToken}}

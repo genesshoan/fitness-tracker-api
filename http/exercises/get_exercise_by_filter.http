@@ -1,0 +1,3 @@
+# Get all exercises with filters
+GET {{baseUrl}}/exercises?category={{exerciseCategory}}&difficulty={{exerciseDifficulty}}&muscleSlugs={{muscleSlug}}
+Authorization: Bearer {{accessToken}}

@@ -1,0 +1,21 @@
+# Update routine
+PUT {{baseUrl}}/routines/{{routineId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Updated Morning Routine",
+  "description": "Updated description",
+  "exercises": [
+    {
+      "exerciseId": "{{exerciseId}}",
+      "defaultRestSeconds": 90,
+      "defaultSets": 4,
+      "defaultReps": 12,
+      "defaultWeightKg": 55,
+      "defaultDurationSeconds": 60,
+      "defaultDistanceKm": 5.0,
+      "notes": "Updated notes"
+    }
+  ]
+}

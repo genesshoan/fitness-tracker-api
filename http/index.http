@@ -1,0 +1,59 @@
+### Registra un usuario nuevo (setea accessToken/refreshToken)
+run ./auth/register.http
+
+### Login con las credenciales del .env (pisa accessToken/refreshToken)
+run ./auth/login.http
+
+### Devuelve el perfil del usuario autenticado
+run ./user/get_me.http
+
+### Cambia el username del usuario autenticado
+run ./user/put_username.http
+
+### Cambia el password del usuario autenticado
+run ./user/put_passworde.http
+
+### Lista todos los musculos (paginado)
+run ./muscles/get_muscles.http
+
+### Devuelve un musculo puntual por slug
+run ./muscles/get_muscle.http
+
+### Lista todos los ejercicios (cursor pagination)
+run ./exercises/get_exercises.http
+
+### Lista ejercicios filtrados por categoria/dificultad/musculo
+run ./exercises/get_exercise_by_filter.http
+
+### Devuelve un ejercicio puntual por slug
+run ./exercises/get_exercise_by_slug.http
+
+### Crea una rutina nueva (setea routineId)
+run ./routines/create_routine.http
+
+### Lista las rutinas del usuario autenticado
+run ./routines/get_routines.http
+
+### Devuelve una rutina puntual por id
+run ./routines/get_routine_by_id.http
+
+### Agrega un ejercicio a la rutina en una posicion
+run ./routines/add_exercise_to_routine.http
+
+### Actualiza un ejercicio existente dentro de la rutina
+run ./routines/update_exercise_in_routine.http
+
+### Actualiza los datos generales de la rutina
+run ./routines/update_routine.http
+
+### Elimina un ejercicio de la rutina en una posicion
+run ./routines/delete_exercise_from_routine.http
+
+### Elimina (soft delete) la rutina completa
+run ./routines/delete_routine.http
+
+## Rota accessToken/refreshToken usando el refreshToken actual
+# run ./auth/refresh.http
+
+## Revoca el refreshToken actual (logout)
+# run ./auth/logout.http

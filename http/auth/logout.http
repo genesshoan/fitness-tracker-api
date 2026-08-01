@@ -1,0 +1,2 @@
+DELETE {{baseUrl}}/auth/logout
+Authorization: Bearer {{refreshToken}}

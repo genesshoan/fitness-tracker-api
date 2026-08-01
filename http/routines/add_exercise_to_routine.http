@@ -1,0 +1,15 @@
+# Add exercise to routine
+POST {{baseUrl}}/routines/{{routineId}}/exercises/1
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "exerciseId": "{{exerciseId}}",
+  "defaultRestSeconds": 60,
+  "defaultSets": 3,
+  "defaultReps": 10,
+  "defaultWeightKg": 50,
+  "defaultDurationSeconds": 60,
+  "defaultDistanceKm": 5.0,
+  "notes": "None"
+}
