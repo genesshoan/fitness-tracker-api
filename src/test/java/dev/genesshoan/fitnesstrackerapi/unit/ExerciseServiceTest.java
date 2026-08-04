@@ -58,7 +58,7 @@ class ExerciseServiceTest {
 
         CursorPageRequest<UUID> request = new CursorPageRequest<>(null, 10);
 
-        when(exerciseRepository.findByFilters(any(), any(), any(), any(), any()))
+        when(exerciseRepository.findByFiltersAndActiveTrue(any(), any(), any(), any(), any()))
                 .thenReturn(Collections.emptyList());
 
         // When
@@ -66,7 +66,7 @@ class ExerciseServiceTest {
 
         // Then
         verify(exerciseRepository)
-                .findByFilters(
+                .findByFiltersAndActiveTrue(
                         eq(request.cursor()), eq(category), eq(difficulty), eq(muscleSlugs), eq(request.pageable()));
 
         verifyNoInteractions(exerciseMapper);

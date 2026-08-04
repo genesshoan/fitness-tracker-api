@@ -2,6 +2,7 @@ package dev.genesshoan.fitnesstrackerapi.exercise;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
@@ -34,10 +35,12 @@ public interface ExerciseRepository extends JpaRepository<Exercise, UUID> {
                 ))
             ORDER BY e.id ASC
         """)
-    List<Exercise> findByFilters(
+    List<Exercise> findByFiltersAndActiveTrue(
             @Param("cursor") UUID cursor,
             @Param("category") Category category,
             @Param("difficulty") Difficulty difficulty,
             @Param("muscleSlugs") List<String> muscleSlugs,
             Pageable pageable);
+
+    List<Exercise> findAllByIdInAndActiveTrue(Set<UUID> ids);
 }

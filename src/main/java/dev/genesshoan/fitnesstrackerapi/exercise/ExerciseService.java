@@ -30,7 +30,7 @@ public class ExerciseService {
 
     public CursorPage<ExerciseListItemDTO, UUID> getAllExercises(
             CursorPageRequest<UUID> request, Category category, Difficulty difficulty, List<String> muscleSlugs) {
-        List<Exercise> exercises = exerciseRepository.findByFilters(
+        List<Exercise> exercises = exerciseRepository.findByFiltersAndActiveTrue(
                 request.cursor(), category, difficulty, muscleSlugs, request.pageable());
 
         log.info("Found {} exercises", exercises == null ? 0 : exercises.size());
