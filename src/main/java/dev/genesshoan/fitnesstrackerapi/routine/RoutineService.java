@@ -2,7 +2,6 @@ package dev.genesshoan.fitnesstrackerapi.routine;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,7 +66,7 @@ public class RoutineService {
                 .name(dto.name())
                 .description(dto.description())
                 .user(user)
-                .exercises(new HashSet<>())
+                .exercises(new ArrayList<>())
                 .build();
 
         routineRepository.save(routine);
@@ -78,7 +77,7 @@ public class RoutineService {
 
         List<RoutineExercise> routineExercises = buildRoutineExercises(dto.exercises(), routine, exercises);
 
-        routine.setExercises(new HashSet<>(routineExercises));
+        routine.setExercises(new ArrayList<>(routineExercises));
         log.info("Routine created successfully with id: {} and {} exercises", routine.getId(), routineExercises.size());
 
         return routineMapper.toRoutineResponseDTO(routine);
@@ -253,9 +252,13 @@ public class RoutineService {
         Set<UUID> exerciseIds =
                 exerciseDTOs.stream().map(RoutineExerciseRequestDTO::exerciseId).collect(Collectors.toSet());
 
+        if (exerciseDTOs.isEmpty()) {
+            return Map.of();
+        }
+
         log.debug("Exercise IDs requested: {}", exerciseIds);
 
-        List<Exercise> exercises = exerciseRepository.findAllById(exerciseIds);
+        List<Exercise> exercises = exerciseRepository.findAllByIdInAndActiveTrue(exerciseIds);
 
         if (exercises.size() != exerciseIds.size()) {
             log.warn("One or more exercises not found. Expected: {}, Found: {}", exerciseIds.size(), exercises.size());

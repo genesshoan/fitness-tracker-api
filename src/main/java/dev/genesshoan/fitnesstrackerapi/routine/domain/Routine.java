@@ -1,6 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.routine.domain;
 
-import java.util.Set;
+import java.util.List;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -44,5 +44,5 @@ public class Routine extends BaseEntity {
     private User user;
 
     @OneToMany(mappedBy = "routine", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Set<RoutineExercise> exercises;
+    private List<RoutineExercise> exercises;
 }
