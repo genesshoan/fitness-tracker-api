@@ -95,7 +95,7 @@ public class ExerciseRepositoryTest extends AbstractPostgresTest {
         }
 
         // When
-        var result = exerciseRepository.findByFilters(null, null, null, null, PageRequest.of(0, 10));
+        var result = exerciseRepository.findByFiltersAndActiveTrue(null, null, null, null, PageRequest.of(0, 10));
 
         // Then
         assertThat(result)
@@ -119,7 +119,8 @@ public class ExerciseRepositoryTest extends AbstractPostgresTest {
                 ExerciseBuilder.anExercise(testEntityFactory.faker()).withCategory(Category.MOBILITY));
 
         // When
-        var result = exerciseRepository.findByFilters(null, Category.MOBILITY, null, null, PageRequest.of(0, 20));
+        var result = exerciseRepository.findByFiltersAndActiveTrue(
+                null, Category.MOBILITY, null, null, PageRequest.of(0, 20));
 
         // Then
         assertThat(result).hasSize(1).containsExactly(mobilityExercise);
@@ -139,7 +140,8 @@ public class ExerciseRepositoryTest extends AbstractPostgresTest {
                 ExerciseBuilder.anExercise(testEntityFactory.faker()).withDifficulty(Difficulty.ADVANCED));
 
         // When
-        var result = exerciseRepository.findByFilters(null, null, Difficulty.ADVANCED, null, PageRequest.of(0, 20));
+        var result = exerciseRepository.findByFiltersAndActiveTrue(
+                null, null, Difficulty.ADVANCED, null, PageRequest.of(0, 20));
 
         // Then
         assertThat(result).hasSize(1).containsExactly(advancedExercise);
@@ -162,7 +164,7 @@ public class ExerciseRepositoryTest extends AbstractPostgresTest {
                         .withCategory(Category.CARDIO));
 
         // When
-        var result = exerciseRepository.findByFilters(
+        var result = exerciseRepository.findByFiltersAndActiveTrue(
                 null, Category.CARDIO, Difficulty.ADVANCED, null, PageRequest.of(0, 20));
 
         // Then
@@ -183,8 +185,8 @@ public class ExerciseRepositoryTest extends AbstractPostgresTest {
                 ExerciseBuilder.anExercise(testEntityFactory.faker()), List.of(bicep), ImpactLevel.PRIMARY);
 
         // When
-        var result =
-                exerciseRepository.findByFilters(null, null, null, List.of(chest.getSlug()), PageRequest.of(0, 20));
+        var result = exerciseRepository.findByFiltersAndActiveTrue(
+                null, null, null, List.of(chest.getSlug()), PageRequest.of(0, 20));
 
         // Then
         assertThat(result).hasSize(1).containsExactly(chestExercise);
@@ -209,7 +211,7 @@ public class ExerciseRepositoryTest extends AbstractPostgresTest {
                 .withDifficulty(Difficulty.ADVANCED));
 
         // When
-        var result = exerciseRepository.findByFilters(
+        var result = exerciseRepository.findByFiltersAndActiveTrue(
                 null, Category.STRENGTH, Difficulty.ADVANCED, List.of(chest.getSlug()), PageRequest.of(0, 20));
 
         // Then
@@ -225,7 +227,8 @@ public class ExerciseRepositoryTest extends AbstractPostgresTest {
         var third = testEntityFactory.createAndPersistExercise();
 
         // When
-        var result = exerciseRepository.findByFilters(first.getId(), null, null, null, PageRequest.of(0, 20));
+        var result =
+                exerciseRepository.findByFiltersAndActiveTrue(first.getId(), null, null, null, PageRequest.of(0, 20));
 
         // Then
         assertThat(result).extracting(Exercise::getId).containsExactly(second.getId(), third.getId());
@@ -241,7 +244,7 @@ public class ExerciseRepositoryTest extends AbstractPostgresTest {
                 ExerciseBuilder.anExercise(testEntityFactory.faker()).withActive(false));
 
         // When
-        var result = exerciseRepository.findByFilters(null, null, null, null, PageRequest.of(0, 20));
+        var result = exerciseRepository.findByFiltersAndActiveTrue(null, null, null, null, PageRequest.of(0, 20));
 
         // Then
         assertThat(result).allMatch(Exercise::isActive);
