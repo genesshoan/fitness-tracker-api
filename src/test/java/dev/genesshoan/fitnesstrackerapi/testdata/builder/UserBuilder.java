@@ -20,6 +20,7 @@ public class UserBuilder {
         this.email = faker.internet().emailAddress() + "."
                 + UUID.randomUUID().toString().substring(0, 8);
         this.passwordHash = faker.internet().password();
+        this.id = UUID.randomUUID();
     }
 
     public static UserBuilder aUser(Faker faker) {

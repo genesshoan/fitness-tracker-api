@@ -1,13 +1,13 @@
 package dev.genesshoan.fitnesstrackerapi.testdata.builder;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.RoutineExercise;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import net.datafaker.Faker;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 public class RoutineBuilder {
 
@@ -20,7 +20,8 @@ public class RoutineBuilder {
 
     public RoutineBuilder(Faker faker) {
         this.id = UUID.randomUUID();
-        this.name = faker.funnyName().name() + "-" + UUID.randomUUID().toString().substring(0, 8);
+        this.name =
+                faker.funnyName().name() + "-" + UUID.randomUUID().toString().substring(0, 8);
         this.description = faker.lorem().sentence();
     }
 
