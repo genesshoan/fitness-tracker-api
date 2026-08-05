@@ -1,0 +1,8 @@
+# Change username
+PUT {{baseUrl}}/user/me/username
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "newUsername": "{{newUsername}}"
+}

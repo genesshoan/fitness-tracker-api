@@ -1,0 +1,3 @@
+# Get exercise by slug
+GET {{baseUrl}}/exercises/{{exerciseSlug}}
+Authorization: Bearer {{accessToken}}

@@ -1,10 +1,12 @@
 package dev.genesshoan.fitnesstrackerapi.auth.domain;
 
-import com.github.f4b6a3.uuid.UuidCreator;
-import dev.genesshoan.fitnesstrackerapi.user.domain.User;
-import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
+
+import jakarta.persistence.*;
+
+import com.github.f4b6a3.uuid.UuidCreator;
+import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

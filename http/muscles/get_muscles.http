@@ -1,0 +1,3 @@
+# Get all muscles (paginated)
+GET {{baseUrl}}/muscles?page=0&size=20
+Authorization: Bearer {{accessToken}}

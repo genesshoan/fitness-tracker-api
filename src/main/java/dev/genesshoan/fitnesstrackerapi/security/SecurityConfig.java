@@ -1,9 +1,10 @@
 package dev.genesshoan.fitnesstrackerapi.security;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,6 +15,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.genesshoan.fitnesstrackerapi.common.error.handler.ProblemDetailUtils;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Central security configuration for the application.
@@ -50,6 +55,11 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
 
     /**
+     * Jackson object mapper used to serialize authentication failure responses.
+     */
+    private final ObjectMapper objectMapper;
+
+    /**
      * Defines the Spring Security filter chain.
      *
      * <p>
@@ -66,45 +76,51 @@ public class SecurityConfig {
      * @throws Exception in case of security configuration errors
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)
-        throws Exception {
-        return http
-            .csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(auth ->
-                auth
-                    .requestMatchers("/api/v1/auth/**")
-                    .permitAll()
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http.csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth
+                        // Public endpoints
+                        .requestMatchers("/api/v1/auth/**")
+                        .permitAll()
 
-                    .requestMatchers(HttpMethod.GET, "/api/v1/user/me")
-                    .authenticated()
-                    .requestMatchers(HttpMethod.PUT, "/api/v1/user/me/**")
-                    .authenticated()
+                        // Documentation
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs")
+                        .permitAll()
 
-                    .requestMatchers(HttpMethod.GET, "/api/v1/muscles/**")
-                    .authenticated()
+                        // User endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/v1/user/me")
+                        .authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/user/me/**")
+                        .authenticated()
 
-                    .requestMatchers(HttpMethod.GET, "/api/v1/exercises/**")
-                    .authenticated()
+                        // Exercise catalog
+                        .requestMatchers(HttpMethod.GET, "/api/v1/muscles/**")
+                        .authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/exercises/**")
+                        .authenticated()
 
-                    .requestMatchers(
-                        "/swagger-ui/**",
-                        "/swagger-ui.html",
-                        "/v3/api-docs/**",
-                        "/v3/api-docs"
-                    )
-                    .permitAll()
+                        // Routine management
+                        .requestMatchers("/api/v1/routines/**")
+                        .authenticated()
 
-                    .anyRequest()
-                    .authenticated()
-            )
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .addFilterBefore(
-                jwtFilter,
-                UsernamePasswordAuthenticationFilter.class
-            )
-            .build();
+                        // Everything else
+                        .anyRequest()
+                        .authenticated())
+                .exceptionHandling(e -> e.authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                    response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+                    objectMapper.writeValue(
+                            response.getOutputStream(),
+                            ProblemDetailUtils.errorResponse(
+                                    HttpStatus.UNAUTHORIZED,
+                                    "Unauthorized",
+                                    "Authentication is required to access this resource",
+                                    null,
+                                    request));
+                }))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 
     /**
@@ -116,9 +132,7 @@ public class SecurityConfig {
      * @throws Exception if authentication manager cannot be retrieved
      */
     @Bean
-    public AuthenticationManager authenticationManager(
-        AuthenticationConfiguration config
-    ) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 

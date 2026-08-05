@@ -1,0 +1,9 @@
+#Register
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "{{testUser}}",
+  "password": "{{testPassword}}",
+  "email": "{{testEmail}}"
+}

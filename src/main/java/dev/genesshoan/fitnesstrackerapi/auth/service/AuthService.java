@@ -1,5 +1,14 @@
 package dev.genesshoan.fitnesstrackerapi.auth.service;
 
+import java.util.UUID;
+
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import dev.genesshoan.fitnesstrackerapi.auth.TokenRepository;
 import dev.genesshoan.fitnesstrackerapi.auth.domain.Token;
 import dev.genesshoan.fitnesstrackerapi.auth.dto.LoginRequestDTO;
@@ -16,15 +25,8 @@ import dev.genesshoan.fitnesstrackerapi.user.domain.Role;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import dev.genesshoan.fitnesstrackerapi.user.mapper.UserMapper;
 import io.jsonwebtoken.MalformedJwtException;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service responsible for authentication operations including registration,
@@ -59,26 +61,16 @@ public class AuthService {
      */
     @Transactional
     public TokenResponseDTO register(RegisterRequestDTO dto) {
-        log.info(
-            "Registration attempt. email={}, username={}",
-            dto.email(),
-            dto.username()
-        );
+        log.info("Registration attempt. email={}, username={}", dto.email(), dto.username());
 
         if (userRepository.existsByUsername(dto.username())) {
-            log.warn(
-                "Registration failed: username already exists. username={}",
-                dto.username()
-            );
+            log.warn("Registration failed: username already exists. username={}", dto.username());
 
             throw new ResourceAlreadyExistsException("Username already exists");
         }
 
         if (userRepository.existsByEmail(dto.email())) {
-            log.warn(
-                "Registration failed: email already exists. email={}",
-                dto.email()
-            );
+            log.warn("Registration failed: email already exists. email={}", dto.email());
 
             throw new ResourceAlreadyExistsException("Email already exists");
         }
@@ -89,11 +81,7 @@ public class AuthService {
 
         var savedUser = userRepository.save(user);
 
-        log.info(
-            "User registered successfully. userId={}, email={}",
-            savedUser.getId(),
-            savedUser.getEmail()
-        );
+        log.info("User registered successfully. userId={}, email={}", savedUser.getId(), savedUser.getEmail());
 
         return generateAndPersistTokens(savedUser, UUID.randomUUID());
     }
@@ -114,12 +102,7 @@ public class AuthService {
         log.info("Login attempt. email={}", dto.email());
 
         try {
-            authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                    dto.email(),
-                    dto.password()
-                )
-            );
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(dto.email(), dto.password()));
         } catch (AuthenticationException e) {
             throw new InvalidCredentialsException("Invalid email or password");
         }
@@ -129,11 +112,7 @@ public class AuthService {
             return new ResourceNotFoundException("User not found");
         });
 
-        log.info(
-            "Login successful. userId={}, email={}",
-            user.getId(),
-            user.getEmail()
-        );
+        log.info("Login successful. userId={}, email={}", user.getId(), user.getEmail());
 
         return generateAndPersistTokens(user, UUID.randomUUID());
     }
@@ -171,31 +150,22 @@ public class AuthService {
 
         var user = extractUserFromToken(incomingRefreshToken);
 
-        log.info(
-            "Refresh token attempt. userId={}, tokenId={}",
-            user.getId(),
-            oldTokenId
-        );
+        log.info("Refresh token attempt. userId={}, tokenId={}", user.getId(), oldTokenId);
 
         var token = tokenRepository
-            .findById(oldTokenId)
-            .orElseThrow(() ->
-                new InvalidJwtException("Unknown refresh token")
-            );
+                .findById(oldTokenId)
+                .orElseThrow(() -> new InvalidJwtException("Unknown refresh token"));
 
         if (token.isRevoked()) {
             log.warn(
-                "Refresh token reuse detected. Revoking entire family. userId={}, tokenId={}, familyId={}",
-                user.getId(),
-                oldTokenId,
-                familyId
-            );
+                    "Refresh token reuse detected. Revoking entire family. userId={}, tokenId={}, familyId={}",
+                    user.getId(),
+                    oldTokenId,
+                    familyId);
 
             tokenRepository.revokeByFamily(familyId);
 
-            throw new InvalidJwtException(
-                "Refresh token reuse detected. Family revoked"
-            );
+            throw new InvalidJwtException("Refresh token reuse detected. Family revoked");
         }
 
         token.setRevoked(true);
@@ -203,11 +173,10 @@ public class AuthService {
         var response = generateAndPersistTokens(user, familyId);
 
         log.info(
-            "Token refresh successful. userId={}, oldTokenId={}, newTokenId={}",
-            user.getId(),
-            oldTokenId,
-            jwtService.extractJti(response.refreshToken())
-        );
+                "Token refresh successful. userId={}, oldTokenId={}, newTokenId={}",
+                user.getId(),
+                oldTokenId,
+                jwtService.extractJti(response.refreshToken()));
 
         return response;
     }
@@ -240,19 +209,11 @@ public class AuthService {
         var user = extractUserFromToken(incomingRefreshToken);
         UUID familyId = jwtService.extractFamilyId(incomingRefreshToken);
 
-        log.info(
-            "Logout request. userId={}, familyId={}",
-            user.getId(),
-            familyId
-        );
+        log.info("Logout request. userId={}, familyId={}", user.getId(), familyId);
 
         tokenRepository.revokeByFamily(familyId);
 
-        log.info(
-            "Logout successful. userId={}, familyId={}",
-            user.getId(),
-            familyId
-        );
+        log.info("Logout successful. userId={}, familyId={}", user.getId(), familyId);
     }
 
     /**
@@ -262,26 +223,17 @@ public class AuthService {
      * @param user the authenticated user
      * @return a {@link TokenResponseDTO} with the access token and refresh token
      */
-    private TokenResponseDTO generateAndPersistTokens(
-        User user,
-        UUID familyId
-    ) {
-        var tokenEntity = tokenRepository.save(
-            Token.builder()
+    private TokenResponseDTO generateAndPersistTokens(User user, UUID familyId) {
+        var tokenEntity = tokenRepository.save(Token.builder()
                 .familyId(familyId)
                 .user(user)
                 .expiresAt(jwtService.getRefreshTokenExpirationInstant())
-                .build()
-        );
+                .build());
 
         var userDetails = new UserDetailsImpl(user);
 
         var accessToken = jwtService.generateToken(userDetails);
-        var refreshToken = jwtService.generateRefreshToken(
-            userDetails,
-            tokenEntity.getJti(),
-            familyId
-        );
+        var refreshToken = jwtService.generateRefreshToken(userDetails, tokenEntity.getJti(), familyId);
 
         return new TokenResponseDTO(accessToken, refreshToken);
     }

@@ -1,13 +1,12 @@
 package dev.genesshoan.fitnesstrackerapi.common.error.handler;
 
-import static dev.genesshoan.fitnesstrackerapi.common.error.handler.ProblemDetailUtils.*;
+import java.util.List;
+import java.util.Map;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
-import java.util.List;
-import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -17,6 +16,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import lombok.extern.slf4j.Slf4j;
+
+import static dev.genesshoan.fitnesstrackerapi.common.error.handler.ProblemDetailUtils.*;
 
 /**
  * Centralized validation exception handler for the REST API.
@@ -60,29 +63,18 @@ public class ValidationExceptionHandler {
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ProblemDetail> handleMethodArgumentNotValidException(
-        MethodArgumentNotValidException ex,
-        HttpServletRequest request
-    ) {
+            MethodArgumentNotValidException ex, HttpServletRequest request) {
         log.warn(
-            "Validation failed: {} {} -> {} fields with errors",
-            request.getMethod(),
-            request.getRequestURI(),
-            ex.getFieldErrorCount()
-        );
+                "Validation failed: {} {} -> {} fields with errors",
+                request.getMethod(),
+                request.getRequestURI(),
+                ex.getFieldErrorCount());
 
-        Map<String, List<String>> errors = groupErrors(
-            ex.getFieldErrors(),
-            FieldError::getField,
-            FieldError::getDefaultMessage
-        );
+        Map<String, List<String>> errors =
+                groupErrors(ex.getFieldErrors(), FieldError::getField, FieldError::getDefaultMessage);
 
         ProblemDetail problemDetail = errorResponse(
-            HttpStatus.BAD_REQUEST,
-            "Validation failed",
-            "One or more fields are invalid",
-            errors,
-            request
-        );
+                HttpStatus.BAD_REQUEST, "Validation failed", "One or more fields are invalid", errors, request);
 
         return ResponseEntity.badRequest().body(problemDetail);
     }
@@ -102,29 +94,24 @@ public class ValidationExceptionHandler {
      */
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ProblemDetail> handleConstraintViolationException(
-        ConstraintViolationException ex,
-        HttpServletRequest request
-    ) {
+            ConstraintViolationException ex, HttpServletRequest request) {
         log.warn(
-            "Constraint violation: {} {} -> {} violations",
-            request.getMethod(),
-            request.getRequestURI(),
-            ex.getConstraintViolations().size()
-        );
+                "Constraint violation: {} {} -> {} violations",
+                request.getMethod(),
+                request.getRequestURI(),
+                ex.getConstraintViolations().size());
 
         Map<String, List<String>> errors = groupErrors(
-            ex.getConstraintViolations(),
-            violation -> violation.getPropertyPath().toString(),
-            ConstraintViolation::getMessage
-        );
+                ex.getConstraintViolations(),
+                violation -> violation.getPropertyPath().toString(),
+                ConstraintViolation::getMessage);
 
         ProblemDetail problemDetail = errorResponse(
-            HttpStatus.BAD_REQUEST,
-            "Constraint violation",
-            "One or more request parameters violate validation constraints",
-            errors,
-            request
-        );
+                HttpStatus.BAD_REQUEST,
+                "Constraint violation",
+                "One or more request parameters violate validation constraints",
+                errors,
+                request);
 
         return ResponseEntity.badRequest().body(problemDetail);
     }
@@ -144,26 +131,19 @@ public class ValidationExceptionHandler {
      */
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ProblemDetail> handleMissingServletRequestParameterException(
-        MissingServletRequestParameterException ex,
-        HttpServletRequest request
-    ) {
+            MissingServletRequestParameterException ex, HttpServletRequest request) {
         log.warn(
-            "Missing parameter: {} {} -> parameter '{}' is required",
-            request.getMethod(),
-            request.getRequestURI(),
-            ex.getParameterName()
-        );
+                "Missing parameter: {} {} -> parameter '{}' is required",
+                request.getMethod(),
+                request.getRequestURI(),
+                ex.getParameterName());
 
         ProblemDetail problemDetail = errorResponse(
-            HttpStatus.BAD_REQUEST,
-            "Missing request parameter",
-            String.format(
-                "Required parameter '%s' is missing",
-                ex.getParameterName()
-            ),
-            null,
-            request
-        );
+                HttpStatus.BAD_REQUEST,
+                "Missing request parameter",
+                String.format("Required parameter '%s' is missing", ex.getParameterName()),
+                null,
+                request);
 
         return ResponseEntity.badRequest().body(problemDetail);
     }

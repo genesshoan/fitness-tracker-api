@@ -33,21 +33,16 @@ public class ExerciseMuscleBuilder {
 
     public ExerciseMuscle build() {
         if (exercise == null || muscle == null) {
-            throw new IllegalStateException(
-                "Exercise and Muscle must be set for ExerciseMuscle."
-            );
+            throw new IllegalStateException("Exercise and Muscle must be set for ExerciseMuscle.");
         }
 
-        ExerciseMuscleId id = new ExerciseMuscleId(
-            exercise.getId(),
-            muscle.getId()
-        );
+        ExerciseMuscleId id = new ExerciseMuscleId(exercise.getId(), muscle.getId());
 
         return ExerciseMuscle.builder()
-            .id(id)
-            .exercise(exercise)
-            .muscle(muscle)
-            .impactLevel(impactLevel)
-            .build();
+                .id(id)
+                .exercise(exercise)
+                .muscle(muscle)
+                .impactLevel(impactLevel)
+                .build();
     }
 }

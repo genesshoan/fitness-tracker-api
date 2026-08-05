@@ -1,0 +1,3 @@
+# Get all routines (paginated)
+GET {{baseUrl}}/routines?page=0&size=20
+Authorization: Bearer {{accessToken}}

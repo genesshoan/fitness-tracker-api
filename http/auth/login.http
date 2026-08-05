@@ -1,0 +1,13 @@
+# Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{testEmail}}",
+  "password": "{{testPassword}}" 
+}
+
+> {%
+    client.global.set("accessToken", response.body.access_token);
+    client.global.set("refreshToken", response.body.refresh_token);
+%}

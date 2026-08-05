@@ -42,3 +42,6 @@ out/
 
 ### Zed ###
 .zed/
+
+### Kulala ###
+./http/.env

@@ -1,0 +1,7 @@
+# Get all exercises (cursor pagination + optional filters)
+GET {{baseUrl}}/exercises?size=20
+Authorization: Bearer {{accessToken}}
+
+> {%
+    client.global.set("exerciseId", response.body.page[0].id);
+%}

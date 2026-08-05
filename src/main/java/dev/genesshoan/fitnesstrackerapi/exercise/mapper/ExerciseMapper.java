@@ -7,10 +7,9 @@ import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 
 @Mapper(
-    componentModel = "spring",
-    builder = @Builder(disableBuilder = true),
-    uses = { ExerciseMuscleMapper.class }
-)
+        componentModel = "spring",
+        builder = @Builder(disableBuilder = true),
+        uses = {ExerciseMuscleMapper.class})
 public interface ExerciseMapper {
     ExerciseListItemDTO toItemDTO(Exercise exercise);
 

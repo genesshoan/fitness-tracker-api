@@ -1,9 +1,11 @@
 package dev.genesshoan.fitnesstrackerapi.common;
 
-import com.github.f4b6a3.uuid.UuidCreator;
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import jakarta.persistence.*;
+
+import com.github.f4b6a3.uuid.UuidCreator;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

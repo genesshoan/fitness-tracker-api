@@ -1,0 +1,3 @@
+# Get profile (me)
+GET {{baseUrl}}/user/me
+Authorization: Bearer {{accessToken}}

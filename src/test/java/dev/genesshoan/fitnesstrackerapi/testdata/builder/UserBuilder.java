@@ -1,8 +1,9 @@
 package dev.genesshoan.fitnesstrackerapi.testdata.builder;
 
+import java.util.UUID;
+
 import dev.genesshoan.fitnesstrackerapi.user.domain.Role;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
-import java.util.UUID;
 import net.datafaker.Faker;
 
 public class UserBuilder {
@@ -14,15 +15,12 @@ public class UserBuilder {
     private Role role = Role.USER;
 
     public UserBuilder(Faker faker) {
-        this.username =
-            faker.name().firstName().toLowerCase() +
-            "_" +
-            UUID.randomUUID().toString().substring(0, 8);
-        this.email =
-            faker.internet().emailAddress() +
-            "." +
-            UUID.randomUUID().toString().substring(0, 8);
+        this.username = faker.name().firstName().toLowerCase() + "_"
+                + UUID.randomUUID().toString().substring(0, 8);
+        this.email = faker.internet().emailAddress() + "."
+                + UUID.randomUUID().toString().substring(0, 8);
         this.passwordHash = faker.internet().password();
+        this.id = UUID.randomUUID();
     }
 
     public static UserBuilder aUser(Faker faker) {
@@ -56,11 +54,11 @@ public class UserBuilder {
 
     public User build() {
         return User.builder()
-            .id(id)
-            .username(username)
-            .email(email)
-            .passwordHash(passwordHash)
-            .role(role)
-            .build();
+                .id(id)
+                .username(username)
+                .email(email)
+                .passwordHash(passwordHash)
+                .role(role)
+                .build();
     }
 }

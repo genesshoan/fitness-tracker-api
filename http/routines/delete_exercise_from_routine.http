@@ -1,0 +1,4 @@
+
+# Delete exercise from routine
+DELETE {{baseUrl}}/routines/{{routineId}}/exercises/1
+Authorization: Bearer {{accessToken}}

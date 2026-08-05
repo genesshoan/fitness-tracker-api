@@ -1,12 +1,13 @@
 package dev.genesshoan.fitnesstrackerapi.common.script;
 
-import com.github.f4b6a3.uuid.UuidCreator;
-import dev.genesshoan.fitnesstrackerapi.common.script.data.*;
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
+
+import com.github.f4b6a3.uuid.UuidCreator;
+import dev.genesshoan.fitnesstrackerapi.common.script.data.*;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
 
 public class SeedGenerator {
 
@@ -33,22 +34,13 @@ public class SeedGenerator {
 
     private void writeToFile() {
         try {
-            Path output = Path.of(
-                "src/main/resources/db/migration/V6__seed_exercise_muscle_data.sql"
-            );
+            Path output = Path.of("src/main/resources/db/migration/V6__seed_exercise_muscle_data.sql");
 
             Files.createDirectories(output.getParent());
 
-            Files.writeString(
-                output,
-                sql.toString(),
-                StandardOpenOption.CREATE,
-                StandardOpenOption.TRUNCATE_EXISTING
-            );
+            Files.writeString(output, sql.toString(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
-            System.out.println(
-                "Flyway migration generated at: " + output.toAbsolutePath()
-            );
+            System.out.println("Flyway migration generated at: " + output.toAbsolutePath());
         } catch (Exception e) {
             throw new RuntimeException("Failed to write Flyway migration", e);
         }
@@ -56,9 +48,7 @@ public class SeedGenerator {
 
     private void generateMuscles() {
         sql.append("-- MUSCLES\n");
-        sql.append(
-            "INSERT INTO muscles (id, name, slug, body_region) VALUES\n"
-        );
+        sql.append("INSERT INTO muscles (id, name, slug, body_region) VALUES\n");
 
         List<String> rows = new ArrayList<>();
 
@@ -75,9 +65,7 @@ public class SeedGenerator {
 
     private void generateExercises() {
         sql.append("-- EXERCISES\n");
-        sql.append(
-            "INSERT INTO exercises (id, name, slug, description, category, difficulty) VALUES\n"
-        );
+        sql.append("INSERT INTO exercises (id, name, slug, description, category, difficulty) VALUES\n");
 
         List<String> rows = new ArrayList<>();
 
@@ -85,16 +73,13 @@ public class SeedGenerator {
             UUID id = newId();
             exerciseIds.put(exercise.slug(), id);
 
-            rows.add(
-                row(
+            rows.add(row(
                     id,
                     exercise.name(),
                     exercise.slug(),
                     exercise.description(),
                     exercise.category(),
-                    exercise.difficulty()
-                )
-            );
+                    exercise.difficulty()));
         }
 
         sql.append(String.join(",\n", rows));
@@ -103,45 +88,23 @@ public class SeedGenerator {
 
     private void generateExerciseMuscles() {
         sql.append("-- EXERCISE MUSCLES\n");
-        sql.append(
-            "INSERT INTO exercise_muscles (exercise_id, muscle_id, impact_level) VALUES\n"
-        );
+        sql.append("INSERT INTO exercise_muscles (exercise_id, muscle_id, impact_level) VALUES\n");
 
         List<String> rows = new ArrayList<>();
 
         for (ExerciseSeed exercise : seedData.exercises) {
             String exerciseSlug = exercise.slug();
 
-            addMuscleRows(
-                rows,
-                exerciseSlug,
-                exercise.muscles().primary(),
-                ImpactLevel.PRIMARY
-            );
-            addMuscleRows(
-                rows,
-                exerciseSlug,
-                exercise.muscles().secondary(),
-                ImpactLevel.SECONDARY
-            );
-            addMuscleRows(
-                rows,
-                exerciseSlug,
-                exercise.muscles().stabilizer(),
-                ImpactLevel.STABILIZER
-            );
+            addMuscleRows(rows, exerciseSlug, exercise.muscles().primary(), ImpactLevel.PRIMARY);
+            addMuscleRows(rows, exerciseSlug, exercise.muscles().secondary(), ImpactLevel.SECONDARY);
+            addMuscleRows(rows, exerciseSlug, exercise.muscles().stabilizer(), ImpactLevel.STABILIZER);
         }
 
         sql.append(String.join(",\n", rows));
         sql.append(";\n\n");
     }
 
-    private void addMuscleRows(
-        List<String> rows,
-        String exerciseSlug,
-        List<String> muscleSlugs,
-        ImpactLevel impact
-    ) {
+    private void addMuscleRows(List<String> rows, String exerciseSlug, List<String> muscleSlugs, ImpactLevel impact) {
         if (muscleSlugs == null) return;
 
         for (String muscleSlug : muscleSlugs) {
@@ -149,15 +112,11 @@ public class SeedGenerator {
             UUID muscleId = muscleIds.get(muscleSlug);
 
             if (exerciseId == null) {
-                throw new IllegalStateException(
-                    "Missing exercise slug: " + exerciseSlug
-                );
+                throw new IllegalStateException("Missing exercise slug: " + exerciseSlug);
             }
 
             if (muscleId == null) {
-                throw new IllegalStateException(
-                    "Missing muscle slug: " + muscleSlug
-                );
+                throw new IllegalStateException("Missing muscle slug: " + muscleSlug);
             }
 
             rows.add(row(exerciseId, muscleId, impact.name()));

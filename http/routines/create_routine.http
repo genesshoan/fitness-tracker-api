@@ -1,0 +1,25 @@
+# Create routine
+POST {{baseUrl}}/routines
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Morning Routine",
+  "description": "A routine to get started in the morning",
+  "exercises": [
+    {
+      "exerciseId": "{{exerciseId}}",
+      "defaultRestSeconds": 60,
+      "defaultSets": 3,
+      "defaultReps": 10,
+      "defaultWeightKg": 50,
+      "defaultDurationSeconds": 60,
+      "defaultDistanceKm": 5.0,
+      "notes": "None"
+    }
+  ]
+}
+
+> {%
+    client.global.set("routineId", response.body.id);
+%}

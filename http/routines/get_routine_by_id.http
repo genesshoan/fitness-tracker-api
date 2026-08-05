@@ -1,0 +1,3 @@
+# Get routine by id
+GET {{baseUrl}}/routines/{{routineId}}
+Authorization: Bearer {{accessToken}}

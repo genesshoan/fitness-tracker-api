@@ -1,10 +1,10 @@
 package dev.genesshoan.fitnesstrackerapi.unit;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPageRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CursorPageRequestTest {
 
@@ -27,8 +27,6 @@ public class CursorPageRequestTest {
     @Test
     @DisplayName("Should create pageable with one extra item")
     void pageable_OneExtraItem() {
-        assertThat(
-            new CursorPageRequest<>(null, 10).pageable().getPageSize()
-        ).isEqualTo(11);
+        assertThat(new CursorPageRequest<>(null, 10).pageable().getPageSize()).isEqualTo(11);
     }
 }

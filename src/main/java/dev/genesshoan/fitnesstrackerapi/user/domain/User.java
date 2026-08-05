@@ -1,7 +1,8 @@
 package dev.genesshoan.fitnesstrackerapi.user.domain;
 
-import dev.genesshoan.fitnesstrackerapi.common.BaseEntity;
 import jakarta.persistence.*;
+
+import dev.genesshoan.fitnesstrackerapi.common.BaseEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,12 +14,11 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @Table(
-    name = "users",
-    uniqueConstraints = {
-        @UniqueConstraint(name = "uk_user_username", columnNames = "username"),
-        @UniqueConstraint(name = "uk_user_email", columnNames = "email"),
-    }
-)
+        name = "users",
+        uniqueConstraints = {
+            @UniqueConstraint(name = "uk_user_username", columnNames = "username"),
+            @UniqueConstraint(name = "uk_user_email", columnNames = "email"),
+        })
 public class User extends BaseEntity {
 
     @Column(nullable = false)
