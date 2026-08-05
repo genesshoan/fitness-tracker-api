@@ -170,6 +170,7 @@ public class RoutineService {
         int deletedPosition = routineExercise.getPosition();
 
         routine.getExercises().remove(routineExercise);
+        routineRepository.flush();
 
         routine.getExercises().stream()
                 .filter(e -> e.getPosition() > deletedPosition)
