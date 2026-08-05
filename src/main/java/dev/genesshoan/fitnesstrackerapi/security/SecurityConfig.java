@@ -3,6 +3,8 @@ package dev.genesshoan.fitnesstrackerapi.security;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,6 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.genesshoan.fitnesstrackerapi.common.error.handler.ProblemDetailUtils;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -49,6 +53,11 @@ public class SecurityConfig {
      * JWT tokens from incoming requests and populates the SecurityContext.
      */
     private final JwtFilter jwtFilter;
+
+    /**
+     * Jackson object mapper used to serialize authentication failure responses.
+     */
+    private final ObjectMapper objectMapper;
 
     /**
      * Defines the Spring Security filter chain.
@@ -97,6 +106,18 @@ public class SecurityConfig {
                         // Everything else
                         .anyRequest()
                         .authenticated())
+                .exceptionHandling(e -> e.authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                    response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+                    objectMapper.writeValue(
+                            response.getOutputStream(),
+                            ProblemDetailUtils.errorResponse(
+                                    HttpStatus.UNAUTHORIZED,
+                                    "Unauthorized",
+                                    "Authentication is required to access this resource",
+                                    null,
+                                    request));
+                }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
