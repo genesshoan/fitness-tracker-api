@@ -1,6 +1,7 @@
 package dev.genesshoan.fitnesstrackerapi.routine;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +50,7 @@ public class RoutineService {
 
     public RoutineResponseDTO getRoutineById(UUID routineId, User user) {
         log.info("Getting routine by id: {} for user: {}", routineId, user.getId());
-        return routineMapper.toRoutineResponseDTO(findAndValidateRoutine(routineId, user));
+        return toResponseDTO(findAndValidateRoutine(routineId, user));
     }
 
     @Transactional
@@ -80,7 +81,7 @@ public class RoutineService {
         routine.setExercises(new ArrayList<>(routineExercises));
         log.info("Routine created successfully with id: {} and {} exercises", routine.getId(), routineExercises.size());
 
-        return routineMapper.toRoutineResponseDTO(routine);
+        return toResponseDTO(routine);
     }
 
     @Transactional
@@ -105,7 +106,7 @@ public class RoutineService {
         replaceRoutineExercises(routine, exercisesMap, dto.exercises());
         log.info("Routine updated successfully: {}", routineId);
 
-        return routineMapper.toRoutineResponseDTO(routine);
+        return toResponseDTO(routine);
     }
 
     @Transactional
@@ -149,7 +150,7 @@ public class RoutineService {
         routine.getExercises().add(newRoutineExercise);
         log.info("Exercise added to routine: {}, new exercise position: {}", routineId, adjustedPosition);
 
-        return routineMapper.toRoutineResponseDTO(routine);
+        return toResponseDTO(routine);
     }
 
     @Transactional
@@ -210,7 +211,7 @@ public class RoutineService {
         routine.getExercises().add(newRoutineExercise);
         log.info("Exercise at position {} updated in routine: {}", position, routineId);
 
-        return routineMapper.toRoutineResponseDTO(routine);
+        return toResponseDTO(routine);
     }
 
     private RoutineExercise buildRoutineExercise(
@@ -303,6 +304,13 @@ public class RoutineService {
         }
 
         return routine;
+    }
+
+    private RoutineResponseDTO toResponseDTO(Routine routine) {
+        if (routine.getExercises() != null) {
+            routine.getExercises().sort(Comparator.comparingInt(RoutineExercise::getPosition));
+        }
+        return routineMapper.toRoutineResponseDTO(routine);
     }
 
     private void replaceRoutineExercises(
