@@ -51,8 +51,103 @@ entity "exercise_muscles" {
     * impact_level : VARCHAR
 }
 
+entity "routines" {
+    * id : UUID <<PK>>
+    --
+    * name : VARCHAR
+    * description : TEXT
+    * active : BOOLEAN
+    * user_id : UUID <<FK>>
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
+    ..
+    UK : (name, user_id)
+}
+
+entity "routine_exercises" {
+    * id : UUID <<PK>>
+    --
+    * routine_id : UUID <<FK>>
+    * exercise_id : UUID <<FK>>
+    * position : INT
+    * default_rest_seconds : INT
+    * default_sets : INT
+    default_reps : INT
+    default_weight_kg : DOUBLE PRECISION
+    default_duration_seconds : INT
+    default_distance_km : DOUBLE PRECISION
+    notes : TEXT
+    ..
+    UK : (routine_id, position)
+}
+
+entity "workout_sessions" {
+    * id : UUID <<PK>>
+    --
+    * user_id : UUID <<FK>>
+    routine_id : UUID <<FK>> NULL
+    * status : VARCHAR
+    * started_at : TIMESTAMP
+    completed_at : TIMESTAMP
+    notes : TEXT
+    version : INT <<@Version>>
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
+}
+
+entity "session_exercises" {
+    * id : UUID <<PK>>
+    --
+    * session_id : UUID <<FK>>
+    * exercise_id : UUID <<FK>>
+    * position : INT
+    notes : TEXT
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
+    ..
+    UK : (session_id, position)
+}
+
+entity "session_sets" {
+    * id : UUID <<PK>>
+    --
+    * session_exercise_id : UUID <<FK>>
+    * set_number : INT
+    reps : INT
+    weight_kg : DOUBLE PRECISION
+    duration_seconds : INT
+    distance_km : DOUBLE PRECISION
+    * completed : BOOLEAN
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
+    ..
+    UK : (session_exercise_id, set_number)
+}
+
+entity "progress_records" {
+    * id : UUID <<PK>>
+    --
+    * user_id : UUID <<FK>>
+    * recorded_at : TIMESTAMP
+    * weight_kg : DOUBLE PRECISION
+    notes : TEXT
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
+    ..
+    UK : (user_id, recorded_at)
+}
+
 "exercises" ||--o{ "exercise_muscles" : "has"
 "muscles" ||--o{ "exercise_muscles" : "has"
 "users" ||--o{ "tokens" : "has"
+"users" ||--o{ "routines" : "has"
+"routines" ||--o{ "routine_exercises" : "has"
+"exercises" ||--o{ "routine_exercises" : "used in"
+"users" ||--o{ "workout_sessions"
+"routines" ||--o{ "workout_sessions"
+"workout_sessions" ||--o{ "session_exercises"
+"exercises" ||--o{ "session_exercises"
+"session_exercises" ||--o{ "session_sets"
+"users" ||--o{ "progress_records"
 
 @enduml
