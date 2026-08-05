@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyExistsException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.UnauthorizedException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ValidationException;
 import dev.genesshoan.fitnesstrackerapi.exercise.ExerciseRepository;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
@@ -301,7 +300,7 @@ public class RoutineService {
 
         if (!routine.getUser().getId().equals(user.getId())) {
             log.warn("User: {} does not have permission to access routine: {}", user.getId(), routineId);
-            throw new UnauthorizedException("You do not have permission to access this routine");
+            throw new ResourceNotFoundException("Routine not found");
         }
 
         return routine;
