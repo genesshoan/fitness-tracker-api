@@ -1,20 +1,18 @@
 package dev.genesshoan.fitnesstrackerapi.unit;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anySet;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyExistsException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.UnauthorizedException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ValidationException;
 import dev.genesshoan.fitnesstrackerapi.exercise.ExerciseRepository;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
@@ -31,10 +29,6 @@ import dev.genesshoan.fitnesstrackerapi.testdata.builder.ExerciseBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.RoutineBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.UserBuilder;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,10 +37,17 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class RoutineServiceTest {
@@ -106,7 +107,7 @@ public class RoutineServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw UnauthorizedException if the user does not own the routine")
+    @DisplayName("Should throw ResourceNotFoundException if the user does not own the routine")
     void getRoutineId_shouldUnauthorizedException_ifTheUserIsNotTheOwner() {
         UUID routineId = UUID.randomUUID();
         UUID routineUserId = UUID.randomUUID();
@@ -119,7 +120,7 @@ public class RoutineServiceTest {
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
 
         assertThatThrownBy(() -> routineService.getRoutineById(routineId, requestUser))
-                .isInstanceOf(UnauthorizedException.class);
+                .isInstanceOf(ResourceNotFoundException.class);
 
         verify(routineRepository).findByIdAndActiveTrue(routineId);
         verify(routineMapper, never()).toRoutineResponseDTO(any());
@@ -376,7 +377,7 @@ public class RoutineServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw UnauthorizedException when user does not own routine")
+    @DisplayName("Should throw ResourceNotFoundException when user does not own routine")
     void updateRoutine_shouldThrowUnauthorizedException_WhenUserIsNotOwner() {
         UUID routineId = UUID.randomUUID();
 
@@ -390,7 +391,7 @@ public class RoutineServiceTest {
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
 
         assertThatThrownBy(() -> routineService.updateRoutine(routineId, request, requestUser))
-                .isInstanceOf(UnauthorizedException.class);
+                .isInstanceOf(ResourceNotFoundException.class);
 
         verify(exerciseRepository, never()).findAllByIdInAndActiveTrue(anySet());
         verify(routineMapper, never()).toRoutineResponseDTO(any());
@@ -450,10 +451,8 @@ public class RoutineServiceTest {
 
         UUID routineId = UUID.randomUUID();
 
-        Routine routine = RoutineBuilder.aRoutine(FAKER)
-                .withActive(true)
-                .forUser(user)
-                .build();
+        Routine routine =
+                RoutineBuilder.aRoutine(FAKER).withActive(true).forUser(user).build();
         routine.setId(routineId);
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
@@ -511,8 +510,7 @@ public class RoutineServiceTest {
 
         assertThat(routine.getExercises())
                 .extracting(RoutineExercise::getExercise, RoutineExercise::getPosition)
-                .containsExactlyInAnyOrder(
-                        tuple(ex1, 1), tuple(newExercise, 2), tuple(ex2, 3), tuple(ex3, 4));
+                .containsExactlyInAnyOrder(tuple(ex1, 1), tuple(newExercise, 2), tuple(ex2, 3), tuple(ex3, 4));
     }
 
     @Test
@@ -531,8 +529,8 @@ public class RoutineServiceTest {
         Exercise newExercise = ExerciseBuilder.anExercise(FAKER).build();
         newExercise.setId(UUID.randomUUID());
 
-        routine.setExercises(new ArrayList<>(
-                List.of(routineExerciseAt(1, ex1, routine), routineExerciseAt(2, ex2, routine))));
+        routine.setExercises(
+                new ArrayList<>(List.of(routineExerciseAt(1, ex1, routine), routineExerciseAt(2, ex2, routine))));
 
         RoutineExerciseRequestDTO dto =
                 new RoutineExerciseRequestDTO(newExercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
@@ -564,8 +562,8 @@ public class RoutineServiceTest {
         Exercise newExercise = ExerciseBuilder.anExercise(FAKER).build();
         newExercise.setId(UUID.randomUUID());
 
-        routine.setExercises(new ArrayList<>(
-                List.of(routineExerciseAt(1, ex1, routine), routineExerciseAt(2, ex2, routine))));
+        routine.setExercises(
+                new ArrayList<>(List.of(routineExerciseAt(1, ex1, routine), routineExerciseAt(2, ex2, routine))));
 
         RoutineExerciseRequestDTO dto =
                 new RoutineExerciseRequestDTO(newExercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
@@ -597,8 +595,8 @@ public class RoutineServiceTest {
         Exercise newExercise = ExerciseBuilder.anExercise(FAKER).build();
         newExercise.setId(UUID.randomUUID());
 
-        routine.setExercises(new ArrayList<>(
-                List.of(routineExerciseAt(1, ex1, routine), routineExerciseAt(2, ex2, routine))));
+        routine.setExercises(
+                new ArrayList<>(List.of(routineExerciseAt(1, ex1, routine), routineExerciseAt(2, ex2, routine))));
 
         RoutineExerciseRequestDTO dto =
                 new RoutineExerciseRequestDTO(newExercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
@@ -683,7 +681,7 @@ public class RoutineServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw UnauthorizedException when the user does not own the routine")
+    @DisplayName("Should throw ResourceNotFoundException when the user does not own the routine")
     void addRoutineExercise_shouldThrowUnauthorizedException_WhenUserIsNotOwner() {
         UUID routineId = UUID.randomUUID();
         User owner = UserBuilder.aUser(FAKER).withId(UUID.randomUUID()).build();
@@ -698,7 +696,7 @@ public class RoutineServiceTest {
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
 
         assertThatThrownBy(() -> routineService.addRoutineExercise(routineId, 1, dto, requestUser))
-                .isInstanceOf(UnauthorizedException.class);
+                .isInstanceOf(ResourceNotFoundException.class);
 
         verify(exerciseRepository, never()).findById(any());
         verify(routineMapper, never()).toRoutineResponseDTO(any());
@@ -815,7 +813,7 @@ public class RoutineServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw UnauthorizedException when the user does not own the routine")
+    @DisplayName("Should throw ResourceNotFoundException when the user does not own the routine")
     void deleteRoutineExercise_shouldThrowUnauthorizedException_WhenUserIsNotOwner() {
         UUID routineId = UUID.randomUUID();
         User owner = UserBuilder.aUser(FAKER).withId(UUID.randomUUID()).build();
@@ -827,7 +825,7 @@ public class RoutineServiceTest {
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
 
         assertThatThrownBy(() -> routineService.deleteRoutineExercise(routineId, 1, requestUser))
-                .isInstanceOf(UnauthorizedException.class);
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
@@ -950,7 +948,7 @@ public class RoutineServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw UnauthorizedException when the user does not own the routine")
+    @DisplayName("Should throw ResourceNotFoundException when the user does not own the routine")
     void updateRoutineExercise_shouldThrowUnauthorizedException_WhenUserIsNotOwner() {
         UUID routineId = UUID.randomUUID();
         User owner = UserBuilder.aUser(FAKER).withId(UUID.randomUUID()).build();
@@ -965,7 +963,7 @@ public class RoutineServiceTest {
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
 
         assertThatThrownBy(() -> routineService.updateRoutineExercise(routineId, 1, dto, requestUser))
-                .isInstanceOf(UnauthorizedException.class);
+                .isInstanceOf(ResourceNotFoundException.class);
 
         verify(exerciseRepository, never()).findById(any());
     }
