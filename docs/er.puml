@@ -51,8 +51,41 @@ entity "exercise_muscles" {
     * impact_level : VARCHAR
 }
 
+entity "routines" {
+    * id : UUID <<PK>>
+    --
+    * name : VARCHAR
+    * description : TEXT
+    * active : BOOLEAN
+    * user_id : UUID <<FK>>
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
+    ..
+    UK : (name, user_id)
+}
+
+entity "routine_exercises" {
+    * id : UUID <<PK>>
+    --
+    * routine_id : UUID <<FK>>
+    * exercise_id : UUID <<FK>>
+    * position : INT
+    * default_rest_seconds : INT
+    * default_sets : INT
+    default_reps : INT
+    default_weight_kg : DOUBLE PRECISION
+    default_duration_seconds : INT
+    default_distance_km : DOUBLE PRECISION
+    notes : TEXT
+    ..
+    UK : (routine_id, position)
+}
+
 "exercises" ||--o{ "exercise_muscles" : "has"
 "muscles" ||--o{ "exercise_muscles" : "has"
 "users" ||--o{ "tokens" : "has"
+"users" ||--o{ "routines" : "has"
+"routines" ||--o{ "routine_exercises" : "has"
+"exercises" ||--o{ "routine_exercises" : "used in"
 
 @enduml

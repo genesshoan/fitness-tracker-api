@@ -49,3 +49,18 @@ Controllers expose with prefix **`/api/v1`**.
 | ------ | ------------------------ | -------- | ------- | ------------------------- | ------ |
 | GET    | `/api/v1/exercises`        | Required | None    | `CursorPage<ExerciseListItemDTO>` | 200    |
 | GET    | `/api/v1/exercises/{slug}` | Required | None    | `ExerciseDetailDTO`       | 200    |
+
+---
+
+## Routines
+
+| Método | Endpoint                                          | Auth     | Request                      | Response                  | Status |
+| ------ | ------------------------------------------------- | -------- | ---------------------------- | ------------------------- | ------ |
+| GET    | `/api/v1/routines`                                | Required | None                         | `Page<RoutineListItemDTO>` | 200    |
+| GET    | `/api/v1/routines/{routineId}`                    | Required | None                         | `RoutineResponseDTO`       | 200    |
+| POST   | `/api/v1/routines`                                | Required | `RoutineRequestDTO`          | `RoutineResponseDTO`       | 201    |
+| PUT    | `/api/v1/routines/{routineId}`                    | Required | `RoutineRequestDTO`          | `RoutineResponseDTO`       | 200    |
+| DELETE | `/api/v1/routines/{routineId}`                    | Required | None                         | None                       | 204    |
+| POST   | `/api/v1/routines/{routineId}/exercises/{position}` | Required | `RoutineExerciseRequestDTO` | `RoutineResponseDTO`       | 200    |
+| PUT    | `/api/v1/routines/{routineId}/exercises/{position}` | Required | `RoutineExerciseRequestDTO` | `RoutineResponseDTO`       | 200    |
+| DELETE | `/api/v1/routines/{routineId}/exercises/{position}` | Required | None                         | None                       | 204    |
