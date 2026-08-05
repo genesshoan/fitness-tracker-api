@@ -27,7 +27,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "routines", uniqueConstraints = @UniqueConstraint(columnNames = "name, user_id"))
+@Table(name = "routines", uniqueConstraints = @UniqueConstraint(columnNames = {"name", "user_id"}))
 public class Routine extends BaseEntity {
 
     @Column(nullable = false)
