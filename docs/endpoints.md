@@ -78,8 +78,8 @@ Controllers expose with prefix **`/api/v1`**.
 | GET     | `/api/v1/sessions/{sessionId}`                | Required | None                            | `WorkoutSessionResponseDTO`  | 200 |
 | POST    | `/api/v1/sessions`                            | Required | `WorkoutSessionRequestDTO`      | `WorkoutSessionResponseDTO`  | 201 |
 | POST    | `/api/v1/sessions/from-routine/{routineId}`   | Required | None                            | `WorkoutSessionResponseDTO`  | 201 |
-| POST    | `/api/v1/sessions/{sessionId}/finish`         | Required | None                            | `WorkoutSessionResponseDTO`  | 200 |
-| POST    | `/api/v1/sessions/{sessionId}/cancel`         | Required | None                            | `WorkoutSessionResponseDTO`  | 200 |
+| PUT    | `/api/v1/sessions/{sessionId}/finish`         | Required | None                            | `WorkoutSessionResponseDTO`  | 200 |
+| PUT    | `/api/v1/sessions/{sessionId}/cancel`         | Required | None                            | `WorkoutSessionResponseDTO`  | 200 |
 
 
 ### Session Exercises
