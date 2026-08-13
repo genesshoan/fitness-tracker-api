@@ -1,10 +1,5 @@
 package dev.genesshoan.fitnesstrackerapi.workout.domain;
 
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
 import dev.genesshoan.fitnesstrackerapi.common.BaseEntity;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
@@ -20,6 +15,9 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -55,12 +53,7 @@ public class WorkoutSession extends BaseEntity {
     @JoinColumn(name = "routine_id")
     private Routine routine;
 
-    @OneToMany(
-        mappedBy = "workoutSession",
-        cascade = CascadeType.ALL,
-        orphanRemoval = true
-    )
-
+    @OneToMany(mappedBy = "workoutSession", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     @OrderBy("position ASC")
     private List<SessionExercise> exercises = new ArrayList<>();

@@ -1,8 +1,5 @@
 package dev.genesshoan.fitnesstrackerapi.workout.domain;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import dev.genesshoan.fitnesstrackerapi.common.BaseEntity;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import jakarta.persistence.CascadeType;
@@ -15,6 +12,8 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

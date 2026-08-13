@@ -26,7 +26,7 @@ import lombok.experimental.SuperBuilder;
                     name = "uk_session_sets_session_exercise_id_set_number",
                     columnNames = {"session_exercise_id", "set_number"})
         })
-public class SessionSet  extends BaseEntity {
+public class SessionSet extends BaseEntity {
 
     @Column(nullable = false)
     private int setNumber;
