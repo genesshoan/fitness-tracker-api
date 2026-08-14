@@ -1,6 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.workout.domain;
 
-import dev.genesshoan.fitnesstrackerapi.common.BaseEntity;
+import dev.genesshoan.fitnesstrackerapi.common.domain.BaseEntity;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import jakarta.persistence.CascadeType;

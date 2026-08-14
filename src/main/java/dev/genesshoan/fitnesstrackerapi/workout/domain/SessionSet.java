@@ -1,6 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.workout.domain;
 
-import dev.genesshoan.fitnesstrackerapi.common.BaseEntity;
+import dev.genesshoan.fitnesstrackerapi.common.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
