@@ -134,7 +134,7 @@ public class RoutineService {
         var adjustedPosition = Math.max(1, Math.min(position, maxPosition + 1));
         log.debug("Adjusted position from {} to {}", position, adjustedPosition);
 
-        if (!exercise.getCategory().validate(dto)) {
+        if (!exercise.getCategory().validate(dto.toExerciseMetrics())) {
             log.warn("Invalid data for category {} with exercise: {}", exercise.getCategory(), exercise.getId());
             throw new ValidationException(Map.of(
                     exercise.getId().toString(), List.of("Invalid data for category " + exercise.getCategory())));
@@ -190,7 +190,7 @@ public class RoutineService {
             return new ResourceNotFoundException("Exercise not found");
         });
 
-        if (!exercise.getCategory().validate(dto)) {
+        if (!exercise.getCategory().validate(dto.toExerciseMetrics())) {
             log.warn("Invalid data for category {} with exercise: {}", exercise.getCategory(), exercise.getId());
             throw new ValidationException(Map.of(
                     exercise.getId().toString(), List.of("Invalid data for category " + exercise.getCategory())));
@@ -273,7 +273,7 @@ public class RoutineService {
 
         for (RoutineExerciseRequestDTO dto : exerciseDTOs) {
             Exercise exercise = exerciseMap.get(dto.exerciseId());
-            if (!exercise.getCategory().validate(dto)) {
+            if (!exercise.getCategory().validate(dto.toExerciseMetrics())) {
                 log.warn(
                         "Validation failed for exercise: {} with category: {}",
                         exercise.getId(),

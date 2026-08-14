@@ -1,40 +1,40 @@
 package dev.genesshoan.fitnesstrackerapi.exercise.domain;
 
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineExerciseRequestDTO;
+import dev.genesshoan.fitnesstrackerapi.common.domain.ExerciseMetrics;
 
 public enum Category {
     STRENGTH {
         @Override
-        public boolean validate(RoutineExerciseRequestDTO dto) {
-            return (dto.defaultReps() != null
-                    && dto.defaultReps() > 0
-                    && dto.defaultWeightKg() != null
-                    && dto.defaultWeightKg() > 0
-                    && dto.defaultDistanceKm() == null
-                    && dto.defaultDurationSeconds() == null);
+        public boolean validate(ExerciseMetrics metrics) {
+            return metrics.reps() != null
+                    && metrics.reps() > 0
+                    && metrics.weightKg() != null
+                    && metrics.weightKg() > 0
+                    && metrics.distanceKm() == null
+                    && metrics.durationSeconds() == null;
         }
     },
 
     CARDIO {
         @Override
-        public boolean validate(RoutineExerciseRequestDTO dto) {
-            return (((dto.defaultDurationSeconds() != null && dto.defaultDurationSeconds() > 0)
-                            || (dto.defaultDistanceKm() != null && dto.defaultDistanceKm() > 0))
-                    && dto.defaultReps() == null
-                    && dto.defaultWeightKg() == null);
+        public boolean validate(ExerciseMetrics metrics) {
+            return ((metrics.durationSeconds() != null && metrics.durationSeconds() > 0)
+                            || (metrics.distanceKm() != null && metrics.distanceKm() > 0))
+                    && metrics.reps() == null
+                    && metrics.weightKg() == null;
         }
     },
 
     MOBILITY {
         @Override
-        public boolean validate(RoutineExerciseRequestDTO dto) {
-            return (dto.defaultDurationSeconds() != null
-                    && dto.defaultDurationSeconds() > 0
-                    && dto.defaultReps() == null
-                    && dto.defaultWeightKg() == null
-                    && dto.defaultDistanceKm() == null);
+        public boolean validate(ExerciseMetrics metrics) {
+            return metrics.durationSeconds() != null
+                    && metrics.durationSeconds() > 0
+                    && metrics.reps() == null
+                    && metrics.weightKg() == null
+                    && metrics.distanceKm() == null;
         }
     };
 
-    public abstract boolean validate(RoutineExerciseRequestDTO dto);
+    public abstract boolean validate(ExerciseMetrics metrics);
 }

@@ -1,12 +1,11 @@
 package dev.genesshoan.fitnesstrackerapi.routine.dto;
 
-import java.util.UUID;
-
+import dev.genesshoan.fitnesstrackerapi.common.domain.ExerciseMetrics;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-
-import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.UUID;
 
 @Schema(description = "Request DTO for creating a routine exercise")
 public record RoutineExerciseRequestDTO(
@@ -36,4 +35,10 @@ public record RoutineExerciseRequestDTO(
         @Schema(description = "Default distance in km", example = "5.0")
         Double defaultDistanceKm,
 
-        @Schema(description = "Notes", example = "None") String notes) {}
+        @Schema(description = "Notes", example = "None") String notes) {
+
+    public ExerciseMetrics toExerciseMetrics() {
+        return new ExerciseMetrics(
+                defaultReps, defaultWeightKg, defaultDurationSeconds, defaultDistanceKm);
+    }
+}

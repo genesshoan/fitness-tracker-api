@@ -2,6 +2,7 @@ package dev.genesshoan.fitnesstrackerapi.workout.dto;
 
 import java.util.UUID;
 
+import dev.genesshoan.fitnesstrackerapi.common.domain.ExerciseMetrics;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Session set response dto")
@@ -25,4 +26,9 @@ public record SessionSetResponseDTO(
         Double distanceKm,
 
         @Schema(description = "Whether the set was completed")
-        boolean completed) {}
+        boolean completed) {
+
+    public ExerciseMetrics toExerciseMetrics() {
+        return new ExerciseMetrics(reps, weightKg, durationSeconds, distanceKm);
+    }
+}
