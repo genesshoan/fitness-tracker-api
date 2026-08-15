@@ -1,17 +1,17 @@
 package dev.genesshoan.fitnesstrackerapi.workout.dto;
 
-import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
-import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 
-@Schema(description = "Workout session response dto")
-public record WorkoutSessionResponseDTO(
-        @Schema(description = "Session workout id")
-        UUID id,
+import com.sun.istack.NotNull;
 
+import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+
+@Schema(description = "Workout session request dto")
+public record WorkoutSessionRequestDTO(
+        @NotNull
         @Schema(description = "Workout session current status", example = "IN_PROGRESS")
         SessionStatus status,
 
@@ -20,5 +20,6 @@ public record WorkoutSessionResponseDTO(
 
         @Schema(description = "Workout session notes") String notes,
 
+        @Valid
         @Schema(description = "Exercise performed for the workout session")
-        List<SessionExerciseResponseDTO> exercises) {}
+        List<SessionExerciseRequestDTO> exercises) {}
