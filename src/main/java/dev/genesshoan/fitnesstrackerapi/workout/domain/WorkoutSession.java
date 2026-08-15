@@ -15,7 +15,8 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
-import java.time.LocalDateTime;
+
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
@@ -37,7 +38,7 @@ public class WorkoutSession extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private SessionStatus status = SessionStatus.IN_PROGRESS;
 
-    private LocalDateTime completedAt;
+    private Instant completedAt;
 
     @Column(columnDefinition = "TEXT")
     private String notes;
@@ -57,4 +58,19 @@ public class WorkoutSession extends BaseEntity {
     @Builder.Default
     @OrderBy("position ASC")
     private List<SessionExercise> exercises = new ArrayList<>();
+
+    public void finish(){
+        this.status = SessionStatus.COMPLETED;
+        this.completedAt = Instant.now();
+    }
+
+    public void addExercise(SessionExercise exercise) {
+        exercises.add(exercise);
+        exercise.setWorkoutSession(this);
+    }
+
+    public void removeExercise(SessionExercise exercise) {
+        exercises.remove(exercise);
+        exercise.setWorkoutSession(null);
+    }
 }

@@ -52,4 +52,14 @@ public class SessionExercise extends BaseEntity {
     @OneToMany(mappedBy = "sessionExercise", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("setNumber ASC")
     private List<SessionSet> sets = new ArrayList<>();
+
+    public void addSet(SessionSet set) {
+        sets.add(set);
+        set.setSessionExercise(this);
+    }
+
+    public void removeSet(SessionSet set) {
+        sets.remove(set);
+        set.setSessionExercise(null);
+    }
 }
