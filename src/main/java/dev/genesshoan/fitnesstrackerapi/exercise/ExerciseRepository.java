@@ -43,4 +43,6 @@ public interface ExerciseRepository extends JpaRepository<Exercise, UUID> {
             Pageable pageable);
 
     List<Exercise> findAllByIdInAndActiveTrue(Set<UUID> ids);
+
+    Optional<Exercise> findByIdAndActiveTrue(UUID id);
 }
