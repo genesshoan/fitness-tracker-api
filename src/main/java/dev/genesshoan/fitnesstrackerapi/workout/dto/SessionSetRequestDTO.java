@@ -1,10 +1,10 @@
 package dev.genesshoan.fitnesstrackerapi.workout.dto;
 
-import com.sun.istack.NotNull;
 import dev.genesshoan.fitnesstrackerapi.common.domain.ExerciseMetrics;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 
 @Schema(description = "Session set request dto")
 public record SessionSetRequestDTO(
