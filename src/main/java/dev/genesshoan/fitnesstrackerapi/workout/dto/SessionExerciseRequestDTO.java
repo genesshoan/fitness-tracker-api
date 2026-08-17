@@ -1,12 +1,14 @@
 package dev.genesshoan.fitnesstrackerapi.workout.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.List;
+import java.util.UUID;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import java.util.List;
-import java.util.UUID;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Session exercise request dto")
 public record SessionExerciseRequestDTO(

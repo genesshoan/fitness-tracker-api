@@ -7,7 +7,10 @@ import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionResponseDTO;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 
-@Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true), uses = { SessionExerciseMapper.class, RoutineMapper.class})
+@Mapper(
+        componentModel = "spring",
+        builder = @Builder(disableBuilder = true),
+        uses = {SessionExerciseMapper.class, RoutineMapper.class})
 public interface WorkoutSessionMapper {
 
     WorkoutSessionResponseDTO toWorkoutSessionResponseDTO(WorkoutSession workoutSession);

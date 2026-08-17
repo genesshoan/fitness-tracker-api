@@ -7,8 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Session set response dto")
 public record SessionSetResponseDTO(
-        @Schema(description = "Session set id")
-        UUID id,
+        @Schema(description = "Session set id") UUID id,
 
         @Schema(description = "Set number within the exercise", example = "1")
         int setNumber,

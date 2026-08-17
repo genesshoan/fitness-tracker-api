@@ -1,7 +1,8 @@
 package dev.genesshoan.fitnesstrackerapi.workout.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Session exercise added to workout session response dto")
 public record SessionExerciseAddedResponseDTO(

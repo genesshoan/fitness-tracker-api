@@ -1,10 +1,11 @@
 package dev.genesshoan.fitnesstrackerapi.workout.mapper;
 
+import java.util.List;
+
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionExercise;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExerciseAddedResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExercisePositionDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExerciseResponseDTO;
-import java.util.List;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

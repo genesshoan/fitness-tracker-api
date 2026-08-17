@@ -20,9 +20,7 @@ public class ExerciseFinder {
 
     private final ExerciseRepository exerciseRepository;
 
-    public Map<UUID, Exercise> findActiveByIds(
-            Collection<UUID> ids,
-            Map<String, List<String>> errors) {
+    public Map<UUID, Exercise> findActiveByIds(Collection<UUID> ids, Map<String, List<String>> errors) {
 
         if (ids.isEmpty()) {
             return Map.of();
@@ -30,21 +28,14 @@ public class ExerciseFinder {
 
         Set<UUID> uniqueIds = Set.copyOf(ids);
 
-        List<Exercise> exercises =
-                exerciseRepository.findAllByIdInAndActiveTrue(uniqueIds);
+        List<Exercise> exercises = exerciseRepository.findAllByIdInAndActiveTrue(uniqueIds);
 
-        Map<UUID, Exercise> exerciseMap = exercises.stream()
-                .collect(Collectors.toMap(
-                        Exercise::getId,
-                        Function.identity()
-                ));
+        Map<UUID, Exercise> exerciseMap =
+                exercises.stream().collect(Collectors.toMap(Exercise::getId, Function.identity()));
 
         for (UUID id : uniqueIds) {
             if (!exerciseMap.containsKey(id)) {
-                errors.computeIfAbsent(
-                        id.toString(),
-                        k -> new ArrayList<>()
-                ).add("Exercise does not exist");
+                errors.computeIfAbsent(id.toString(), k -> new ArrayList<>()).add("Exercise does not exist");
             }
         }
 

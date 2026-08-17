@@ -1,8 +1,9 @@
 package dev.genesshoan.fitnesstrackerapi.workout.domain;
 
-import dev.genesshoan.fitnesstrackerapi.common.domain.BaseEntity;
-import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
-import dev.genesshoan.fitnesstrackerapi.user.domain.User;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,9 +17,9 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import dev.genesshoan.fitnesstrackerapi.common.domain.BaseEntity;
+import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
+import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -59,7 +60,7 @@ public class WorkoutSession extends BaseEntity {
     @OrderBy("position ASC")
     private List<SessionExercise> exercises = new ArrayList<>();
 
-    public void finish(){
+    public void finish() {
         this.status = SessionStatus.COMPLETED;
         this.completedAt = Instant.now();
     }

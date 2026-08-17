@@ -10,8 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Workout session list item DTO")
 public record WorkoutSessionListItemDTO(
-        @Schema(description = "Workout session ID")
-        UUID id,
+        @Schema(description = "Workout session ID") UUID id,
 
         @Schema(description = "Session status", example = "COMPLETED")
         SessionStatus status,
@@ -23,5 +22,4 @@ public record WorkoutSessionListItemDTO(
         Instant completedAt,
 
         @Schema(description = "Routine used for the workout session")
-        RoutineListItemDTO routine
-) {}
+        RoutineListItemDTO routine) {}

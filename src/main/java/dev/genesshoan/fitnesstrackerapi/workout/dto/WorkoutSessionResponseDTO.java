@@ -1,16 +1,15 @@
 package dev.genesshoan.fitnesstrackerapi.workout.dto;
 
-import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
-import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 @Schema(description = "Workout session response dto")
 public record WorkoutSessionResponseDTO(
-        @Schema(description = "Session workout id")
-        UUID id,
+        @Schema(description = "Session workout id") UUID id,
 
         @Schema(description = "Workout session current status", example = "IN_PROGRESS")
         SessionStatus status,

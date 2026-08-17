@@ -2,7 +2,6 @@ package dev.genesshoan.fitnesstrackerapi.exercise.domain;
 
 import java.util.Set;
 
-import dev.genesshoan.fitnesstrackerapi.common.domain.BaseEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,6 +10,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+
+import dev.genesshoan.fitnesstrackerapi.common.domain.BaseEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

@@ -1,13 +1,15 @@
 package dev.genesshoan.fitnesstrackerapi.workout.repository;
 
-import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
 import java.util.Optional;
 import java.util.UUID;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
 
 @Repository
 public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, UUID> {

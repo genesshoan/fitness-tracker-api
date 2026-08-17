@@ -1,5 +1,18 @@
 package dev.genesshoan.fitnesstrackerapi.workout;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ValidationException;
@@ -29,19 +42,8 @@ import dev.genesshoan.fitnesstrackerapi.workout.mapper.WorkoutSessionMapper;
 import dev.genesshoan.fitnesstrackerapi.workout.repository.SessionExerciseRepository;
 import dev.genesshoan.fitnesstrackerapi.workout.repository.SessionSetRepository;
 import dev.genesshoan.fitnesstrackerapi.workout.repository.WorkoutSessionRepository;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
