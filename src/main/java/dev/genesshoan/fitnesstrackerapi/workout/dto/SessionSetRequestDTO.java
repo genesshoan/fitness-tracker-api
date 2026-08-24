@@ -12,8 +12,8 @@ public record SessionSetRequestDTO(
         @Min(value = 1)
         @Schema(
                 description = "Set number within the exercise. Used only when creating a session from scratch. "
-                        + "When adding a new set to an existing session exercise, this field is ignored "
-                        + "and the set is assigned the next available number.",
+                        + "When adding or updating a set on an existing session exercise, this field is ignored "
+                        + "and the set keeps or receives the next sequential number.",
                 example = "1")
         Integer setNumber,
 
