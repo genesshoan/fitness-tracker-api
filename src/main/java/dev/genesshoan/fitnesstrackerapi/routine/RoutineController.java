@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineExerciseRequestDTO;
@@ -235,6 +236,7 @@ public class RoutineController {
                                 mediaType = "application/problem+json",
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{routineId}")
     public ResponseEntity<Void> deleteRoutine(
             @Parameter(description = "Routine id") @PathVariable UUID routineId,
@@ -320,6 +322,7 @@ public class RoutineController {
                                 mediaType = "application/problem+json",
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{routineId}/exercises/{position}")
     public ResponseEntity<Void> deleteRoutineExercise(
             @Parameter(description = "Routine id") @PathVariable UUID routineId,
