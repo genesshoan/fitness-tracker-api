@@ -255,7 +255,7 @@ public class WorkoutSessionService {
         if (sessionExercise.getWorkoutSession().getStatus() == SessionStatus.COMPLETED) {
             log.warn(
                     "Invalid session exercise notes update attempt: The session {} is already finished",
-                    sessionExercise.getWorkoutSession().getId());
+                    workoutSessionId);
             throw new BadRequestException("The workout session is already finished");
         }
 
@@ -283,7 +283,7 @@ public class WorkoutSessionService {
             log.warn(
                     "Invalid session exercise {} position update attempt: The session {} is already finished",
                     sessionExerciseId,
-                    workoutSession.getId());
+                    workoutSessionId);
             throw new BadRequestException("The workout session is already finished");
         }
 
@@ -323,7 +323,7 @@ public class WorkoutSessionService {
             log.warn(
                     "Invalid session exercise {} delete attempt: The session {} is already finished",
                     sessionExerciseId,
-                    workoutSession.getId());
+                    workoutSessionId);
             throw new BadRequestException("The workout session is already finished");
         }
 
@@ -341,17 +341,23 @@ public class WorkoutSessionService {
             UUID workoutSessionId, UUID sessionExerciseId, UUID userId, SessionSetRequestDTO dto) {
         log.debug("Adding new session set to session exercise: {}", sessionExerciseId);
         SessionExercise sessionExercise = getOrThrow(
-                sessionExerciseRepository.findWithSetsByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
-                        sessionExerciseId, workoutSessionId, userId),
+                sessionExerciseRepository
+                        .findWithWorkoutSessionAndExerciseByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
+                                sessionExerciseId, workoutSessionId, userId),
                 "Session exercise",
                 sessionExerciseId);
 
         if (sessionExercise.getWorkoutSession().getStatus() == SessionStatus.COMPLETED) {
             log.warn(
-                    "Invalid session exercise {} delete attempt: The session {} is already finished",
+                    "Invalid session set {} add attempt: The session {} is already finished",
                     sessionExerciseId,
-                    sessionExercise.getWorkoutSession().getId());
+                    workoutSessionId);
             throw new BadRequestException("The workout session is already finished");
+        }
+
+        if (!sessionExercise.getExercise().getCategory().validate(dto.toExerciseMetrics())) {
+            throw new BadRequestException("Invalid data for exercise category: "
+                    + sessionExercise.getExercise().getCategory());
         }
 
         SessionSet sessionSet = buildSessionSet(dto, sessionExercise.getSets().size() + 1);
@@ -359,6 +365,91 @@ public class WorkoutSessionService {
         sessionExercise.addSet(sessionSet);
 
         return sessionSetMapper.toSessionSetResponseDTO(sessionSetRepository.save(sessionSet));
+    }
+
+    @Transactional
+    public SessionSetResponseDTO updateSessionSet(
+            UUID workoutSessionId, UUID sessionExerciseId, UUID sessionSetId, UUID userId, SessionSetRequestDTO dto) {
+        log.debug(
+                "Updating session set: {} from exercise: {}, session: {} and user:{}",
+                sessionSetId,
+                sessionExerciseId,
+                workoutSessionId,
+                userId);
+
+        SessionSet sessionSet = getOrThrow(
+                sessionSetRepository
+                        .findByIdAndSessionExerciseIdAndSessionExerciseWorkoutSessionIdAndSessionExerciseWorkoutSessionUserId(
+                                sessionSetId, sessionExerciseId, workoutSessionId, userId),
+                "Session set",
+                sessionSetId);
+
+        if (sessionSet.getSessionExercise().getWorkoutSession().getStatus() == SessionStatus.COMPLETED) {
+            log.warn(
+                    "Invalid session set {} update attempt: The session {} is already finished",
+                    sessionSetId,
+                    workoutSessionId);
+            throw new BadRequestException("The workout session is already finished");
+        }
+
+        if (!sessionSet.getSessionExercise().getExercise().getCategory().validate(dto.toExerciseMetrics())) {
+            throw new BadRequestException("Invalid data for exercise category: "
+                    + sessionSet.getSessionExercise().getExercise().getCategory());
+        }
+
+        applySessionSetUpdate(sessionSet, dto);
+
+        return sessionSetMapper.toSessionSetResponseDTO(sessionSet);
+    }
+
+    @Transactional
+    public void deleteSessionSet(UUID workoutSessionId, UUID sessionExerciseId, UUID sessionSetId, UUID userId) {
+        log.debug(
+                "Deleting session set from exercise: {}, session: {} and user:{}",
+                sessionExerciseId,
+                workoutSessionId,
+                userId);
+
+        SessionExercise sessionExercise = getOrThrow(
+                sessionExerciseRepository.findWithWorkoutSessionByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
+                        sessionExerciseId, workoutSessionId, userId),
+                "Session exercise",
+                sessionExerciseId);
+
+        if (sessionExercise.getWorkoutSession().getStatus() == SessionStatus.COMPLETED) {
+            log.warn(
+                    "Invalid session set {} add attempt: The session {} is already finished",
+                    sessionExerciseId,
+                    workoutSessionId);
+            throw new BadRequestException("The workout session is already finished");
+        }
+
+        SessionSet sessionSet = getOrThrow(
+                sessionExercise.getSets().stream()
+                        .filter(s -> s.getId().equals(sessionSetId))
+                        .findFirst(),
+                "SessionSet",
+                sessionSetId);
+
+        int deletedPosition = sessionSet.getSetNumber();
+
+        sessionExercise.removeSet(sessionSet);
+
+        closeSetNumberGap(sessionExercise, deletedPosition);
+    }
+
+    private void applySessionSetUpdate(SessionSet sessionSet, SessionSetRequestDTO dto) {
+        sessionSet.setReps(dto.reps());
+        sessionSet.setWeightKg(dto.weightKg());
+        sessionSet.setDurationSeconds(dto.durationSeconds());
+        sessionSet.setDistanceKm(dto.distanceKm());
+        sessionSet.setCompleted(dto.completed());
+    }
+
+    private void closeSetNumberGap(SessionExercise sessionExercise, int deletedPosition) {
+        sessionExercise.getSets().stream()
+                .filter(ss -> ss.getSetNumber() >= deletedPosition)
+                .forEach(ss -> ss.setSetNumber(ss.getSetNumber() - 1));
     }
 
     private void closePositionGap(WorkoutSession workoutSession, int deletedPosition) {

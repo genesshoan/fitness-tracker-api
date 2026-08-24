@@ -11,8 +11,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record SessionSetRequestDTO(
         @Min(value = 1)
         @Schema(
-                description =
-                        "Set number within the exercise. If omitted, the server assigns the next available number",
+                description = "Set number within the exercise. Used only when creating a session from scratch. "
+                        + "When adding a new set to an existing session exercise, this field is ignored "
+                        + "and the set is assigned the next available number.",
                 example = "1")
         Integer setNumber,
 

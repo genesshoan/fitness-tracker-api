@@ -16,7 +16,7 @@ public interface SessionExerciseRepository extends JpaRepository<SessionExercise
     Optional<SessionExercise> findWithWorkoutSessionByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
             UUID id, UUID workoutSessionId, UUID userId);
 
-    @EntityGraph(attributePaths = {"sets"})
-    Optional<SessionExercise> findWithSetsByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
+    @EntityGraph(attributePaths = {"workoutSession", "exercise"})
+    Optional<SessionExercise> findWithWorkoutSessionAndExerciseByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
             UUID id, UUID workoutSessionId, UUID userId);
 }
