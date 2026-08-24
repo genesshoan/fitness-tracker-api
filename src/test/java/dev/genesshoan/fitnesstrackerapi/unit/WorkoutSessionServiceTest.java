@@ -661,7 +661,9 @@ class WorkoutSessionServiceTest {
                     .build();
             SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(FAKER)
                     .withSets(List.of(sessionSet))
-                    .forExercise(ExerciseBuilder.anExercise(FAKER).withCategory(Category.STRENGTH).build())
+                    .forExercise(ExerciseBuilder.anExercise(FAKER)
+                            .withCategory(Category.STRENGTH)
+                            .build())
                     .build();
             WorkoutSession session = WorkoutSessionBuilder.aWorkoutSession(FAKER)
                     .withId(sessionId)
@@ -676,18 +678,17 @@ class WorkoutSessionServiceTest {
                             .findByIdAndSessionExerciseIdAndSessionExerciseWorkoutSessionIdAndSessionExerciseWorkoutSessionUserId(
                                     sessionSetId, sessionExercise.getId(), sessionId, userId))
                     .thenReturn(Optional.of(sessionSet));
-            when(sessionSetMapper.toSessionSetResponseDTO(sessionSet))
-                    .thenAnswer(invocation -> {
-                        SessionSet set = invocation.getArgument(0);
-                        return new SessionSetResponseDTO(
-                                set.getId(),
-                                set.getSetNumber(),
-                                set.getReps(),
-                                set.getWeightKg(),
-                                set.getDurationSeconds(),
-                                set.getDistanceKm(),
-                                set.isCompleted());
-                    });
+            when(sessionSetMapper.toSessionSetResponseDTO(sessionSet)).thenAnswer(invocation -> {
+                SessionSet set = invocation.getArgument(0);
+                return new SessionSetResponseDTO(
+                        set.getId(),
+                        set.getSetNumber(),
+                        set.getReps(),
+                        set.getWeightKg(),
+                        set.getDurationSeconds(),
+                        set.getDistanceKm(),
+                        set.isCompleted());
+            });
 
             SessionSetResponseDTO result = workoutSessionService.updateSessionSet(
                     sessionId, sessionExercise.getId(), sessionSetId, userId, dto);
@@ -708,12 +709,13 @@ class WorkoutSessionServiceTest {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
             UUID sessionSetId = UUID.randomUUID();
-            SessionSet sessionSet = SessionSetBuilder.aSessionSet(FAKER)
-                    .withId(sessionSetId)
-                    .build();
+            SessionSet sessionSet =
+                    SessionSetBuilder.aSessionSet(FAKER).withId(sessionSetId).build();
             SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(FAKER)
                     .withSets(List.of(sessionSet))
-                    .forExercise(ExerciseBuilder.anExercise(FAKER).withCategory(Category.STRENGTH).build())
+                    .forExercise(ExerciseBuilder.anExercise(FAKER)
+                            .withCategory(Category.STRENGTH)
+                            .build())
                     .build();
             WorkoutSession session = WorkoutSessionBuilder.aWorkoutSession(FAKER)
                     .withId(sessionId)
@@ -744,12 +746,13 @@ class WorkoutSessionServiceTest {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
             UUID sessionSetId = UUID.randomUUID();
-            SessionSet sessionSet = SessionSetBuilder.aSessionSet(FAKER)
-                    .withId(sessionSetId)
-                    .build();
+            SessionSet sessionSet =
+                    SessionSetBuilder.aSessionSet(FAKER).withId(sessionSetId).build();
             SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(FAKER)
                     .withSets(List.of(sessionSet))
-                    .forExercise(ExerciseBuilder.anExercise(FAKER).withCategory(Category.STRENGTH).build())
+                    .forExercise(ExerciseBuilder.anExercise(FAKER)
+                            .withCategory(Category.STRENGTH)
+                            .build())
                     .build();
             WorkoutSession session = WorkoutSessionBuilder.aWorkoutSession(FAKER)
                     .withId(sessionId)
@@ -810,12 +813,13 @@ class WorkoutSessionServiceTest {
                     .withId(sessionSetId)
                     .withSetNumber(1)
                     .build();
-            SessionSet secondSet = SessionSetBuilder.aSessionSet(FAKER)
-                    .withSetNumber(2)
-                    .build();
+            SessionSet secondSet =
+                    SessionSetBuilder.aSessionSet(FAKER).withSetNumber(2).build();
             SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(FAKER)
                     .withSets(List.of(firstSet, secondSet))
-                    .forExercise(ExerciseBuilder.anExercise(FAKER).withCategory(Category.STRENGTH).build())
+                    .forExercise(ExerciseBuilder.anExercise(FAKER)
+                            .withCategory(Category.STRENGTH)
+                            .build())
                     .build();
             WorkoutSession session = WorkoutSessionBuilder.aWorkoutSession(FAKER)
                     .withId(sessionId)
@@ -849,7 +853,9 @@ class WorkoutSessionServiceTest {
                     .build();
             SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(FAKER)
                     .withSets(List.of(firstSet))
-                    .forExercise(ExerciseBuilder.anExercise(FAKER).withCategory(Category.STRENGTH).build())
+                    .forExercise(ExerciseBuilder.anExercise(FAKER)
+                            .withCategory(Category.STRENGTH)
+                            .build())
                     .build();
             WorkoutSession session = WorkoutSessionBuilder.aWorkoutSession(FAKER)
                     .withId(sessionId)
@@ -881,8 +887,8 @@ class WorkoutSessionServiceTest {
                             sessionExerciseId, sessionId, userId))
                     .thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> workoutSessionService.deleteSessionSet(
-                            sessionId, sessionExerciseId, sessionSetId, userId))
+            assertThatThrownBy(() ->
+                            workoutSessionService.deleteSessionSet(sessionId, sessionExerciseId, sessionSetId, userId))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessage("Session exercise not found");
         }
@@ -893,7 +899,9 @@ class WorkoutSessionServiceTest {
             UUID sessionId = UUID.randomUUID();
             UUID sessionSetId = UUID.randomUUID();
             SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(FAKER)
-                    .forExercise(ExerciseBuilder.anExercise(FAKER).withCategory(Category.STRENGTH).build())
+                    .forExercise(ExerciseBuilder.anExercise(FAKER)
+                            .withCategory(Category.STRENGTH)
+                            .build())
                     .build();
             WorkoutSession session = WorkoutSessionBuilder.aWorkoutSession(FAKER)
                     .withId(sessionId)
