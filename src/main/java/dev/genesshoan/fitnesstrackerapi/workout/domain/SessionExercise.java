@@ -61,7 +61,17 @@ public class SessionExercise extends BaseEntity {
     }
 
     public void removeSet(SessionSet set) {
+        int deletedPosition = set.getSetNumber();
+
         sets.remove(set);
         set.setSessionExercise(null);
+
+        closeSetNumberGap(deletedPosition);
+    }
+
+    private void closeSetNumberGap(int deletedPosition) {
+        sets.stream()
+                .filter(ss -> ss.getSetNumber() >= deletedPosition)
+                .forEach(ss -> ss.setSetNumber(ss.getSetNumber() - 1));
     }
 }

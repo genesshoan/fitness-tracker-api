@@ -65,13 +65,70 @@ public class WorkoutSession extends BaseEntity {
         this.completedAt = Instant.now();
     }
 
-    public void addExercise(SessionExercise exercise) {
-        exercises.add(exercise);
-        exercise.setWorkoutSession(this);
+    public void addExerciseAt(SessionExercise sessionExercise, Integer requestedPosition) {
+        int resolvedPosition = resolvePosition(requestedPosition, exercises.size() + 1);
+
+        shiftExercisesFromPosition(resolvedPosition);
+        sessionExercise.setPosition(resolvedPosition);
+        addExercise(sessionExercise);
     }
 
     public void removeExercise(SessionExercise exercise) {
+        int deletedPosition = exercise.getPosition();
+
         exercises.remove(exercise);
         exercise.setWorkoutSession(null);
+
+        closePositionGap(deletedPosition);
+    }
+
+    public void moveExercise(SessionExercise sessionExercise, int requestedPosition) {
+        int newPosition = resolvePosition(requestedPosition, exercises.size());
+        int oldPosition = sessionExercise.getPosition();
+
+        if (oldPosition == newPosition) {
+            return;
+        }
+
+        exercises.forEach(other -> {
+            if (other == sessionExercise) {
+                return;
+            }
+
+            if (newPosition < oldPosition && other.getPosition() >= newPosition && other.getPosition() < oldPosition) {
+                other.setPosition(other.getPosition() + 1);
+            } else if (newPosition > oldPosition
+                    && other.getPosition() > oldPosition
+                    && other.getPosition() <= newPosition) {
+                other.setPosition(other.getPosition() - 1);
+            }
+        });
+
+        sessionExercise.setPosition(newPosition);
+    }
+
+    private void addExercise(SessionExercise sessionExercise) {
+        exercises.add(sessionExercise);
+        sessionExercise.setWorkoutSession(this);
+    }
+
+    private void closePositionGap(int deletedPosition) {
+        exercises.stream()
+                .filter(se -> se.getPosition() >= deletedPosition)
+                .forEach(se -> se.setPosition(se.getPosition() - 1));
+    }
+
+    private void shiftExercisesFromPosition(int position) {
+        exercises.stream()
+                .filter(exercise -> exercise.getPosition() >= position)
+                .forEach(exercise -> exercise.setPosition(exercise.getPosition() + 1));
+    }
+
+    private int resolvePosition(Integer requestedPosition, int maxPosition) {
+        if (requestedPosition == null) {
+            return maxPosition;
+        }
+
+        return Math.max(1, Math.min(requestedPosition, maxPosition));
     }
 }

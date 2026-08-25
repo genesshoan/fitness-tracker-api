@@ -94,12 +94,9 @@ public class WorkoutSessionService {
                 .build();
 
         routine.getExercises().forEach(re -> {
-            SessionExercise exercise = SessionExercise.builder()
-                    .position(re.getPosition())
-                    .exercise(re.getExercise())
-                    .build();
+            SessionExercise exercise = new SessionExercise();
 
-            session.addExercise(exercise);
+            session.addExerciseAt(exercise, re.getPosition());
 
             for (int i = 1; i <= re.getDefaultSets(); i++) {
                 SessionSet set = SessionSet.builder()
@@ -205,8 +202,6 @@ public class WorkoutSessionService {
             throw new BadRequestException("The workout session is already finished");
         }
 
-        int position = resolvePosition(dto.position(), session.getExercises().size() + 1);
-
         Map<String, List<String>> errors = new HashMap<>();
 
         Exercise exercise = exerciseRepository
@@ -223,11 +218,9 @@ public class WorkoutSessionService {
             throw new ValidationException(errors);
         }
 
-        shiftExercisesFromPosition(session, position);
+        SessionExercise sessionExercise = buildSessionExercise(dto, exercise);
 
-        SessionExercise sessionExercise = buildSessionExercise(dto, exercise, position);
-
-        session.addExercise(sessionExercise);
+        session.addExerciseAt(sessionExercise, dto.position());
 
         List<SessionExercise> shifted = session.getExercises().stream()
                 .filter(e -> !e.equals(sessionExercise))
@@ -287,10 +280,7 @@ public class WorkoutSessionService {
             throw new BadRequestException("The workout session is already finished");
         }
 
-        int position =
-                resolvePosition(dto.position(), workoutSession.getExercises().size());
-
-        moveSessionExercise(workoutSession, sessionExercise, position);
+        workoutSession.moveExercise(sessionExercise, dto.position());
 
         workoutSession.getExercises().sort(Comparator.comparingInt(SessionExercise::getPosition));
 
@@ -328,8 +318,6 @@ public class WorkoutSessionService {
         }
 
         workoutSession.removeExercise(sessionExercise);
-
-        closePositionGap(workoutSession, sessionExercise.getPosition());
 
         log.info("Session exercise: {} removed sucessfully from session: {}", sessionExerciseId, workoutSessionId);
 
@@ -428,14 +416,14 @@ public class WorkoutSessionService {
                 sessionExercise.getSets().stream()
                         .filter(s -> s.getId().equals(sessionSetId))
                         .findFirst(),
-                "SessionSet",
+                "Session set",
                 sessionSetId);
 
-        int deletedPosition = sessionSet.getSetNumber();
-
-        sessionExercise.removeSet(sessionSet);
-
-        closeSetNumberGap(sessionExercise, deletedPosition);
+        if (sessionExercise.getSets().size() > 1) {
+            sessionExercise.removeSet(sessionSet);
+        } else {
+            sessionExerciseRepository.delete(sessionExercise);
+        }
     }
 
     private void applySessionSetUpdate(SessionSet sessionSet, SessionSetRequestDTO dto) {
@@ -444,56 +432,6 @@ public class WorkoutSessionService {
         sessionSet.setDurationSeconds(dto.durationSeconds());
         sessionSet.setDistanceKm(dto.distanceKm());
         sessionSet.setCompleted(dto.completed());
-    }
-
-    private void closeSetNumberGap(SessionExercise sessionExercise, int deletedPosition) {
-        sessionExercise.getSets().stream()
-                .filter(ss -> ss.getSetNumber() >= deletedPosition)
-                .forEach(ss -> ss.setSetNumber(ss.getSetNumber() - 1));
-    }
-
-    private void closePositionGap(WorkoutSession workoutSession, int deletedPosition) {
-        workoutSession.getExercises().stream()
-                .filter(se -> se.getPosition() >= deletedPosition)
-                .forEach(se -> se.setPosition(se.getPosition() - 1));
-    }
-
-    private void moveSessionExercise(WorkoutSession workoutSession, SessionExercise sessionExercise, int newPosition) {
-        int oldPosition = sessionExercise.getPosition();
-
-        if (oldPosition == newPosition) {
-            return;
-        }
-
-        workoutSession.getExercises().forEach(other -> {
-            if (other == sessionExercise) {
-                return;
-            }
-
-            if (newPosition < oldPosition && other.getPosition() >= newPosition && other.getPosition() < oldPosition) {
-                other.setPosition(other.getPosition() + 1);
-            } else if (newPosition > oldPosition
-                    && other.getPosition() > oldPosition
-                    && other.getPosition() <= newPosition) {
-                other.setPosition(other.getPosition() - 1);
-            }
-        });
-
-        sessionExercise.setPosition(newPosition);
-    }
-
-    private void shiftExercisesFromPosition(WorkoutSession session, int position) {
-        session.getExercises().stream()
-                .filter(exercise -> exercise.getPosition() >= position)
-                .forEach(exercise -> exercise.setPosition(exercise.getPosition() + 1));
-    }
-
-    private int resolvePosition(Integer requestedPosition, int maxPosition) {
-        if (requestedPosition == null) {
-            return maxPosition;
-        }
-
-        return Math.max(1, Math.min(requestedPosition, maxPosition));
     }
 
     private void validateSetsData(
@@ -530,19 +468,16 @@ public class WorkoutSessionService {
             SessionExerciseRequestDTO dto = exerciseDTOs.get(i);
             Exercise exercise = exercises.get(dto.exerciseId());
 
-            SessionExercise sessionExercise = buildSessionExercise(dto, exercise, i + 1);
+            SessionExercise sessionExercise = buildSessionExercise(dto, exercise);
 
-            workoutSession.addExercise(sessionExercise);
+            workoutSession.addExerciseAt(sessionExercise, i + 1);
         }
     }
 
-    private SessionExercise buildSessionExercise(SessionExerciseRequestDTO dto, Exercise exercise, int position) {
+    private SessionExercise buildSessionExercise(SessionExerciseRequestDTO dto, Exercise exercise) {
 
-        SessionExercise sessionExercise = SessionExercise.builder()
-                .notes(dto.notes())
-                .position(position)
-                .exercise(exercise)
-                .build();
+        SessionExercise sessionExercise =
+                SessionExercise.builder().notes(dto.notes()).exercise(exercise).build();
 
         for (int i = 0; i < dto.sets().size(); i++) {
             sessionExercise.addSet(buildSessionSet(dto.sets().get(i), i + 1));
