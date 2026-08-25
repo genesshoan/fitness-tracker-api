@@ -106,7 +106,7 @@ Controllers expose with prefix **`/api/v1`**.
 | Método | Endpoint                         | Auth     | Request                    | Response                           | Status |
 | ------- | -------------------------------- | -------- | -------------------------- | ---------------------------------- | ------ |
 | POST    | `/api/v1/progress`              | Required | `ProgressRecordRequestDTO` | `ProgressRecordResponseDTO`        | 201 |
-| GET     | `/api/v1/progress`              | Required | None                       | `Page<ProgressRecordResponseDTO>`  | 200 |
+| GET     | `/api/v1/progress?from=&to=`              | Required | None                       | `Page<ProgressRecordResponseDTO>`  | 200 |
 | DELETE  | `/api/v1/progress/{id}`         | Required | None                       | None                               | 204 |
 
 ---

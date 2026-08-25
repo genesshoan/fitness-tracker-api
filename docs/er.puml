@@ -128,13 +128,13 @@ entity "progress_records" {
     * id : UUID <<PK>>
     --
     * user_id : UUID <<FK>>
-    * recorded_at : TIMESTAMP
+    * recorded_on : DATE
     * weight_kg : DOUBLE PRECISION
-    notes : TEXT
+    body_fat_percentage : DOUBLE PRECISION
     * created_at : TIMESTAMP
     * updated_at : TIMESTAMP
     ..
-    UK : (user_id, recorded_at)
+    UK : (user_id, recorded_on)
 }
 
 "exercises" ||--o{ "exercise_muscles" : "has"
