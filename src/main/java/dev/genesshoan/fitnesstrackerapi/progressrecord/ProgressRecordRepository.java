@@ -14,7 +14,5 @@ public interface ProgressRecordRepository extends JpaRepository<ProgressRecord, 
     Page<ProgressRecord> findAllByUserIdAndRecordedAtBetweenOrderByRecordedAtAsc(
             UUID userId, LocalDate from, LocalDate to, Pageable pageable);
 
-    boolean existsByUserIdAndRecordedAt(UUID userId, LocalDate recordedAt);
-
     boolean existsByIdAndUserId(UUID id, UUID userId);
 }

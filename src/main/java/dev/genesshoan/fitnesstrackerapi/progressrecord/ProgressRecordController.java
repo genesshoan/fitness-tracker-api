@@ -158,7 +158,7 @@ public class ProgressRecordController {
     })
     @DeleteMapping("/{id}")
     public void deleteProgressRecord(
-            @AuthenticationPrincipal UserDetailsImpl principal, @PathVariable @NotNull UUID progressRecordId) {
-        progressRecordService.deleteProgressRecord(progressRecordId, principal.getId());
+            @AuthenticationPrincipal UserDetailsImpl principal, @PathVariable @NotNull UUID id) {
+        progressRecordService.deleteProgressRecord(id, principal.getId());
     }
 }
