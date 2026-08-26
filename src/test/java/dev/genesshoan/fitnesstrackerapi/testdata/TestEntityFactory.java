@@ -1,5 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.testdata;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -15,12 +16,15 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.ExerciseMuscle;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
 import dev.genesshoan.fitnesstrackerapi.exercise.muscle.MuscleRepository;
 import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.Muscle;
+import dev.genesshoan.fitnesstrackerapi.progressrecord.ProgressRecord;
+import dev.genesshoan.fitnesstrackerapi.progressrecord.ProgressRecordRepository;
 import dev.genesshoan.fitnesstrackerapi.routine.RoutineRepository;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.RoutineExercise;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.ExerciseBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.ExerciseMuscleBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.MuscleBuilder;
+import dev.genesshoan.fitnesstrackerapi.testdata.builder.ProgressRecordBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.RoutineBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.RoutineExerciseBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.UserBuilder;
@@ -35,17 +39,20 @@ public class TestEntityFactory {
     private final MuscleRepository muscleRepository;
     private final UserRepository userRepository;
     private final RoutineRepository routineRepository;
+    private final ProgressRecordRepository progressRecordRepository;
     private final Faker faker = new Faker();
 
     public TestEntityFactory(
             ExerciseRepository exerciseRepository,
             MuscleRepository muscleRepository,
             UserRepository userRepository,
-            RoutineRepository routineRepository) {
+            RoutineRepository routineRepository,
+            ProgressRecordRepository progressRecordRepository) {
         this.exerciseRepository = exerciseRepository;
         this.muscleRepository = muscleRepository;
         this.userRepository = userRepository;
         this.routineRepository = routineRepository;
+        this.progressRecordRepository = progressRecordRepository;
     }
 
     public Faker faker() {
@@ -239,5 +246,19 @@ public class TestEntityFactory {
         return IntStream.range(0, count)
                 .mapToObj(i -> createAndPersistExerciseWithMuscles(2, ImpactLevel.PRIMARY))
                 .collect(Collectors.toList());
+    }
+
+    public ProgressRecord createAndPersistProgressRecord(ProgressRecordBuilder builder) {
+        return progressRecordRepository.save(builder.build());
+    }
+
+    public ProgressRecord createAndPersistProgressRecord(User user) {
+        return createAndPersistProgressRecord(
+                ProgressRecordBuilder.aProgressRecord(faker).forUser(user));
+    }
+
+    public ProgressRecord createAndPersistProgressRecord(User user, LocalDate recordedAt) {
+        return createAndPersistProgressRecord(
+                ProgressRecordBuilder.aProgressRecord(faker).forUser(user).withRecordedAt(recordedAt));
     }
 }
