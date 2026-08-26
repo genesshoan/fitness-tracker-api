@@ -36,8 +36,8 @@ public class ExerciseControllerIT extends AbstractIntegrationTest {
         mockMvc.perform(get("/api/v1/exercises/{slug}", exercise.getSlug()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.slug").value(exercise.getSlug()))
-                .andExpect(jsonPath("$.exercise_muscles").isArray())
-                .andExpect(jsonPath("$.exercise_muscles.length()").value(2));
+                .andExpect(jsonPath("$.exerciseMuscles").isArray())
+                .andExpect(jsonPath("$.exerciseMuscles.length()").value(2));
     }
 
     @Test

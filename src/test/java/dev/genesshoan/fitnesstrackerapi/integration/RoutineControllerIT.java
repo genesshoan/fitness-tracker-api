@@ -64,7 +64,7 @@ class RoutineControllerIT extends AbstractIntegrationTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").isArray())
                     .andExpect(jsonPath("$.content", hasSize(3)))
-                    .andExpect(jsonPath("$.total_elements").value(3));
+                    .andExpect(jsonPath("$.totalElements").value(3));
         }
 
         @Test
@@ -134,15 +134,15 @@ class RoutineControllerIT extends AbstractIntegrationTest {
                     "description", "Push exercises",
                     "exercises",
                             List.of(Map.of(
-                                    "exercise_id",
+                                    "exerciseId",
                                     exercise.getId().toString(),
-                                    "default_rest_seconds",
+                                    "defaultRestSeconds",
                                     60,
-                                    "default_sets",
+                                    "defaultSets",
                                     3,
-                                    "default_reps",
+                                    "defaultReps",
                                     12,
-                                    "default_weight_kg",
+                                    "defaultWeightKg",
                                     14.0,
                                     "notes",
                                     "Test note")));
@@ -212,15 +212,15 @@ class RoutineControllerIT extends AbstractIntegrationTest {
                     "description", "Updated description",
                     "exercises",
                             List.of(Map.of(
-                                    "exercise_id",
+                                    "exerciseId",
                                     newExercise.getId().toString(),
-                                    "default_rest_seconds",
+                                    "defaultRestSeconds",
                                     90,
-                                    "default_sets",
+                                    "defaultSets",
                                     4,
-                                    "default_reps",
+                                    "defaultReps",
                                     10,
-                                    "default_weight_kg",
+                                    "defaultWeightKg",
                                     20.0,
                                     "notes",
                                     "Updated note")));
@@ -234,7 +234,7 @@ class RoutineControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.exercises", hasSize(1)))
                     .andExpect(jsonPath("$.exercises[0].exercise.id")
                             .value(newExercise.getId().toString()))
-                    .andExpect(jsonPath("$.exercises[0].default_sets").value(4));
+                    .andExpect(jsonPath("$.exercises[0].defaultSets").value(4));
         }
 
         @Test
@@ -318,15 +318,15 @@ class RoutineControllerIT extends AbstractIntegrationTest {
             Exercise newExercise = testEntityFactory.createAndPersistExerciseWithMuscles(2, ImpactLevel.PRIMARY);
 
             var request = Map.of(
-                    "exercise_id",
+                    "exerciseId",
                     newExercise.getId().toString(),
-                    "default_rest_seconds",
+                    "defaultRestSeconds",
                     60,
-                    "default_sets",
+                    "defaultSets",
                     3,
-                    "default_reps",
+                    "defaultReps",
                     12,
-                    "default_weight_kg",
+                    "defaultWeightKg",
                     14.0,
                     "notes",
                     "New exercise");
@@ -349,11 +349,11 @@ class RoutineControllerIT extends AbstractIntegrationTest {
         @DisplayName("Should return 400 when position < 1")
         void shouldReturn400WhenPositionInvalid() throws Exception {
             var request = Map.of(
-                    "exercise_id", UUID.randomUUID().toString(),
-                    "default_rest_seconds", 60,
-                    "default_sets", 3,
-                    "default_reps", 12,
-                    "default_weight_kg", 14.0);
+                    "exerciseId", UUID.randomUUID().toString(),
+                    "defaultRestSeconds", 60,
+                    "defaultSets", 3,
+                    "defaultReps", 12,
+                    "defaultWeightKg", 14.0);
 
             mockMvc.perform(post("/api/v1/routines/{routineId}/exercises/{position}", routine.getId(), 0)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -366,11 +366,11 @@ class RoutineControllerIT extends AbstractIntegrationTest {
         @DisplayName("Should return 404 when exercise does not exist")
         void shouldReturn404WhenExerciseNotFound() throws Exception {
             var request = Map.of(
-                    "exercise_id", UUID.randomUUID().toString(),
-                    "default_rest_seconds", 60,
-                    "default_sets", 3,
-                    "default_reps", 12,
-                    "default_weight_kg", 14.0);
+                    "exerciseId", UUID.randomUUID().toString(),
+                    "defaultRestSeconds", 60,
+                    "defaultSets", 3,
+                    "defaultReps", 12,
+                    "defaultWeightKg", 14.0);
 
             mockMvc.perform(post("/api/v1/routines/{routineId}/exercises/{position}", routine.getId(), 1)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -402,15 +402,15 @@ class RoutineControllerIT extends AbstractIntegrationTest {
             Exercise newExercise = testEntityFactory.createAndPersistExerciseWithMuscles(2, ImpactLevel.PRIMARY);
 
             var request = Map.of(
-                    "exercise_id",
+                    "exerciseId",
                     newExercise.getId().toString(),
-                    "default_rest_seconds",
+                    "defaultRestSeconds",
                     120,
-                    "default_sets",
+                    "defaultSets",
                     5,
-                    "default_reps",
+                    "defaultReps",
                     8,
-                    "default_weight_kg",
+                    "defaultWeightKg",
                     25.0,
                     "notes",
                     "Updated exercise");
@@ -423,8 +423,8 @@ class RoutineControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.exercises", hasSize(2)))
                     .andExpect(jsonPath("$.exercises[0].exercise.id")
                             .value(newExercise.getId().toString()))
-                    .andExpect(jsonPath("$.exercises[0].default_sets").value(5))
-                    .andExpect(jsonPath("$.exercises[0].default_weight_kg").value(25.0))
+                    .andExpect(jsonPath("$.exercises[0].defaultSets").value(5))
+                    .andExpect(jsonPath("$.exercises[0].defaultWeightKg").value(25.0))
                     .andExpect(jsonPath("$.exercises[1].exercise.id")
                             .value(ex2.getId().toString()));
         }
@@ -433,11 +433,11 @@ class RoutineControllerIT extends AbstractIntegrationTest {
         @DisplayName("Should return 404 when there is no exercise at the given position")
         void shouldReturn404WhenPositionDoesNotExist() throws Exception {
             var request = Map.of(
-                    "exercise_id", UUID.randomUUID().toString(),
-                    "default_rest_seconds", 60,
-                    "default_sets", 3,
-                    "default_reps", 12,
-                    "default_weight_kg", 14.0);
+                    "exerciseId", UUID.randomUUID().toString(),
+                    "defaultRestSeconds", 60,
+                    "defaultSets", 3,
+                    "defaultReps", 12,
+                    "defaultWeightKg", 14.0);
 
             mockMvc.perform(put("/api/v1/routines/{routineId}/exercises/{position}", routine.getId(), 99)
                             .contentType(MediaType.APPLICATION_JSON)
