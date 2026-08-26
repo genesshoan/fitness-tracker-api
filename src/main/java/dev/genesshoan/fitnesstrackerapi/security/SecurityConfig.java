@@ -103,6 +103,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/routines/**")
                         .authenticated()
 
+                        // Progress Record
+                        .requestMatchers("/api/v1/progress/**")
+                        .authenticated()
+
                         // Everything else
                         .anyRequest()
                         .authenticated())
