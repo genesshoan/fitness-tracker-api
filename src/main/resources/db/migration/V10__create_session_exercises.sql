@@ -12,4 +12,6 @@ CREATE TABLE session_exercises
     CONSTRAINT fk_session_exercises_session_workout FOREIGN KEY(session_id) REFERENCES workout_sessions(id),
     CONSTRAINT fk_session_exercises_exercise FOREIGN KEY(exercise_id) REFERENCES exercises(id),
     CONSTRAINT uk_session_exercises_session_id_position UNIQUE (session_id, position) 
+        DEFERRABLE INITIALLY DEFERRED,
+    CONSTRAINT ck_session_exercises_position CHECK (position > 0)
 )
