@@ -3,6 +3,8 @@ package dev.genesshoan.fitnesstrackerapi.workout.domain;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -40,6 +42,9 @@ public class WorkoutSession extends BaseEntity {
     private SessionStatus status = SessionStatus.IN_PROGRESS;
 
     private Instant completedAt;
+
+    @Column(nullable = false, updatable = false)
+    private Instant startedAt;
 
     @Column(columnDefinition = "TEXT")
     private String notes;
@@ -105,6 +110,10 @@ public class WorkoutSession extends BaseEntity {
         });
 
         sessionExercise.setPosition(newPosition);
+    }
+
+    public Optional<SessionExercise> findExercise(UUID exerciseId) {
+        return exercises.stream().filter(se -> se.getId().equals(exerciseId)).findFirst();
     }
 
     private void addExercise(SessionExercise sessionExercise) {

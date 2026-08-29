@@ -14,6 +14,9 @@ public record WorkoutSessionResponseDTO(
         @Schema(description = "Workout session current status", example = "IN_PROGRESS")
         SessionStatus status,
 
+        @Schema(description = "Data time the session started")
+        Instant startedAt,
+
         @Schema(description = "Date tima the session was completed")
         Instant completedAt,
 

@@ -5,6 +5,7 @@ import java.util.List;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,6 +14,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record WorkoutSessionRequestDTO(
         @NotNull @Schema(description = "Workout session current status", example = "IN_PROGRESS")
         SessionStatus status,
+
+        @PastOrPresent @NotNull @Schema(description = "Date time the session started")
+        Instant startedAt,
 
         @Schema(description = "Date tima the session was completed")
         Instant completedAt,

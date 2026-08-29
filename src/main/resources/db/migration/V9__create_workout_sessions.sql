@@ -4,7 +4,8 @@ CREATE TABLE workout_sessions
     user_id      UUID NOT NULL,
     routine_id   UUID,
     status       VARCHAR NOT NULL DEFAULT 'IN_PROGRESS',
-    completed_at TIMESTAMP,
+    startedAt    TIMESTAMP WITH TIME ZONE NOT NULL,
+    completed_at TIMESTAMP WITH TIME ZONE,
     notes        TEXT,
     version      INT,
     created_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
@@ -16,5 +17,5 @@ CREATE TABLE workout_sessions
     CONSTRAINT fk_workout_sessions_routine FOREIGN KEY(routine_id) REFERENCES routines(id)
         ON DELETE SET NULL,
 
-    CONSTRAINT ck_workout_sessions_status CHECK (status IN ('COMPLETED', 'IN_PROGRESS', 'CANCELLED'))
+    CONSTRAINT ck_workout_sessions_status CHECK (status IN ('COMPLETED', 'IN_PROGRESS'))
 );

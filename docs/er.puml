@@ -87,6 +87,7 @@ entity "workout_sessions" {
     * user_id : UUID <<FK>>
     routine_id : UUID <<FK>> NULL
     * status : VARCHAR
+    * startedAt : TIMESTAMP
     completed_at : TIMESTAMP
     notes : TEXT
     version : INT <<@Version>>
