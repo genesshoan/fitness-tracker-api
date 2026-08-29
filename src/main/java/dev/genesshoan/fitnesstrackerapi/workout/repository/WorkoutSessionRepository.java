@@ -18,9 +18,10 @@ import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
 @Repository
 public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, UUID> {
 
-    Optional<WorkoutSession> findByIdAndUserId(UUID sessionId, UUID userId);
-
     Page<WorkoutSession> findAllByUserId(UUID userId, Pageable pageable);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<WorkoutSession> findForUpdateByIdAndUserId(UUID sessionId, UUID userId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""

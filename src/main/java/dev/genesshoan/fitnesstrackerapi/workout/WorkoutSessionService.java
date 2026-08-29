@@ -170,7 +170,7 @@ public class WorkoutSessionService {
     public void updateWorkoutSessionNotes(UUID sessionId, UUID userId, NotesUpdateRequestDTO dto) {
 
         WorkoutSession session = getOrThrowResourceNotFound(
-                workoutSessionRepository.findByIdAndUserId(sessionId, userId), "Workout session", sessionId);
+                workoutSessionRepository.findForUpdateByIdAndUserId(sessionId, userId), "Workout session", sessionId);
 
         if (session.getStatus() == SessionStatus.COMPLETED) {
             log.warn("Invalid workout session notes update attempt: The session {} is already finished", sessionId);
@@ -186,7 +186,7 @@ public class WorkoutSessionService {
         log.debug("Completing session workout: {} from user: {}", sessionId, userId);
 
         WorkoutSession session = getOrThrowResourceNotFound(
-                workoutSessionRepository.findByIdAndUserId(sessionId, userId), "Workout session", sessionId);
+                workoutSessionRepository.findForUpdateByIdAndUserId(sessionId, userId), "Workout session", sessionId);
 
         if (session.getStatus() == SessionStatus.COMPLETED) {
             log.warn("Invalid workout session finish attempt: The session {} is already finished", sessionId);
@@ -204,7 +204,7 @@ public class WorkoutSessionService {
         log.debug("Deleting session workout: {} from user: {}", sessionId, userId);
 
         WorkoutSession session = getOrThrowResourceNotFound(
-                workoutSessionRepository.findByIdAndUserId(sessionId, userId), "Workout session", sessionId);
+                workoutSessionRepository.findForUpdateByIdAndUserId(sessionId, userId), "Workout session", sessionId);
 
         workoutSessionRepository.delete(session);
 
@@ -262,7 +262,7 @@ public class WorkoutSessionService {
             UUID workoutSessionId, UUID sessionExerciseId, UUID userId, NotesUpdateRequestDTO dto) {
 
         SessionExercise sessionExercise = getOrThrowResourceNotFound(
-                sessionExerciseRepository.findWithWorkoutSession(sessionExerciseId, workoutSessionId, userId),
+                sessionExerciseRepository.findForUpdateWithWorkoutSession(sessionExerciseId, workoutSessionId, userId),
                 "Session exercise",
                 sessionExerciseId);
 
@@ -388,7 +388,7 @@ public class WorkoutSessionService {
                 userId);
 
         SessionSet sessionSet = getOrThrowResourceNotFound(
-                sessionSetRepository.findWithSessionExerciseAndWorkoutSessionAndExercise(
+                sessionSetRepository.findForUpdateWithSessionExerciseAndWorkoutSessionAndExercise(
                         sessionSetId, sessionExerciseId, workoutSessionId, userId),
                 "Session set",
                 sessionSetId);
@@ -447,7 +447,7 @@ public class WorkoutSessionService {
     private SessionSetRequestDTO resolveDefaultsSetForExistingExercise(SessionExercise sessionExercise, UUID userId) {
         return sessionExercise.getSets().stream()
                 .max(Comparator.comparingInt(SessionSet::getSetNumber))
-                .map(ss -> sessionSetMapper.toSessionSetRequestDTO(ss))
+                .map(ss -> sessionSetMapper.toDefaultSessionSetRequestDTO(ss))
                 .orElseGet(() -> exerciseMetricsMapper.toDefaultSessionSetRequestDTO(
                         sessionExercise.getExercise().getCategory().defaultMetrics()));
     }

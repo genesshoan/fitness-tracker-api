@@ -1,17 +1,23 @@
 package dev.genesshoan.fitnesstrackerapi.workout.repository;
 
-import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
-import dev.genesshoan.fitnesstrackerapi.workout.repository.projection.LastSetProjection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+
+import jakarta.persistence.LockModeType;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
+import dev.genesshoan.fitnesstrackerapi.workout.repository.projection.LastSetProjection;
+
 public interface SessionSetRepository extends JpaRepository<SessionSet, UUID> {
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
         SELECT ss
         FROM SessionSet ss
@@ -23,7 +29,7 @@ public interface SessionSetRepository extends JpaRepository<SessionSet, UUID> {
             AND ws.id = :workoutSessionId
             AND ws.user.id = :userId
         """)
-    Optional<SessionSet> findWithSessionExerciseAndWorkoutSessionAndExercise(
+    Optional<SessionSet> findForUpdateWithSessionExerciseAndWorkoutSessionAndExercise(
             @Param("sessionSetId") UUID sessionSetId,
             @Param("sessionExerciseId") UUID sessionExerciseId,
             @Param("workoutSessionId") UUID workoutSessionId,

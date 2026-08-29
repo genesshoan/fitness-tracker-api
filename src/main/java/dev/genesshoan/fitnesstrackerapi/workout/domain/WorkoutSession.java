@@ -17,7 +17,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
-import jakarta.persistence.Version;
 
 import dev.genesshoan.fitnesstrackerapi.common.domain.BaseEntity;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
@@ -48,9 +47,6 @@ public class WorkoutSession extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
-
-    @Version
-    private int version;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

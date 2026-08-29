@@ -16,6 +16,7 @@ import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionExercise;
 @Repository
 public interface SessionExerciseRepository extends JpaRepository<SessionExercise, UUID> {
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
         SELECT se
         FROM SessionExercise se
@@ -24,7 +25,7 @@ public interface SessionExerciseRepository extends JpaRepository<SessionExercise
             AND ws.id = :workoutSessionId
             AND ws.user.id = :userId
         """)
-    Optional<SessionExercise> findWithWorkoutSession(
+    Optional<SessionExercise> findForUpdateWithWorkoutSession(
             @Param("id") UUID id, @Param("workoutSessionId") UUID workoutSessionId, @Param("userId") UUID userId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

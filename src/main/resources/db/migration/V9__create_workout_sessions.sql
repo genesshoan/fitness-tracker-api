@@ -7,7 +7,6 @@ CREATE TABLE workout_sessions
     startedAt    TIMESTAMP WITH TIME ZONE NOT NULL,
     completed_at TIMESTAMP WITH TIME ZONE,
     notes        TEXT,
-    version      INT,
     created_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
 
