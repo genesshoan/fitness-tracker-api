@@ -35,7 +35,7 @@ public class SessionExerciseRepositoryTest extends AbstractPostgresTest {
 
     @Test
     @DisplayName("Should load workout session and exercise with session exercise")
-    void findWithWorkoutSessionAndExerciseByIdAndWorkoutSessionIdAndWorkoutSessionUserId_ShouldLoadAssociations() {
+    void findForUpdateWithWorkoutSessionAndExerciseAndSets_ShouldLoadAssociations() {
         User user = testEntityFactory.createAndPersistUser();
         Exercise exercise =
                 testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker()));
@@ -51,13 +51,11 @@ public class SessionExerciseRepositoryTest extends AbstractPostgresTest {
                 .forWorkoutSession(session)
                 .forExercise(exercise)
                 .build();
-        session.addExercise(sessionExercise);
+        session.addExerciseAt(sessionExercise, 1);
         workoutSessionRepository.saveAndFlush(session);
 
-        var result =
-                sessionExerciseRepository
-                        .findWithWorkoutSessionAndExerciseByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
-                                sessionExercise.getId(), session.getId(), user.getId());
+        var result = sessionExerciseRepository.findForUpdateWithWorkoutSessionAndExerciseAndSets(
+                sessionExercise.getId(), session.getId(), user.getId());
 
         assertThat(result).isPresent();
         assertThat(result.get().getWorkoutSession().getId()).isEqualTo(session.getId());
@@ -67,8 +65,7 @@ public class SessionExerciseRepositoryTest extends AbstractPostgresTest {
 
     @Test
     @DisplayName("Should return empty when workout session belongs to another user")
-    void
-            findWithWorkoutSessionAndExerciseByIdAndWorkoutSessionIdAndWorkoutSessionUserId_ShouldReturnEmptyWhenUserDiffers() {
+    void findForUpdateWithWorkoutSessionAndExerciseAndSets_ShouldReturnEmptyWhenUserDiffers() {
         User owner = testEntityFactory.createAndPersistUser();
         User otherUser = testEntityFactory.createAndPersistUser();
         Exercise exercise =
@@ -85,32 +82,27 @@ public class SessionExerciseRepositoryTest extends AbstractPostgresTest {
                 .forWorkoutSession(session)
                 .forExercise(exercise)
                 .build();
-        session.addExercise(sessionExercise);
+        session.addExerciseAt(sessionExercise, 1);
         workoutSessionRepository.saveAndFlush(session);
 
-        var result =
-                sessionExerciseRepository
-                        .findWithWorkoutSessionAndExerciseByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
-                                sessionExercise.getId(), session.getId(), otherUser.getId());
+        var result = sessionExerciseRepository.findForUpdateWithWorkoutSessionAndExerciseAndSets(
+                sessionExercise.getId(), session.getId(), otherUser.getId());
 
         assertThat(result).isNotPresent();
     }
 
     @Test
     @DisplayName("Should return empty when ids do not exist")
-    void
-            findWithWorkoutSessionAndExerciseByIdAndWorkoutSessionIdAndWorkoutSessionUserId_ShouldReturnEmptyWhenIdsAreMissing() {
-        var result =
-                sessionExerciseRepository
-                        .findWithWorkoutSessionAndExerciseByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
-                                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+    void findForUpdateWithWorkoutSessionAndExerciseAndSets_ShouldReturnEmptyWhenIdsAreMissing() {
+        var result = sessionExerciseRepository.findForUpdateWithWorkoutSessionAndExerciseAndSets(
+                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
 
         assertThat(result).isNotPresent();
     }
 
     @Test
     @DisplayName("Should load workout session when querying by ownership")
-    void findWithWorkoutSessionByIdAndWorkoutSessionIdAndWorkoutSessionUserId_ShouldLoadWorkoutSession() {
+    void findForUpdateWithWorkoutSessionAndSets_ShouldLoadWorkoutSession() {
         User user = testEntityFactory.createAndPersistUser();
         Exercise exercise =
                 testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker()));
@@ -126,14 +118,71 @@ public class SessionExerciseRepositoryTest extends AbstractPostgresTest {
                 .forWorkoutSession(session)
                 .forExercise(exercise)
                 .build();
-        session.addExercise(sessionExercise);
+        session.addExerciseAt(sessionExercise, 1);
         workoutSessionRepository.saveAndFlush(session);
 
-        var result = sessionExerciseRepository.findWithWorkoutSessionByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
+        var result = sessionExerciseRepository.findForUpdateWithWorkoutSessionAndSets(
                 sessionExercise.getId(), session.getId(), user.getId());
 
         assertThat(result).isPresent();
         assertThat(result.get().getWorkoutSession().getId()).isEqualTo(session.getId());
         assertThat(result.get().getWorkoutSession().getUser().getId()).isEqualTo(user.getId());
+    }
+
+    @Test
+    @DisplayName("Should load workout session only when querying with findForUpdateWithWorkoutSession")
+    void findForUpdateWithWorkoutSession_ShouldLoadOnlyWorkoutSession() {
+        User user = testEntityFactory.createAndPersistUser();
+        Exercise exercise =
+                testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker()));
+        Routine routine = testEntityFactory.createAndPersistRoutine(
+                RoutineBuilder.aRoutine(testEntityFactory.faker()).forUser(user));
+        WorkoutSession session =
+                workoutSessionRepository.saveAndFlush(WorkoutSessionBuilder.aWorkoutSession(testEntityFactory.faker())
+                        .forUser(user)
+                        .withRoutine(routine)
+                        .build());
+
+        SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(testEntityFactory.faker())
+                .forWorkoutSession(session)
+                .forExercise(exercise)
+                .build();
+        session.addExerciseAt(sessionExercise, 1);
+        workoutSessionRepository.saveAndFlush(session);
+
+        var result = sessionExerciseRepository.findForUpdateWithWorkoutSession(
+                sessionExercise.getId(), session.getId(), user.getId());
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getWorkoutSession().getId()).isEqualTo(session.getId());
+        assertThat(result.get().getWorkoutSession().getUser().getId()).isEqualTo(user.getId());
+    }
+
+    @Test
+    @DisplayName("Should return empty for findForUpdateWithWorkoutSession when user differs")
+    void findForUpdateWithWorkoutSession_ShouldReturnEmptyWhenUserDiffers() {
+        User owner = testEntityFactory.createAndPersistUser();
+        User otherUser = testEntityFactory.createAndPersistUser();
+        Exercise exercise =
+                testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker()));
+        Routine routine = testEntityFactory.createAndPersistRoutine(
+                RoutineBuilder.aRoutine(testEntityFactory.faker()).forUser(owner));
+        WorkoutSession session =
+                workoutSessionRepository.saveAndFlush(WorkoutSessionBuilder.aWorkoutSession(testEntityFactory.faker())
+                        .forUser(owner)
+                        .withRoutine(routine)
+                        .build());
+
+        SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(testEntityFactory.faker())
+                .forWorkoutSession(session)
+                .forExercise(exercise)
+                .build();
+        session.addExerciseAt(sessionExercise, 1);
+        workoutSessionRepository.saveAndFlush(session);
+
+        var result = sessionExerciseRepository.findForUpdateWithWorkoutSession(
+                sessionExercise.getId(), session.getId(), otherUser.getId());
+
+        assertThat(result).isNotPresent();
     }
 }

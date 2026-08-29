@@ -16,9 +16,9 @@ public class WorkoutSessionBuilder {
 
     private UUID id;
     private SessionStatus status = SessionStatus.IN_PROGRESS;
+    private Instant startedAt = Instant.now();
     private Instant completedAt;
     private String notes;
-    private int version;
     private User user;
     private Routine routine;
     private List<SessionExercise> exercises = new ArrayList<>();
@@ -42,6 +42,11 @@ public class WorkoutSessionBuilder {
         return this;
     }
 
+    public WorkoutSessionBuilder withStartedAt(Instant startedAt) {
+        this.startedAt = startedAt;
+        return this;
+    }
+
     public WorkoutSessionBuilder withCompletedAt(Instant completedAt) {
         this.completedAt = completedAt;
         return this;
@@ -49,11 +54,6 @@ public class WorkoutSessionBuilder {
 
     public WorkoutSessionBuilder withNotes(String notes) {
         this.notes = notes;
-        return this;
-    }
-
-    public WorkoutSessionBuilder withVersion(int version) {
-        this.version = version;
         return this;
     }
 
@@ -88,9 +88,9 @@ public class WorkoutSessionBuilder {
         WorkoutSession session = WorkoutSession.builder()
                 .id(id)
                 .status(status)
+                .startedAt(startedAt)
                 .completedAt(completedAt)
                 .notes(notes)
-                .version(version)
                 .user(user)
                 .routine(routine)
                 .exercises(exercises)
