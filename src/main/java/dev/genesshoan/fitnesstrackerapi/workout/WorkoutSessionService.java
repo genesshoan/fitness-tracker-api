@@ -85,7 +85,7 @@ public class WorkoutSessionService {
         log.info("Getting workout session: {} for user: {}", sessionId, userId);
 
         return workoutSessionMapper.toWorkoutSessionResponseDTO(getOrThrowResourceNotFound(
-                workoutSessionRepository.findWithExercisesAndSetsByIdAndUserId(sessionId, userId),
+                workoutSessionRepository.findWithExercisesByIdAndUserId(sessionId, userId),
                 "Workout session",
                 sessionId));
     }

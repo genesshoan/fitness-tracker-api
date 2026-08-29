@@ -23,6 +23,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.BatchSize;
 
 @Getter
 @Setter
@@ -55,6 +56,7 @@ public class SessionExercise extends BaseEntity {
     @Builder.Default
     @OneToMany(mappedBy = "sessionExercise", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("setNumber ASC")
+    @BatchSize(size = 20)
     private List<SessionSet> sets = new ArrayList<>();
 
     public void addSet(SessionSet set) {

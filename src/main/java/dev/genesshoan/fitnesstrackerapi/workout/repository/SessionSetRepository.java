@@ -46,9 +46,9 @@ public interface SessionSetRepository extends JpaRepository<SessionSet, UUID> {
         SELECT DISTINCT ON (e.id)
             e.id AS exerciseId,
             ss.reps AS reps,
-            ss.weightKg AS weightKg,
-            ss.durationSeconds AS durationSeconds,
-            ss.distanceKm AS distanceKm
+            ss.weight_kg AS weightKg,
+            ss.duration_seconds AS durationSeconds,
+            ss.distance_km AS distanceKm
         FROM session_sets ss
         JOIN session_exercises se ON se.id = ss.session_exercise_id
         JOIN exercises e ON e.id = se.exercise_id
