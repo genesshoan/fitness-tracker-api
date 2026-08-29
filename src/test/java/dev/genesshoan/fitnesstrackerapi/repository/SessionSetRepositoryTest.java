@@ -313,6 +313,6 @@ public class SessionSetRepositoryTest extends AbstractPostgresTest {
         WorkoutSession refreshed =
                 workoutSessionRepository.findById(session.getId()).orElseThrow();
 
-        assertThat(refreshed.getExercises()).extracting("position").containsExactly(3, 1, 2);
+        assertThat(refreshed.getExercises()).extracting("position").containsExactly(1, 2, 3);
     }
 }

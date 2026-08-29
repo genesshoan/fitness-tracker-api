@@ -8,10 +8,6 @@ import dev.genesshoan.fitnesstrackerapi.base.AbstractPostgresTest;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.testdata.TestEntityFactory;
-import dev.genesshoan.fitnesstrackerapi.testdata.builder.ExerciseBuilder;
-import dev.genesshoan.fitnesstrackerapi.testdata.builder.RoutineBuilder;
-import dev.genesshoan.fitnesstrackerapi.testdata.builder.SessionExerciseBuilder;
-import dev.genesshoan.fitnesstrackerapi.testdata.builder.WorkoutSessionBuilder;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionExercise;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
@@ -37,22 +33,12 @@ public class SessionExerciseRepositoryTest extends AbstractPostgresTest {
     @DisplayName("Should load workout session and exercise with session exercise")
     void findForUpdateWithWorkoutSessionAndExerciseAndSets_ShouldLoadAssociations() {
         User user = testEntityFactory.createAndPersistUser();
-        Exercise exercise =
-                testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker()));
-        Routine routine = testEntityFactory.createAndPersistRoutine(
-                RoutineBuilder.aRoutine(testEntityFactory.faker()).forUser(user));
-        WorkoutSession session =
-                workoutSessionRepository.saveAndFlush(WorkoutSessionBuilder.aWorkoutSession(testEntityFactory.faker())
-                        .forUser(user)
-                        .withRoutine(routine)
-                        .build());
+        Exercise exercise = testEntityFactory.createAndPersistExercise();
+        Routine routine = testEntityFactory.createAndPersistRoutine(user);
 
-        SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(testEntityFactory.faker())
-                .forWorkoutSession(session)
-                .forExercise(exercise)
-                .build();
-        session.addExerciseAt(sessionExercise, 1);
-        workoutSessionRepository.saveAndFlush(session);
+        WorkoutSession session = testEntityFactory.createAndPersistWorkoutSession(user, routine);
+        SessionExercise sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
+        testEntityFactory.createAndPersistSessionSet(sessionExercise);
 
         var result = sessionExerciseRepository.findForUpdateWithWorkoutSessionAndExerciseAndSets(
                 sessionExercise.getId(), session.getId(), user.getId());
@@ -68,22 +54,12 @@ public class SessionExerciseRepositoryTest extends AbstractPostgresTest {
     void findForUpdateWithWorkoutSessionAndExerciseAndSets_ShouldReturnEmptyWhenUserDiffers() {
         User owner = testEntityFactory.createAndPersistUser();
         User otherUser = testEntityFactory.createAndPersistUser();
-        Exercise exercise =
-                testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker()));
-        Routine routine = testEntityFactory.createAndPersistRoutine(
-                RoutineBuilder.aRoutine(testEntityFactory.faker()).forUser(owner));
-        WorkoutSession session =
-                workoutSessionRepository.saveAndFlush(WorkoutSessionBuilder.aWorkoutSession(testEntityFactory.faker())
-                        .forUser(owner)
-                        .withRoutine(routine)
-                        .build());
+        Exercise exercise = testEntityFactory.createAndPersistExercise();
+        Routine routine = testEntityFactory.createAndPersistRoutine(owner);
 
-        SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(testEntityFactory.faker())
-                .forWorkoutSession(session)
-                .forExercise(exercise)
-                .build();
-        session.addExerciseAt(sessionExercise, 1);
-        workoutSessionRepository.saveAndFlush(session);
+        WorkoutSession session = testEntityFactory.createAndPersistWorkoutSession(owner, routine);
+        SessionExercise sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
+        testEntityFactory.createAndPersistSessionSet(sessionExercise);
 
         var result = sessionExerciseRepository.findForUpdateWithWorkoutSessionAndExerciseAndSets(
                 sessionExercise.getId(), session.getId(), otherUser.getId());
@@ -101,25 +77,15 @@ public class SessionExerciseRepositoryTest extends AbstractPostgresTest {
     }
 
     @Test
-    @DisplayName("Should load workout session when querying by ownership")
+    @DisplayName("Should load workout session when querying by ownership with sets")
     void findForUpdateWithWorkoutSessionAndSets_ShouldLoadWorkoutSession() {
         User user = testEntityFactory.createAndPersistUser();
-        Exercise exercise =
-                testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker()));
-        Routine routine = testEntityFactory.createAndPersistRoutine(
-                RoutineBuilder.aRoutine(testEntityFactory.faker()).forUser(user));
-        WorkoutSession session =
-                workoutSessionRepository.saveAndFlush(WorkoutSessionBuilder.aWorkoutSession(testEntityFactory.faker())
-                        .forUser(user)
-                        .withRoutine(routine)
-                        .build());
+        Exercise exercise = testEntityFactory.createAndPersistExercise();
+        Routine routine = testEntityFactory.createAndPersistRoutine(user);
 
-        SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(testEntityFactory.faker())
-                .forWorkoutSession(session)
-                .forExercise(exercise)
-                .build();
-        session.addExerciseAt(sessionExercise, 1);
-        workoutSessionRepository.saveAndFlush(session);
+        WorkoutSession session = testEntityFactory.createAndPersistWorkoutSession(user, routine);
+        SessionExercise sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
+        testEntityFactory.createAndPersistSessionSet(sessionExercise);
 
         var result = sessionExerciseRepository.findForUpdateWithWorkoutSessionAndSets(
                 sessionExercise.getId(), session.getId(), user.getId());
@@ -127,28 +93,19 @@ public class SessionExerciseRepositoryTest extends AbstractPostgresTest {
         assertThat(result).isPresent();
         assertThat(result.get().getWorkoutSession().getId()).isEqualTo(session.getId());
         assertThat(result.get().getWorkoutSession().getUser().getId()).isEqualTo(user.getId());
+        // Verify that sets were fetched (JOIN FETCH se.sets)
+        assertThat(result.get().getSets()).isNotEmpty();
     }
 
     @Test
     @DisplayName("Should load workout session only when querying with findForUpdateWithWorkoutSession")
     void findForUpdateWithWorkoutSession_ShouldLoadOnlyWorkoutSession() {
         User user = testEntityFactory.createAndPersistUser();
-        Exercise exercise =
-                testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker()));
-        Routine routine = testEntityFactory.createAndPersistRoutine(
-                RoutineBuilder.aRoutine(testEntityFactory.faker()).forUser(user));
-        WorkoutSession session =
-                workoutSessionRepository.saveAndFlush(WorkoutSessionBuilder.aWorkoutSession(testEntityFactory.faker())
-                        .forUser(user)
-                        .withRoutine(routine)
-                        .build());
+        Exercise exercise = testEntityFactory.createAndPersistExercise();
+        Routine routine = testEntityFactory.createAndPersistRoutine(user);
 
-        SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(testEntityFactory.faker())
-                .forWorkoutSession(session)
-                .forExercise(exercise)
-                .build();
-        session.addExerciseAt(sessionExercise, 1);
-        workoutSessionRepository.saveAndFlush(session);
+        WorkoutSession session = testEntityFactory.createAndPersistWorkoutSession(user, routine);
+        SessionExercise sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
 
         var result = sessionExerciseRepository.findForUpdateWithWorkoutSession(
                 sessionExercise.getId(), session.getId(), user.getId());
@@ -163,22 +120,11 @@ public class SessionExerciseRepositoryTest extends AbstractPostgresTest {
     void findForUpdateWithWorkoutSession_ShouldReturnEmptyWhenUserDiffers() {
         User owner = testEntityFactory.createAndPersistUser();
         User otherUser = testEntityFactory.createAndPersistUser();
-        Exercise exercise =
-                testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker()));
-        Routine routine = testEntityFactory.createAndPersistRoutine(
-                RoutineBuilder.aRoutine(testEntityFactory.faker()).forUser(owner));
-        WorkoutSession session =
-                workoutSessionRepository.saveAndFlush(WorkoutSessionBuilder.aWorkoutSession(testEntityFactory.faker())
-                        .forUser(owner)
-                        .withRoutine(routine)
-                        .build());
+        Exercise exercise = testEntityFactory.createAndPersistExercise();
+        Routine routine = testEntityFactory.createAndPersistRoutine(owner);
 
-        SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(testEntityFactory.faker())
-                .forWorkoutSession(session)
-                .forExercise(exercise)
-                .build();
-        session.addExerciseAt(sessionExercise, 1);
-        workoutSessionRepository.saveAndFlush(session);
+        WorkoutSession session = testEntityFactory.createAndPersistWorkoutSession(owner, routine);
+        SessionExercise sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
 
         var result = sessionExerciseRepository.findForUpdateWithWorkoutSession(
                 sessionExercise.getId(), session.getId(), otherUser.getId());
