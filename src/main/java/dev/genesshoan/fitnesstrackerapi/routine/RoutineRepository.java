@@ -41,5 +41,6 @@ public interface RoutineRepository extends JpaRepository<Routine, UUID> {
     @EntityGraph(attributePaths = {"exercises", "exercises.exercise"})
     Optional<Routine> findByIdAndActiveTrue(UUID routineId);
 
+    @EntityGraph(attributePaths = "exercises")
     Optional<Routine> findByIdAndUserIdAndActiveTrue(UUID routineId, UUID userId);
 }

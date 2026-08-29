@@ -1,12 +1,16 @@
 package dev.genesshoan.fitnesstrackerapi.workout;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ValidationException;
+import dev.genesshoan.fitnesstrackerapi.common.mapper.ExerciseMetricsMapper;
 import dev.genesshoan.fitnesstrackerapi.exercise.ExerciseRepository;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ExerciseFinder;
@@ -42,6 +47,7 @@ import dev.genesshoan.fitnesstrackerapi.workout.mapper.WorkoutSessionMapper;
 import dev.genesshoan.fitnesstrackerapi.workout.repository.SessionExerciseRepository;
 import dev.genesshoan.fitnesstrackerapi.workout.repository.SessionSetRepository;
 import dev.genesshoan.fitnesstrackerapi.workout.repository.WorkoutSessionRepository;
+import dev.genesshoan.fitnesstrackerapi.workout.repository.projection.LastSetProjection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -63,17 +69,22 @@ public class WorkoutSessionService {
     private final WorkoutSessionMapper workoutSessionMapper;
     private final SessionExerciseMapper sessionExerciseMapper;
     private final SessionSetMapper sessionSetMapper;
+    private final ExerciseMetricsMapper exerciseMetricsMapper;
 
     public Page<WorkoutSessionListItemDTO> getAllWorkoutSessions(UUID userId, Pageable pageable) {
+
         log.info("Getting workouts sessions from user: {} with pageable: {}", userId, pageable);
+
         return workoutSessionRepository
                 .findAllByUserId(userId, pageable)
                 .map(workoutSessionMapper::toWorkoutSessionListItemDTO);
     }
 
     public WorkoutSessionResponseDTO getWorkoutSessionById(UUID sessionId, UUID userId) {
+
         log.info("Getting workout session: {} for user: {}", sessionId, userId);
-        return workoutSessionMapper.toWorkoutSessionResponseDTO(getOrThrow(
+
+        return workoutSessionMapper.toWorkoutSessionResponseDTO(getOrThrowResourceNotFound(
                 workoutSessionRepository.findWithExercisesAndSetsByIdAndUserId(sessionId, userId),
                 "Workout session",
                 sessionId));
@@ -81,16 +92,14 @@ public class WorkoutSessionService {
 
     @Transactional
     public WorkoutSessionResponseDTO createWorkoutSessionFromRoutine(UUID routineId, UUID userId) {
-        Routine routine = routineRepository
-                .findByIdAndUserIdAndActiveTrue(routineId, userId)
-                .orElseThrow(() -> {
-                    log.warn("Routine: {} not found", routineId);
-                    return new ResourceNotFoundException("Routine not found");
-                });
+
+        Routine routine = getOrThrowResourceNotFound(
+                routineRepository.findByIdAndUserIdAndActiveTrue(routineId, userId), "Routine", routineId);
 
         WorkoutSession session = WorkoutSession.builder()
                 .user(userRepository.getReferenceById(userId))
                 .routine(routine)
+                .startedAt(Instant.now())
                 .build();
 
         routine.getExercises().forEach(re -> {
@@ -111,13 +120,16 @@ public class WorkoutSessionService {
             }
         });
 
+        WorkoutSession saved = workoutSessionRepository.save(session);
+
         log.info("Created workout session: {} from routine: {} from user: {}", session.getId(), routineId, userId);
 
-        return workoutSessionMapper.toWorkoutSessionResponseDTO(workoutSessionRepository.save(session));
+        return workoutSessionMapper.toWorkoutSessionResponseDTO(saved);
     }
 
     @Transactional
     public WorkoutSessionResponseDTO createWorkoutSessionFromScratch(WorkoutSessionRequestDTO dto, UUID userId) {
+
         validateSessionRequest(dto);
 
         Map<String, List<String>> errors = new HashMap<>();
@@ -138,21 +150,27 @@ public class WorkoutSessionService {
         WorkoutSession workoutSession = WorkoutSession.builder()
                 .status(dto.status())
                 .notes(dto.notes())
+                .startedAt(dto.startedAt())
                 .completedAt(dto.completedAt())
                 .user(userRepository.getReferenceById(userId))
                 .build();
 
-        buildSessionExercises(dto.exercises(), workoutSession, exercises);
+        Map<UUID, LastSetProjection> defaultsByExercise = getDefaultsByExercise(dto.exercises(), userId);
+
+        buildSessionExercises(dto.exercises(), workoutSession, exercises, defaultsByExercise, userId);
+
+        WorkoutSession saved = workoutSessionRepository.save(workoutSession);
 
         log.info("Created workout session: {} for user: {}", workoutSession.getId(), userId);
 
-        return workoutSessionMapper.toWorkoutSessionResponseDTO(workoutSessionRepository.save(workoutSession));
+        return workoutSessionMapper.toWorkoutSessionResponseDTO(saved);
     }
 
     @Transactional
     public void updateWorkoutSessionNotes(UUID sessionId, UUID userId, NotesUpdateRequestDTO dto) {
-        WorkoutSession session =
-                getOrThrow(workoutSessionRepository.findByIdAndUserId(sessionId, userId), "Workout session", sessionId);
+
+        WorkoutSession session = getOrThrowResourceNotFound(
+                workoutSessionRepository.findByIdAndUserId(sessionId, userId), "Workout session", sessionId);
 
         if (session.getStatus() == SessionStatus.COMPLETED) {
             log.warn("Invalid workout session notes update attempt: The session {} is already finished", sessionId);
@@ -164,9 +182,11 @@ public class WorkoutSessionService {
 
     @Transactional
     public void completeWorkoutSession(UUID sessionId, UUID userId) {
+
         log.debug("Completing session workout: {} from user: {}", sessionId, userId);
-        WorkoutSession session =
-                getOrThrow(workoutSessionRepository.findByIdAndUserId(sessionId, userId), "Workout session", sessionId);
+
+        WorkoutSession session = getOrThrowResourceNotFound(
+                workoutSessionRepository.findByIdAndUserId(sessionId, userId), "Workout session", sessionId);
 
         if (session.getStatus() == SessionStatus.COMPLETED) {
             log.warn("Invalid workout session finish attempt: The session {} is already finished", sessionId);
@@ -180,22 +200,25 @@ public class WorkoutSessionService {
 
     @Transactional
     public void deleteWorkoutSession(UUID sessionId, UUID userId) {
+
         log.debug("Deleting session workout: {} from user: {}", sessionId, userId);
-        WorkoutSession session =
-                getOrThrow(workoutSessionRepository.findByIdAndUserId(sessionId, userId), "Workout session", sessionId);
+
+        WorkoutSession session = getOrThrowResourceNotFound(
+                workoutSessionRepository.findByIdAndUserId(sessionId, userId), "Workout session", sessionId);
 
         workoutSessionRepository.delete(session);
+
         log.info("Deleted session workout: {} from user: {}", sessionId, userId);
     }
 
     @Transactional
     public SessionExerciseAddedResponseDTO addNewSessionExercise(
             UUID sessionId, UUID userId, SessionExerciseRequestDTO dto) {
+
         log.debug("Adding new session exercise into position: {} to session: {}", dto.position(), sessionId);
-        WorkoutSession session = getOrThrow(
-                workoutSessionRepository.findWithExercisesByIdAndUserId(sessionId, userId),
-                "Workout session",
-                sessionId);
+
+        WorkoutSession session = getOrThrowResourceNotFound(
+                workoutSessionRepository.findForUpdateWithExercises(sessionId, userId), "Workout session", sessionId);
 
         if (session.getStatus() == SessionStatus.COMPLETED) {
             log.warn("Invalid session exercise add attempt: The session {} is already finished", sessionId);
@@ -204,12 +227,8 @@ public class WorkoutSessionService {
 
         Map<String, List<String>> errors = new HashMap<>();
 
-        Exercise exercise = exerciseRepository
-                .findByIdAndActiveTrue(dto.exerciseId())
-                .orElseThrow(() -> {
-                    log.warn("Exercise {} not found", dto.exerciseId());
-                    return new ResourceNotFoundException("Exercise not found");
-                });
+        Exercise exercise = getOrThrowResourceNotFound(
+                exerciseRepository.findByIdAndActiveTrue(dto.exerciseId()), "Exercise", dto.exerciseId());
 
         validateSetsData(dto.sets(), exercise, errors);
 
@@ -218,7 +237,9 @@ public class WorkoutSessionService {
             throw new ValidationException(errors);
         }
 
-        SessionExercise sessionExercise = buildSessionExercise(dto, exercise);
+        Map<UUID, LastSetProjection> defaultByExercise = getDefaultsByExercise(List.of(dto), userId);
+
+        SessionExercise sessionExercise = buildSessionExercise(dto, exercise, defaultByExercise, userId);
 
         session.addExerciseAt(sessionExercise, dto.position());
 
@@ -231,7 +252,7 @@ public class WorkoutSessionService {
                 "Session exercise {} added into position: {} to session: {}",
                 sessionExercise.getId(),
                 sessionExercise.getPosition(),
-                session);
+                session.getId());
 
         return sessionExerciseMapper.toSessionExerciseAddedResponseDTO(sessionExercise, shifted);
     }
@@ -239,9 +260,9 @@ public class WorkoutSessionService {
     @Transactional
     public void updateSessionExerciseNotes(
             UUID workoutSessionId, UUID sessionExerciseId, UUID userId, NotesUpdateRequestDTO dto) {
-        SessionExercise sessionExercise = getOrThrow(
-                sessionExerciseRepository.findWithWorkoutSessionByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
-                        sessionExerciseId, workoutSessionId, userId),
+
+        SessionExercise sessionExercise = getOrThrowResourceNotFound(
+                sessionExerciseRepository.findWithWorkoutSession(sessionExerciseId, workoutSessionId, userId),
                 "Session exercise",
                 sessionExerciseId);
 
@@ -258,19 +279,16 @@ public class WorkoutSessionService {
     @Transactional
     public List<SessionExercisePositionDTO> updateSessionExercisePosition(
             UUID workoutSessionId, UUID sessionExerciseId, UUID userId, PositionRequestDTO dto) {
+
         log.debug("Updating session exercise: {} position from session: {}", sessionExerciseId, workoutSessionId);
-        WorkoutSession workoutSession = getOrThrow(
-                workoutSessionRepository.findWithExercisesByIdAndUserId(workoutSessionId, userId),
+
+        WorkoutSession workoutSession = getOrThrowResourceNotFound(
+                workoutSessionRepository.findForUpdateWithExercises(workoutSessionId, userId),
                 "Workout session",
                 workoutSessionId);
 
-        SessionExercise sessionExercise = workoutSession.getExercises().stream()
-                .filter(se -> se.getId().equals(sessionExerciseId))
-                .findFirst()
-                .orElseThrow(() -> {
-                    log.warn("Session exercise not found: {}", sessionExerciseId);
-                    return new ResourceNotFoundException("Session exercise not found");
-                });
+        SessionExercise sessionExercise = getOrThrowResourceNotFound(
+                workoutSession.findExercise(sessionExerciseId), "Session exercise", sessionExerciseId);
 
         if (workoutSession.getStatus() == SessionStatus.COMPLETED) {
             log.warn(
@@ -295,19 +313,16 @@ public class WorkoutSessionService {
     @Transactional
     public List<SessionExercisePositionDTO> deleteSessionExercise(
             UUID workoutSessionId, UUID sessionExerciseId, UUID userId) {
+
         log.debug("Removing session exercise: {} from session: {}", sessionExerciseId, workoutSessionId);
-        WorkoutSession workoutSession = getOrThrow(
-                workoutSessionRepository.findWithExercisesByIdAndUserId(workoutSessionId, userId),
+
+        WorkoutSession workoutSession = getOrThrowResourceNotFound(
+                workoutSessionRepository.findForUpdateWithExercises(workoutSessionId, userId),
                 "Workout session",
                 workoutSessionId);
 
-        SessionExercise sessionExercise = workoutSession.getExercises().stream()
-                .filter(se -> se.getId().equals(sessionExerciseId))
-                .findFirst()
-                .orElseThrow(() -> {
-                    log.warn("Session exercise not found: {}", sessionExerciseId);
-                    return new ResourceNotFoundException("Session exercise not found");
-                });
+        SessionExercise sessionExercise = getOrThrowResourceNotFound(
+                workoutSession.findExercise(sessionExerciseId), "Session exercise", sessionExerciseId);
 
         if (workoutSession.getStatus() == SessionStatus.COMPLETED) {
             log.warn(
@@ -319,7 +334,7 @@ public class WorkoutSessionService {
 
         workoutSession.removeExercise(sessionExercise);
 
-        log.info("Session exercise: {} removed sucessfully from session: {}", sessionExerciseId, workoutSessionId);
+        log.info("Session exercise: {} removed successfully from session: {}", sessionExerciseId, workoutSessionId);
 
         return sessionExerciseMapper.toSessionExercisePositionDTOList(workoutSession.getExercises());
     }
@@ -327,11 +342,12 @@ public class WorkoutSessionService {
     @Transactional
     public SessionSetResponseDTO addNewSessionSet(
             UUID workoutSessionId, UUID sessionExerciseId, UUID userId, SessionSetRequestDTO dto) {
+
         log.debug("Adding new session set to session exercise: {}", sessionExerciseId);
-        SessionExercise sessionExercise = getOrThrow(
-                sessionExerciseRepository
-                        .findWithWorkoutSessionAndExerciseByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
-                                sessionExerciseId, workoutSessionId, userId),
+
+        SessionExercise sessionExercise = getOrThrowResourceNotFound(
+                sessionExerciseRepository.findForUpdateWithWorkoutSessionAndExerciseAndSets(
+                        sessionExerciseId, workoutSessionId, userId),
                 "Session exercise",
                 sessionExerciseId);
 
@@ -343,21 +359,27 @@ public class WorkoutSessionService {
             throw new BadRequestException("The workout session is already finished");
         }
 
-        if (!sessionExercise.getExercise().getCategory().validate(dto.toExerciseMetrics())) {
+        SessionSetRequestDTO effectiveDto =
+                dto.isEmpty() ? resolveDefaultsSetForExistingExercise(sessionExercise, userId) : dto;
+
+        if (!dto.isEmpty() && !sessionExercise.getExercise().getCategory().validate(dto.toExerciseMetrics())) {
             throw new BadRequestException("Invalid data for exercise category: "
                     + sessionExercise.getExercise().getCategory());
         }
 
-        SessionSet sessionSet = buildSessionSet(dto, sessionExercise.getSets().size() + 1);
+        SessionSet sessionSet = buildSessionSet(effectiveDto, sessionExercise.getSetCount() + 1);
 
         sessionExercise.addSet(sessionSet);
 
-        return sessionSetMapper.toSessionSetResponseDTO(sessionSetRepository.save(sessionSet));
+        SessionSet saved = sessionSetRepository.save(sessionSet);
+
+        return sessionSetMapper.toSessionSetResponseDTO(saved);
     }
 
     @Transactional
     public SessionSetResponseDTO updateSessionSet(
             UUID workoutSessionId, UUID sessionExerciseId, UUID sessionSetId, UUID userId, SessionSetRequestDTO dto) {
+
         log.debug(
                 "Updating session set: {} from exercise: {}, session: {} and user:{}",
                 sessionSetId,
@@ -365,10 +387,9 @@ public class WorkoutSessionService {
                 workoutSessionId,
                 userId);
 
-        SessionSet sessionSet = getOrThrow(
-                sessionSetRepository
-                        .findByIdAndSessionExerciseIdAndSessionExerciseWorkoutSessionIdAndSessionExerciseWorkoutSessionUserId(
-                                sessionSetId, sessionExerciseId, workoutSessionId, userId),
+        SessionSet sessionSet = getOrThrowResourceNotFound(
+                sessionSetRepository.findWithSessionExerciseAndWorkoutSessionAndExercise(
+                        sessionSetId, sessionExerciseId, workoutSessionId, userId),
                 "Session set",
                 sessionSetId);
 
@@ -392,41 +413,57 @@ public class WorkoutSessionService {
 
     @Transactional
     public void deleteSessionSet(UUID workoutSessionId, UUID sessionExerciseId, UUID sessionSetId, UUID userId) {
+
         log.debug(
                 "Deleting session set from exercise: {}, session: {} and user:{}",
                 sessionExerciseId,
                 workoutSessionId,
                 userId);
 
-        SessionExercise sessionExercise = getOrThrow(
-                sessionExerciseRepository.findWithWorkoutSessionByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
+        SessionExercise sessionExercise = getOrThrowResourceNotFound(
+                sessionExerciseRepository.findForUpdateWithWorkoutSessionAndSets(
                         sessionExerciseId, workoutSessionId, userId),
                 "Session exercise",
                 sessionExerciseId);
 
         if (sessionExercise.getWorkoutSession().getStatus() == SessionStatus.COMPLETED) {
             log.warn(
-                    "Invalid session set {} add attempt: The session {} is already finished",
-                    sessionExerciseId,
+                    "Invalid session set {} delete attempt: The session {} is already finished",
+                    sessionSetId,
                     workoutSessionId);
             throw new BadRequestException("The workout session is already finished");
         }
 
-        SessionSet sessionSet = getOrThrow(
-                sessionExercise.getSets().stream()
-                        .filter(s -> s.getId().equals(sessionSetId))
-                        .findFirst(),
-                "Session set",
-                sessionSetId);
+        SessionSet sessionSet =
+                getOrThrowResourceNotFound(sessionExercise.findSet(sessionSetId), "Session set", sessionSetId);
 
-        if (sessionExercise.getSets().size() > 1) {
+        if (sessionExercise.getSetCount() > 1) {
             sessionExercise.removeSet(sessionSet);
         } else {
             sessionExerciseRepository.delete(sessionExercise);
         }
     }
 
+    private SessionSetRequestDTO resolveDefaultsSetForExistingExercise(SessionExercise sessionExercise, UUID userId) {
+        return sessionExercise.getSets().stream()
+                .max(Comparator.comparingInt(SessionSet::getSetNumber))
+                .map(ss -> sessionSetMapper.toSessionSetRequestDTO(ss))
+                .orElseGet(() -> exerciseMetricsMapper.toDefaultSessionSetRequestDTO(
+                        sessionExercise.getExercise().getCategory().defaultMetrics()));
+    }
+
+    private SessionSetRequestDTO resolveDefaultSetForNewExercise(
+            Exercise exercise, Map<UUID, LastSetProjection> defaultSets) {
+
+        return Optional.ofNullable(defaultSets.get(exercise.getId()))
+                .map(lsp -> new SessionSetRequestDTO(
+                        1, lsp.getReps(), lsp.getWeightKg(), lsp.getDurationSeconds(), lsp.getDistanceKm(), false))
+                .orElseGet(() -> exerciseMetricsMapper.toDefaultSessionSetRequestDTO(
+                        exercise.getCategory().defaultMetrics()));
+    }
+
     private void applySessionSetUpdate(SessionSet sessionSet, SessionSetRequestDTO dto) {
+
         sessionSet.setReps(dto.reps());
         sessionSet.setWeightKg(dto.weightKg());
         sessionSet.setDurationSeconds(dto.durationSeconds());
@@ -438,6 +475,7 @@ public class WorkoutSessionService {
             List<SessionExerciseRequestDTO> exerciseDTOs,
             Map<UUID, Exercise> exercises,
             Map<String, List<String>> errors) {
+
         for (SessionExerciseRequestDTO exerciseDTO : exerciseDTOs) {
             Exercise exercise = exercises.get(exerciseDTO.exerciseId());
 
@@ -449,6 +487,7 @@ public class WorkoutSessionService {
 
     private void validateSetsData(
             List<SessionSetRequestDTO> setDTOs, Exercise exercise, Map<String, List<String>> errors) {
+
         for (int i = 0; i < setDTOs.size(); i++) {
             SessionSetRequestDTO setDTO = setDTOs.get(i);
 
@@ -462,25 +501,31 @@ public class WorkoutSessionService {
     private void buildSessionExercises(
             List<SessionExerciseRequestDTO> exerciseDTOs,
             WorkoutSession workoutSession,
-            Map<UUID, Exercise> exercises) {
+            Map<UUID, Exercise> exercises,
+            Map<UUID, LastSetProjection> defaultSets,
+            UUID userId) {
 
         for (int i = 0; i < exerciseDTOs.size(); i++) {
             SessionExerciseRequestDTO dto = exerciseDTOs.get(i);
             Exercise exercise = exercises.get(dto.exerciseId());
 
-            SessionExercise sessionExercise = buildSessionExercise(dto, exercise);
+            SessionExercise sessionExercise = buildSessionExercise(dto, exercise, defaultSets, userId);
 
             workoutSession.addExerciseAt(sessionExercise, i + 1);
         }
     }
 
-    private SessionExercise buildSessionExercise(SessionExerciseRequestDTO dto, Exercise exercise) {
+    private SessionExercise buildSessionExercise(
+            SessionExerciseRequestDTO dto, Exercise exercise, Map<UUID, LastSetProjection> defaultSets, UUID userId) {
 
         SessionExercise sessionExercise =
                 SessionExercise.builder().notes(dto.notes()).exercise(exercise).build();
 
-        for (int i = 0; i < dto.sets().size(); i++) {
-            sessionExercise.addSet(buildSessionSet(dto.sets().get(i), i + 1));
+        List<SessionSetRequestDTO> sets =
+                dto.sets().isEmpty() ? List.of(resolveDefaultSetForNewExercise(exercise, defaultSets)) : dto.sets();
+
+        for (int i = 0; i < sets.size(); i++) {
+            sessionExercise.addSet(buildSessionSet(sets.get(i), i + 1));
         }
 
         return sessionExercise;
@@ -499,6 +544,11 @@ public class WorkoutSessionService {
     }
 
     private void validateSessionRequest(WorkoutSessionRequestDTO dto) {
+
+        if (dto.completedAt() != null && dto.completedAt().isAfter(Instant.now())) {
+            throw new BadRequestException("completedAt cannot be in the future");
+        }
+
         if (dto.status() == SessionStatus.COMPLETED && dto.completedAt() == null) {
             throw new BadRequestException("The completedAt field cannot be null for a completed workout session");
         }
@@ -512,10 +562,23 @@ public class WorkoutSessionService {
         }
     }
 
-    private <T> T getOrThrow(Optional<T> result, String resourceName, UUID id) {
+    private <T> T getOrThrowResourceNotFound(Optional<T> result, String resourceName, UUID id) {
+
         return result.orElseThrow(() -> {
             log.warn("{} not found: {}", resourceName, id);
             return new ResourceNotFoundException(resourceName + " not found");
         });
+    }
+
+    private Map<UUID, LastSetProjection> getDefaultsByExercise(List<SessionExerciseRequestDTO> dtos, UUID userId) {
+        Set<UUID> exerciseIdsWithoutSets = dtos.stream()
+                .filter(eDto -> eDto.sets().isEmpty())
+                .map(SessionExerciseRequestDTO::exerciseId)
+                .collect(Collectors.toSet());
+
+        Map<UUID, LastSetProjection> defaultsByExercise =
+                sessionSetRepository.findLastSetsByExerciseIdAndUserId(exerciseIdsWithoutSets, userId).stream()
+                        .collect(Collectors.toMap(lsp -> lsp.getExerciseId(), Function.identity()));
+        return defaultsByExercise;
     }
 }

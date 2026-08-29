@@ -1,6 +1,7 @@
 package dev.genesshoan.fitnesstrackerapi.workout.mapper;
 
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionSetRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionSetResponseDTO;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
@@ -9,4 +10,6 @@ import org.mapstruct.Mapper;
 public interface SessionSetMapper {
 
     SessionSetResponseDTO toSessionSetResponseDTO(SessionSet sessionSet);
+
+    SessionSetRequestDTO toSessionSetRequestDTO(SessionSet sessionSet);
 }

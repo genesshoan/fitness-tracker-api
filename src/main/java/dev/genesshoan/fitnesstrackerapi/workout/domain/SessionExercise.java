@@ -2,6 +2,8 @@ package dev.genesshoan.fitnesstrackerapi.workout.domain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -67,6 +69,14 @@ public class SessionExercise extends BaseEntity {
         set.setSessionExercise(null);
 
         closeSetNumberGap(deletedPosition);
+    }
+
+    public Optional<SessionSet> findSet(UUID sessionSetId) {
+        return sets.stream().filter(set -> set.getId().equals(sessionSetId)).findFirst();
+    }
+
+    public int getSetCount() {
+        return sets.size();
     }
 
     private void closeSetNumberGap(int deletedPosition) {

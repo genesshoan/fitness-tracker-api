@@ -13,6 +13,11 @@ public enum Category {
                     && metrics.distanceKm() == null
                     && metrics.durationSeconds() == null;
         }
+
+        @Override
+        public ExerciseMetrics defaultMetrics() {
+            return new ExerciseMetrics(8, 5.0, null, null);
+        }
     },
 
     CARDIO {
@@ -22,6 +27,11 @@ public enum Category {
                             || (metrics.distanceKm() != null && metrics.distanceKm() > 0))
                     && metrics.reps() == null
                     && metrics.weightKg() == null;
+        }
+
+        @Override
+        public ExerciseMetrics defaultMetrics() {
+            return new ExerciseMetrics(null, null, 30, null);
         }
     },
 
@@ -34,7 +44,14 @@ public enum Category {
                     && metrics.weightKg() == null
                     && metrics.distanceKm() == null;
         }
+
+        @Override
+        public ExerciseMetrics defaultMetrics() {
+            return new ExerciseMetrics(null, null, 30, null);
+        }
     };
 
     public abstract boolean validate(ExerciseMetrics metrics);
+
+    public abstract ExerciseMetrics defaultMetrics();
 }

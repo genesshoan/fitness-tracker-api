@@ -35,4 +35,8 @@ public record SessionSetRequestDTO(
     public ExerciseMetrics toExerciseMetrics() {
         return new ExerciseMetrics(reps, weightKg, durationSeconds, distanceKm);
     }
+
+    public boolean isEmpty() {
+        return reps == null && weightKg == null && durationSeconds == null && distanceKm == null;
+    }
 }
