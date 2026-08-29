@@ -1,6 +1,7 @@
 package dev.genesshoan.fitnesstrackerapi.common.error.handler;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PessimisticLockException;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.core.annotation.Order;
@@ -36,6 +37,21 @@ import static dev.genesshoan.fitnesstrackerapi.common.error.handler.ProblemDetai
 @Order(3)
 @RestControllerAdvice
 public class PersistenceExceptionHandler {
+
+    @ExceptionHandler(PessimisticLockException.class)
+    public ResponseEntity<ProblemDetail> handlePessimisticLock(
+            PessimisticLockException ex, HttpServletRequest request) {
+        log.warn("Lock conflict: {} {} -> {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+
+        ProblemDetail problem = errorResponse(
+                HttpStatus.CONFLICT,
+                "Resource being modified",
+                "The resource is currently being modified. Please try again.",
+                null,
+                request);
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
+    }
 
     /**
      * Handles database constraint violation exceptions.
