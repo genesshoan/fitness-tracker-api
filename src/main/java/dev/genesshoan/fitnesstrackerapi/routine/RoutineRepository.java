@@ -31,13 +31,16 @@ public interface RoutineRepository extends JpaRepository<Routine, UUID> {
                 AND r.active = true
             GROUP BY r.id, r.name, r.updatedAt
         """, countQuery = """
-            SELECT COUNT(r)
-            FROM Routine r
-            WHERE r.user.id = :userId
-                AND r.active = true
-        """)
+                SELECT COUNT(r)
+                FROM Routine r
+                WHERE r.user.id = :userId
+                    AND r.active = true
+            """)
     Page<RoutineListItemDTO> findAllByUserIdAndActiveTrueWithExerciseCount(UUID userId, Pageable pageable);
 
     @EntityGraph(attributePaths = {"exercises", "exercises.exercise"})
     Optional<Routine> findByIdAndActiveTrue(UUID routineId);
+
+    @EntityGraph(attributePaths = "exercises")
+    Optional<Routine> findByIdAndUserIdAndActiveTrue(UUID routineId, UUID userId);
 }

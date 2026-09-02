@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.common;
+package dev.genesshoan.fitnesstrackerapi.common.domain;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

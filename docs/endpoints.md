@@ -72,32 +72,32 @@ Controllers expose with prefix **`/api/v1`**.
 
 ### Sessions
 
-| Método | Endpoint                                      | Auth     | Request                         | Response                     | Status |
-| ------- | --------------------------------------------- | -------- | ------------------------------- | ---------------------------- | ------ |
-| GET     | `/api/v1/sessions`                            | Required | None                            | `Page<WorkoutSessionListItemDTO>` | 200 |
-| GET     | `/api/v1/sessions/{sessionId}`                | Required | None                            | `WorkoutSessionResponseDTO`  | 200 |
-| POST    | `/api/v1/sessions`                            | Required | `WorkoutSessionRequestDTO`      | `WorkoutSessionResponseDTO`  | 201 |
-| POST    | `/api/v1/sessions/from-routine/{routineId}`   | Required | None                            | `WorkoutSessionResponseDTO`  | 201 |
-| POST    | `/api/v1/sessions/{sessionId}/finish`         | Required | None                            | `WorkoutSessionResponseDTO`  | 200 |
-| POST    | `/api/v1/sessions/{sessionId}/cancel`         | Required | None                            | `WorkoutSessionResponseDTO`  | 200 |
-
+| Método | Endpoint | Auth | Request | Response | Status |
+| ------ | -------- | ---- | ------- | -------- | ------ |
+| GET | `/api/v1/sessions` | Required | None | `Page<WorkoutSessionListItemDTO>` | 200 |
+| GET | `/api/v1/sessions/{sessionId}` | Required | None | `WorkoutSessionResponseDTO` | 200 |
+| POST | `/api/v1/sessions` | Required | `WorkoutSessionRequestDTO` | `WorkoutSessionResponseDTO` | 201 |
+| POST | `/api/v1/routines/{routineId}/sessions` | Required | None | `WorkoutSessionResponseDTO` | 201 |
+| PATCH | `/api/v1/sessions/{sessionId}/notes` | Required | `NotesUpdateRequestDTO` |None| 204 |
+| PATCH | `/api/v1/sessions/{sessionId}/finish` | Required | None |None| 204 |
+| DELETE | `/api/v1/sessions/{sessionId}` | Required | None |None| 204 |
 
 ### Session Exercises
-
-| Método | Endpoint                                                | Auth     | Request                           | Response                     | Status |
-| ------- | ------------------------------------------------------- | -------- | --------------------------------- | ---------------------------- | ------ |
-| POST    | `/api/v1/sessions/{sessionId}/exercises/{position}`     | Required | `SessionExerciseRequestDTO`       | `WorkoutSessionResponseDTO`  | 200 |
-| PUT     | `/api/v1/sessions/{sessionId}/exercises/{position}`     | Required | `SessionExerciseRequestDTO`       | `WorkoutSessionResponseDTO`  | 200 |
-| DELETE  | `/api/v1/sessions/{sessionId}/exercises/{position}`     | Required | None                              | None                         | 204 |
-
+| Método | Endpoint | Auth | Request | Response | Status |
+| ------ | -------- | ---- | ------- | -------- | ------ |
+| POST | `/api/v1/sessions/{sessionId}/exercises` | Required | `SessionExerciseRequestDTO` | `SessionExerciseAddedResponseDTO` | 201 |
+| PATCH | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/notes` | Required | `NotesUpdateRequestDTO` | None | 204 |
+| PATCH | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/position` | Required | `PositionRequestDTO` | `SessionExercisePositionResponseDTO` | 200 |
+| DELETE | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}` | Required | None | None | 204 |
 
 ### Session Sets
 
-| Método | Endpoint                                                                    | Auth     | Request                     | Response                    | Status |
-| ------- | --------------------------------------------------------------------------- | -------- | --------------------------- | --------------------------- | ------ |
-| POST    | `/api/v1/sessions/{sessionId}/exercises/{position}/sets/{setNumber}`        | Required | `SessionSetRequestDTO`      | `WorkoutSessionResponseDTO` | 200 |
-| PUT     | `/api/v1/sessions/{sessionId}/exercises/{position}/sets/{setNumber}`        | Required | `SessionSetRequestDTO`      | `WorkoutSessionResponseDTO` | 200 |
-| DELETE  | `/api/v1/sessions/{sessionId}/exercises/{position}/sets/{setNumber}`        | Required | None                        | None                        | 204 |
+| Método | Endpoint | Auth | Request | Response | Status |
+| ------ | -------- | ---- | ------- | -------- | ------ |
+| POST | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets` | Required | `SessionSetRequestDTO` | `SessionSetResponseDTO` | 201 |
+| PUT | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{sessionSetId}` | Required | `SessionSetRequestDTO` | `SessionSetResponseDTO` | 200 |
+| DELETE | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{sessionSetId}` | Required | None | None | 204 |
+
 
 ---
 

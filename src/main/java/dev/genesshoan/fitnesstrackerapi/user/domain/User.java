@@ -2,7 +2,7 @@ package dev.genesshoan.fitnesstrackerapi.user.domain;
 
 import jakarta.persistence.*;
 
-import dev.genesshoan.fitnesstrackerapi.common.BaseEntity;
+import dev.genesshoan.fitnesstrackerapi.common.domain.BaseEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

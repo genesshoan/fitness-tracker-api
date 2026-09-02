@@ -159,4 +159,12 @@ public class DomainExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problem);
     }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ProblemDetail> handleValidation(ValidationException ex, HttpServletRequest request) {
+        ProblemDetail problem =
+                errorResponse(HttpStatus.BAD_REQUEST, "Validation error", ex.getMessage(), ex.getErrors(), request);
+
+        return ResponseEntity.badRequest().body(problem);
+    }
 }

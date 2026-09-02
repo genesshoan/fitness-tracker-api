@@ -1,9 +1,8 @@
-package dev.genesshoan.fitnesstrackerapi.routine;
+package dev.genesshoan.fitnesstrackerapi.workout.controller;
 
 import java.util.UUID;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,45 +13,44 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineExerciseRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineListItemDTO;
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
+import dev.genesshoan.fitnesstrackerapi.workout.WorkoutSessionService;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.NotesUpdateRequestDTO;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionListItemDTO;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionRequestDTO;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/routines")
-@Tag(name = "Routines", description = "Endpoints for managing and retrieving routines")
-public class RoutineController {
+@RequestMapping("/api/v1/sessions")
+public class WorkoutSessionController {
 
-    private final RoutineService routineService;
+    private final WorkoutSessionService workoutSessionService;
 
     @Operation(
-            summary = "Get all routines",
-            description = "Retrieve a paginated list of routines for the authenticated user")
+            summary = "Get all sessions",
+            description = "Retrieve a paginated list of sessions for the authenticated user")
     @ApiResponses({
         @ApiResponse(
                 responseCode = "200",
-                description = "Routines retrieved successfully",
+                description = "Sessions retrieved successfully",
                 content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class))),
         @ApiResponse(
                 responseCode = "401",
@@ -70,20 +68,20 @@ public class RoutineController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @GetMapping
-    public ResponseEntity<Page<RoutineListItemDTO>> getRoutines(
+    public ResponseEntity<Page<WorkoutSessionListItemDTO>> getSessions(
             @AuthenticationPrincipal UserDetailsImpl principal, @ParameterObject Pageable pageable) {
-        return ResponseEntity.ok(routineService.getRoutinesByUserId(principal.getUser(), pageable));
+        return ResponseEntity.ok(workoutSessionService.getAllWorkoutSessions(principal.getId(), pageable));
     }
 
-    @Operation(summary = "Get routine by id", description = "Retrieve a routine by its id")
+    @Operation(summary = "Get session by id", description = "Retrieve a session by its id")
     @ApiResponses({
         @ApiResponse(
                 responseCode = "200",
-                description = "Routine retrieved successfully",
+                description = "Session retrieved successfully",
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = RoutineResponseDTO.class))),
+                                schema = @Schema(implementation = WorkoutSessionResponseDTO.class))),
         @ApiResponse(
                 responseCode = "401",
                 description = "Unauthorized",
@@ -93,7 +91,7 @@ public class RoutineController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
         @ApiResponse(
                 responseCode = "404",
-                description = "Routine not found",
+                description = "Session not found",
                 content =
                         @Content(
                                 mediaType = "application/problem+json",
@@ -106,25 +104,27 @@ public class RoutineController {
                                 mediaType = "application/problem+json",
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
-    @GetMapping("/{routineId}")
-    public ResponseEntity<RoutineResponseDTO> getRoutine(
-            @Parameter(description = "Routine id") @PathVariable UUID routineId,
-            @AuthenticationPrincipal UserDetailsImpl principal) {
-        return ResponseEntity.ok(routineService.getRoutineById(routineId, principal.getUser()));
+    @GetMapping("/{sessionId}")
+    public ResponseEntity<WorkoutSessionResponseDTO> getSession(
+            @AuthenticationPrincipal UserDetailsImpl principal,
+            @Parameter(description = "Workout session id") @PathVariable UUID sessionId) {
+        return ResponseEntity.ok(workoutSessionService.getWorkoutSessionById(sessionId, principal.getId()));
     }
 
-    @Operation(summary = "Create routine", description = "Create a new routine for the authenticated user")
+    @Operation(
+            summary = "Create workout session from scratch",
+            description = "Create a new session for the authenticated user")
     @ApiResponses({
         @ApiResponse(
                 responseCode = "201",
-                description = "Routine created successfully",
+                description = "Session created successfully",
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = RoutineResponseDTO.class))),
+                                schema = @Schema(implementation = WorkoutSessionResponseDTO.class))),
         @ApiResponse(
                 responseCode = "400",
-                description = "Invalid request parameters",
+                description = "Invalid request dto or exercise data",
                 content =
                         @Content(
                                 mediaType = "application/problem+json",
@@ -132,13 +132,6 @@ public class RoutineController {
         @ApiResponse(
                 responseCode = "401",
                 description = "Unauthorized",
-                content =
-                        @Content(
-                                mediaType = "application/problem+json",
-                                schema = @Schema(implementation = ProblemDetail.class))),
-        @ApiResponse(
-                responseCode = "409",
-                description = "Routine with the same name already exists",
                 content =
                         @Content(
                                 mediaType = "application/problem+json",
@@ -152,68 +145,31 @@ public class RoutineController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @PostMapping
-    public ResponseEntity<RoutineResponseDTO> createRoutine(
-            @Valid @RequestBody RoutineRequestDTO requestDTO, @AuthenticationPrincipal UserDetailsImpl principal) {
+    public ResponseEntity<WorkoutSessionResponseDTO> createWorkoutSessionFromScratch(
+            @AuthenticationPrincipal UserDetailsImpl principal,
+            @Valid @RequestBody WorkoutSessionRequestDTO requestDTO) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(routineService.createRoutine(requestDTO, principal.getUser()));
+                .body(workoutSessionService.createWorkoutSessionFromScratch(requestDTO, principal.getId()));
     }
 
-    @Operation(summary = "Update routine", description = "Update an existing routine")
+    @Operation(
+            summary = "Create workout session from a routine",
+            description = "Create a new session for the authenticated user")
     @ApiResponses({
         @ApiResponse(
-                responseCode = "200",
-                description = "Routine updated successfully",
+                responseCode = "201",
+                description = "Session created successfully",
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = RoutineResponseDTO.class))),
+                                schema = @Schema(implementation = WorkoutSessionResponseDTO.class))),
         @ApiResponse(
                 responseCode = "400",
-                description = "Invalid request parameters",
+                description = "Invalid routine id",
                 content =
                         @Content(
                                 mediaType = "application/problem+json",
                                 schema = @Schema(implementation = ProblemDetail.class))),
-        @ApiResponse(
-                responseCode = "401",
-                description = "Unauthorized",
-                content =
-                        @Content(
-                                mediaType = "application/problem+json",
-                                schema = @Schema(implementation = ProblemDetail.class))),
-        @ApiResponse(
-                responseCode = "404",
-                description = "Routine not found",
-                content =
-                        @Content(
-                                mediaType = "application/problem+json",
-                                schema = @Schema(implementation = ProblemDetail.class))),
-        @ApiResponse(
-                responseCode = "409",
-                description = "Routine with the same name already exists",
-                content =
-                        @Content(
-                                mediaType = "application/problem+json",
-                                schema = @Schema(implementation = ProblemDetail.class))),
-        @ApiResponse(
-                responseCode = "500",
-                description = "Internal server error",
-                content =
-                        @Content(
-                                mediaType = "application/problem+json",
-                                schema = @Schema(implementation = ProblemDetail.class))),
-    })
-    @PutMapping("/{routineId}")
-    public ResponseEntity<RoutineResponseDTO> updateRoutine(
-            @Parameter(description = "Routine id") @PathVariable UUID routineId,
-            @Valid @RequestBody RoutineRequestDTO requestDTO,
-            @AuthenticationPrincipal UserDetailsImpl principal) {
-        return ResponseEntity.ok(routineService.updateRoutine(routineId, requestDTO, principal.getUser()));
-    }
-
-    @Operation(summary = "Delete routine", description = "Soft delete a routine")
-    @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Routine deleted successfully"),
         @ApiResponse(
                 responseCode = "401",
                 description = "Unauthorized",
@@ -236,29 +192,22 @@ public class RoutineController {
                                 mediaType = "application/problem+json",
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @DeleteMapping("/{routineId}")
-    public ResponseEntity<Void> deleteRoutine(
-            @Parameter(description = "Routine id") @PathVariable UUID routineId,
-            @AuthenticationPrincipal UserDetailsImpl principal) {
-        routineService.deleteRoutine(routineId, principal.getUser());
-        return ResponseEntity.noContent().build();
+    @PostMapping("/from-routine/{routineId}")
+    public ResponseEntity<WorkoutSessionResponseDTO> createWorkoutSessionFromRoutine(
+            @AuthenticationPrincipal UserDetailsImpl principal,
+            @Parameter(description = "Routine id") @PathVariable UUID routineId) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(workoutSessionService.createWorkoutSessionFromRoutine(routineId, principal.getId()));
     }
 
     @Operation(
-            summary = "Add exercise to routine",
-            description = "Add an exercise at a specific position in the routine")
+            summary = "Update workout session notes",
+            description = "Updates workout session notes for the authenticated user")
     @ApiResponses({
-        @ApiResponse(
-                responseCode = "200",
-                description = "Exercise added successfully",
-                content =
-                        @Content(
-                                mediaType = "application/json",
-                                schema = @Schema(implementation = RoutineResponseDTO.class))),
+        @ApiResponse(responseCode = "204", description = "Session notes updated successfully"),
         @ApiResponse(
                 responseCode = "400",
-                description = "Invalid request parameters",
+                description = "Workout session is already completed",
                 content =
                         @Content(
                                 mediaType = "application/problem+json",
@@ -272,44 +221,7 @@ public class RoutineController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
         @ApiResponse(
                 responseCode = "404",
-                description = "Routine or exercise not found",
-                content =
-                        @Content(
-                                mediaType = "application/problem+json",
-                                schema = @Schema(implementation = ProblemDetail.class))),
-        @ApiResponse(
-                responseCode = "500",
-                description = "Internal server error",
-                content =
-                        @Content(
-                                mediaType = "application/problem+json",
-                                schema = @Schema(implementation = ProblemDetail.class))),
-    })
-    @PostMapping("/{routineId}/exercises/{position}")
-    public ResponseEntity<RoutineResponseDTO> addRoutineExercise(
-            @Parameter(description = "Routine id") @PathVariable UUID routineId,
-            @Parameter(description = "Position to insert the exercise at") @PathVariable @Min(1) Integer position,
-            @Valid @RequestBody RoutineExerciseRequestDTO requestDTO,
-            @AuthenticationPrincipal UserDetailsImpl principal) {
-        return ResponseEntity.ok(
-                routineService.addRoutineExercise(routineId, position, requestDTO, principal.getUser()));
-    }
-
-    @Operation(
-            summary = "Delete exercise from routine",
-            description = "Remove an exercise at a specific position from the routine")
-    @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Exercise removed successfully"),
-        @ApiResponse(
-                responseCode = "401",
-                description = "Unauthorized",
-                content =
-                        @Content(
-                                mediaType = "application/problem+json",
-                                schema = @Schema(implementation = ProblemDetail.class))),
-        @ApiResponse(
-                responseCode = "404",
-                description = "Routine or exercise not found",
+                description = "Workout session not found",
                 content =
                         @Content(
                                 mediaType = "application/problem+json",
@@ -323,29 +235,22 @@ public class RoutineController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @DeleteMapping("/{routineId}/exercises/{position}")
-    public ResponseEntity<Void> deleteRoutineExercise(
-            @Parameter(description = "Routine id") @PathVariable UUID routineId,
-            @Parameter(description = "Position of the exercise to remove") @PathVariable @Min(1) Integer position,
-            @AuthenticationPrincipal UserDetailsImpl principal) {
-        routineService.deleteRoutineExercise(routineId, position, principal.getUser());
-        return ResponseEntity.noContent().build();
+    @PatchMapping("/{sessionId}/notes")
+    public void updateSessionNotes(
+            @AuthenticationPrincipal UserDetailsImpl principal,
+            @Parameter(description = "Workout session id") @PathVariable UUID sessionId,
+            @Valid @RequestBody NotesUpdateRequestDTO requestDTO) {
+        workoutSessionService.updateWorkoutSessionNotes(sessionId, principal.getId(), requestDTO);
     }
 
     @Operation(
-            summary = "Update exercise in routine",
-            description = "Update an exercise at a specific position in the routine")
+            summary = "Complete workout session",
+            description = "Complete workout session for the authenticated user")
     @ApiResponses({
-        @ApiResponse(
-                responseCode = "200",
-                description = "Exercise updated successfully",
-                content =
-                        @Content(
-                                mediaType = "application/json",
-                                schema = @Schema(implementation = RoutineResponseDTO.class))),
+        @ApiResponse(responseCode = "204", description = "Session completed successfully"),
         @ApiResponse(
                 responseCode = "400",
-                description = "Invalid request parameters",
+                description = "Workout session is already completed",
                 content =
                         @Content(
                                 mediaType = "application/problem+json",
@@ -359,7 +264,7 @@ public class RoutineController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
         @ApiResponse(
                 responseCode = "404",
-                description = "Routine or exercise not found",
+                description = "Workout session not found",
                 content =
                         @Content(
                                 mediaType = "application/problem+json",
@@ -372,13 +277,44 @@ public class RoutineController {
                                 mediaType = "application/problem+json",
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
-    @PutMapping("/{routineId}/exercises/{position}")
-    public ResponseEntity<RoutineResponseDTO> updateRoutineExercise(
-            @Parameter(description = "Routine id") @PathVariable UUID routineId,
-            @Parameter(description = "Position of the exercise to update") @PathVariable @Min(1) Integer position,
-            @Valid @RequestBody RoutineExerciseRequestDTO requestDTO,
-            @AuthenticationPrincipal UserDetailsImpl principal) {
-        return ResponseEntity.ok(
-                routineService.updateRoutineExercise(routineId, position, requestDTO, principal.getUser()));
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PatchMapping("/{sessionId}/finish")
+    public void completeWorkoutSession(
+            @AuthenticationPrincipal UserDetailsImpl principal,
+            @Parameter(description = "Workout session id") @PathVariable UUID sessionId) {
+        workoutSessionService.completeWorkoutSession(sessionId, principal.getId());
+    }
+
+    @Operation(summary = "Delete workout session", description = "Delete workout session for the authenticated user")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Session deleted successfully"),
+        @ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Workout session not found",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "500",
+                description = "Internal server error",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+    })
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{sessionId}")
+    public void deleteWorkoutSession(
+            @AuthenticationPrincipal UserDetailsImpl principal,
+            @Parameter(description = "Workout session id") @PathVariable UUID sessionId) {
+        workoutSessionService.deleteWorkoutSession(sessionId, principal.getId());
     }
 }

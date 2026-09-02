@@ -1,5 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.testdata;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -27,9 +28,19 @@ import dev.genesshoan.fitnesstrackerapi.testdata.builder.MuscleBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.ProgressRecordBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.RoutineBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.RoutineExerciseBuilder;
+import dev.genesshoan.fitnesstrackerapi.testdata.builder.SessionExerciseBuilder;
+import dev.genesshoan.fitnesstrackerapi.testdata.builder.SessionSetBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.UserBuilder;
+import dev.genesshoan.fitnesstrackerapi.testdata.builder.WorkoutSessionBuilder;
 import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
+import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionExercise;
+import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
+import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
+import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
+import dev.genesshoan.fitnesstrackerapi.workout.repository.SessionExerciseRepository;
+import dev.genesshoan.fitnesstrackerapi.workout.repository.SessionSetRepository;
+import dev.genesshoan.fitnesstrackerapi.workout.repository.WorkoutSessionRepository;
 import net.datafaker.Faker;
 
 @TestComponent
@@ -40,6 +51,9 @@ public class TestEntityFactory {
     private final UserRepository userRepository;
     private final RoutineRepository routineRepository;
     private final ProgressRecordRepository progressRecordRepository;
+    private final WorkoutSessionRepository workoutSessionRepository;
+    private final SessionExerciseRepository sessionExerciseRepository;
+    private final SessionSetRepository sessionSetRepository;
     private final Faker faker = new Faker();
 
     public TestEntityFactory(
@@ -47,16 +61,191 @@ public class TestEntityFactory {
             MuscleRepository muscleRepository,
             UserRepository userRepository,
             RoutineRepository routineRepository,
-            ProgressRecordRepository progressRecordRepository) {
+            ProgressRecordRepository progressRecordRepository,
+            WorkoutSessionRepository workoutSessionRepository,
+            SessionExerciseRepository sessionExerciseRepository,
+            SessionSetRepository sessionSetRepository) {
         this.exerciseRepository = exerciseRepository;
         this.muscleRepository = muscleRepository;
         this.userRepository = userRepository;
         this.routineRepository = routineRepository;
         this.progressRecordRepository = progressRecordRepository;
+        this.workoutSessionRepository = workoutSessionRepository;
+        this.sessionExerciseRepository = sessionExerciseRepository;
+        this.sessionSetRepository = sessionSetRepository;
     }
 
     public Faker faker() {
         return faker;
+    }
+
+    // ==================== WORKOUT SESSION FACTORY METHODS ====================
+
+    /**
+     * Creates and persists a workout session for a user with default values.
+     */
+    public WorkoutSession createAndPersistWorkoutSession(User user) {
+        WorkoutSession session =
+                WorkoutSessionBuilder.aWorkoutSession(faker).forUser(user).build();
+        return workoutSessionRepository.saveAndFlush(session);
+    }
+
+    /**
+     * Creates and persists a workout session for a user with a routine.
+     */
+    public WorkoutSession createAndPersistWorkoutSession(User user, Routine routine) {
+        WorkoutSession session = WorkoutSessionBuilder.aWorkoutSession(faker)
+                .forUser(user)
+                .withRoutine(routine)
+                .build();
+        return workoutSessionRepository.saveAndFlush(session);
+    }
+
+    /**
+     * Creates and persists a workout session with the given builder.
+     */
+    public WorkoutSession createAndPersistWorkoutSession(WorkoutSessionBuilder builder) {
+        return workoutSessionRepository.saveAndFlush(builder.build());
+    }
+
+    /**
+     * Creates and persists a completed workout session.
+     */
+    public WorkoutSession createAndPersistCompletedWorkoutSession(User user) {
+        WorkoutSession session = WorkoutSessionBuilder.aWorkoutSession(faker)
+                .forUser(user)
+                .withStatus(SessionStatus.COMPLETED)
+                .withCompletedAt(Instant.now())
+                .build();
+        return workoutSessionRepository.saveAndFlush(session);
+    }
+
+    // ==================== SESSION EXERCISE FACTORY METHODS ====================
+
+    /**
+     * Creates and persists a session exercise for a workout session and exercise.
+     * The exercise is added at the end of the session (next available position).
+     */
+    public SessionExercise createAndPersistSessionExercise(WorkoutSession session, Exercise exercise) {
+        SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(faker)
+                .forWorkoutSession(session)
+                .forExercise(exercise)
+                .build();
+        session.addExerciseAt(sessionExercise, session.getExercises().size() + 1);
+        workoutSessionRepository.saveAndFlush(session);
+        return sessionExercise;
+    }
+
+    /**
+     * Creates and persists a session exercise at a specific position.
+     */
+    public SessionExercise createAndPersistSessionExercise(WorkoutSession session, Exercise exercise, int position) {
+        SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(faker)
+                .forWorkoutSession(session)
+                .forExercise(exercise)
+                .withPosition(position)
+                .build();
+        session.addExerciseAt(sessionExercise, position);
+        workoutSessionRepository.saveAndFlush(session);
+        return sessionExercise;
+    }
+
+    /**
+     * Creates and persists a session exercise with the given builder.
+     */
+    public SessionExercise createAndPersistSessionExercise(SessionExerciseBuilder builder) {
+        SessionExercise sessionExercise = builder.build();
+        return sessionExerciseRepository.saveAndFlush(sessionExercise);
+    }
+
+    // ==================== SESSION SET FACTORY METHODS ====================
+
+    /**
+     * Creates and persists a session set for a session exercise.
+     * The set number is automatically assigned as the next available number.
+     */
+    public SessionSet createAndPersistSessionSet(SessionExercise sessionExercise) {
+        int nextSetNumber = sessionExercise.getSetCount() + 1;
+        SessionSet sessionSet = SessionSetBuilder.aSessionSet(faker)
+                .forSessionExercise(sessionExercise)
+                .withSetNumber(nextSetNumber)
+                .build();
+        sessionExercise.addSet(sessionSet);
+        sessionExerciseRepository.saveAndFlush(sessionExercise);
+        return sessionSet;
+    }
+
+    /**
+     * Creates and persists a session set with the given builder.
+     */
+    public SessionSet createAndPersistSessionSet(SessionSetBuilder builder) {
+        return sessionSetRepository.saveAndFlush(builder.build());
+    }
+
+    // ==================== COMPOSITE WORKOUT SESSION GRAPH FACTORY METHODS ====================
+
+    /**
+     * Creates a complete workout session with the specified number of exercises,
+     * each with a default set. The workout session is persisted with all associations.
+     */
+    public WorkoutSession createAndPersistWorkoutSessionWithExercises(User user, int exerciseCount) {
+        List<Exercise> exercises = IntStream.range(0, exerciseCount)
+                .mapToObj(i -> createAndPersistExerciseWithMuscles(2, ImpactLevel.PRIMARY))
+                .collect(Collectors.toList());
+
+        WorkoutSession session = createAndPersistWorkoutSession(user);
+
+        for (int i = 0; i < exercises.size(); i++) {
+            Exercise exercise = exercises.get(i);
+            SessionExercise sessionExercise = createAndPersistSessionExercise(session, exercise);
+            createAndPersistSessionSet(sessionExercise);
+        }
+
+        return workoutSessionRepository.findById(session.getId()).orElseThrow();
+    }
+
+    /**
+     * Creates a complete workout session with the given exercises,
+     * each with a default set.
+     */
+    public WorkoutSession createAndPersistWorkoutSessionWithExercises(User user, List<Exercise> exercises) {
+        WorkoutSession session = createAndPersistWorkoutSession(user);
+
+        for (Exercise exercise : exercises) {
+            SessionExercise sessionExercise = createAndPersistSessionExercise(session, exercise);
+            createAndPersistSessionSet(sessionExercise);
+        }
+
+        return workoutSessionRepository.findById(session.getId()).orElseThrow();
+    }
+
+    /**
+     * Creates a completed workout session with exercises and sets.
+     */
+    public WorkoutSession createAndPersistCompletedWorkoutSessionWithExercises(User user, List<Exercise> exercises) {
+        WorkoutSession session = WorkoutSessionBuilder.aWorkoutSession(faker)
+                .forUser(user)
+                .withStatus(SessionStatus.COMPLETED)
+                .withCompletedAt(Instant.now())
+                .build();
+        session = workoutSessionRepository.saveAndFlush(session);
+
+        for (Exercise exercise : exercises) {
+            SessionExercise sessionExercise = createAndPersistSessionExercise(session, exercise);
+            createAndPersistSessionSet(sessionExercise);
+        }
+
+        return workoutSessionRepository.findById(session.getId()).orElseThrow();
+    }
+
+    /**
+     * Creates a session exercise with multiple sets.
+     */
+    public SessionExercise createAndPersistSessionExerciseWithSets(SessionExercise sessionExercise, int setCount) {
+        for (int i = 0; i < setCount; i++) {
+            createAndPersistSessionSet(sessionExercise);
+        }
+        return sessionExerciseRepository.saveAndFlush(sessionExercise);
     }
 
     public Muscle createAndPersistMuscle(MuscleBuilder builder) {
