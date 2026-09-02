@@ -108,6 +108,30 @@ public class WorkoutSessionRepositoryTest extends AbstractPostgresTest {
     }
 
     @Test
+    @DisplayName("Should load exercises when finding a session by id and owner")
+    void findWithExercisesByIdAndUserId_ShouldLoadExercises() {
+        User user = testEntityFactory.createAndPersistUser();
+        WorkoutSession session = testEntityFactory.createAndPersistWorkoutSessionWithExercises(user, 2);
+
+        var result = workoutSessionRepository.findWithExercisesByIdAndUserId(session.getId(), user.getId());
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getExercises()).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("Should not load a session by id for another owner")
+    void findWithExercisesByIdAndUserId_ShouldReturnEmptyWhenUserDiffers() {
+        User owner = testEntityFactory.createAndPersistUser();
+        User otherUser = testEntityFactory.createAndPersistUser();
+        WorkoutSession session = testEntityFactory.createAndPersistWorkoutSession(owner);
+
+        var result = workoutSessionRepository.findWithExercisesByIdAndUserId(session.getId(), otherUser.getId());
+
+        assertThat(result).isNotPresent();
+    }
+
+    @Test
     @DisplayName("Should find for update by id and user id with pessimistic lock")
     void findForUpdateByIdAndUserId_ShouldLoadWithPessimisticLock() {
         User user = testEntityFactory.createAndPersistUser();

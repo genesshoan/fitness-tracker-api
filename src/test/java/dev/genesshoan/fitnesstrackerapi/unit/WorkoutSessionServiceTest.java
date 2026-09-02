@@ -1,5 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.unit;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -145,7 +146,7 @@ class WorkoutSessionServiceTest {
                             new SessionExercisePositionDTO(first.getId(), 1),
                             new SessionExercisePositionDTO(second.getId(), 3)));
 
-            when(workoutSessionRepository.findWithExercisesByIdAndUserId(sessionId, userId))
+            when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
                     .thenReturn(Optional.of(session));
             when(exerciseRepository.findByIdAndActiveTrue(exerciseId)).thenReturn(Optional.of(exercise));
             when(sessionExerciseMapper.toSessionExerciseAddedResponseDTO(any(SessionExercise.class), any()))
@@ -182,7 +183,7 @@ class WorkoutSessionServiceTest {
             assertThat(shiftedExercises)
                     .extracting(SessionExercise::getPosition)
                     .containsExactly(1, 3);
-            verify(workoutSessionRepository).findWithExercisesByIdAndUserId(sessionId, userId);
+            verify(workoutSessionRepository).findForUpdateWithExercises(sessionId, userId);
             verify(exerciseRepository).findByIdAndActiveTrue(exerciseId);
         }
 
@@ -196,7 +197,7 @@ class WorkoutSessionServiceTest {
                     .forUser(UserBuilder.aUser(FAKER).build())
                     .build();
 
-            when(workoutSessionRepository.findWithExercisesByIdAndUserId(sessionId, userId))
+            when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
                     .thenReturn(Optional.of(session));
 
             assertThatThrownBy(() -> workoutSessionService.addNewSessionExercise(
@@ -210,7 +211,7 @@ class WorkoutSessionServiceTest {
                     .isInstanceOf(BadRequestException.class)
                     .hasMessage("The workout session is already finished");
 
-            verify(workoutSessionRepository).findWithExercisesByIdAndUserId(sessionId, userId);
+            verify(workoutSessionRepository).findForUpdateWithExercises(sessionId, userId);
             verifyNoInteractions(exerciseRepository, sessionExerciseMapper, sessionSetMapper, sessionSetRepository);
         }
 
@@ -219,7 +220,7 @@ class WorkoutSessionServiceTest {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
 
-            when(workoutSessionRepository.findWithExercisesByIdAndUserId(sessionId, userId))
+            when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
                     .thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> workoutSessionService.addNewSessionExercise(
@@ -251,7 +252,7 @@ class WorkoutSessionServiceTest {
             SessionExerciseRequestDTO dto = new SessionExerciseRequestDTO(
                     1, "notes", exerciseId, List.of(new SessionSetRequestDTO(1, null, null, 5, null, true)));
 
-            when(workoutSessionRepository.findWithExercisesByIdAndUserId(sessionId, userId))
+            when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
                     .thenReturn(Optional.of(session));
             when(exerciseRepository.findByIdAndActiveTrue(exerciseId)).thenReturn(Optional.of(exercise));
 
@@ -273,7 +274,7 @@ class WorkoutSessionServiceTest {
                     .forUser(UserBuilder.aUser(FAKER).build())
                     .build();
 
-            when(workoutSessionRepository.findWithExercisesByIdAndUserId(sessionId, userId))
+            when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
                     .thenReturn(Optional.of(session));
             when(exerciseRepository.findByIdAndActiveTrue(exerciseId)).thenReturn(Optional.empty());
 
@@ -315,7 +316,7 @@ class WorkoutSessionServiceTest {
                     .withExercises(List.of(first, second, third))
                     .build();
 
-            when(workoutSessionRepository.findWithExercisesByIdAndUserId(sessionId, userId))
+            when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
                     .thenReturn(Optional.of(session));
             List<SessionExercisePositionDTO> response = List.of(
                     new SessionExercisePositionDTO(second.getId(), 1),
@@ -361,7 +362,7 @@ class WorkoutSessionServiceTest {
                     .withExercises(List.of(first, second, third))
                     .build();
 
-            when(workoutSessionRepository.findWithExercisesByIdAndUserId(sessionId, userId))
+            when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
                     .thenReturn(Optional.of(session));
             List<SessionExercisePositionDTO> response = List.of(
                     new SessionExercisePositionDTO(second.getId(), 1),
@@ -406,7 +407,7 @@ class WorkoutSessionServiceTest {
                     new SessionExercisePositionDTO(first.getId(), 1),
                     new SessionExercisePositionDTO(second.getId(), 2));
 
-            when(workoutSessionRepository.findWithExercisesByIdAndUserId(sessionId, userId))
+            when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
                     .thenReturn(Optional.of(session));
             when(sessionExerciseMapper.toSessionExercisePositionDTOList(any())).thenReturn(response);
 
@@ -432,7 +433,7 @@ class WorkoutSessionServiceTest {
                     .withExercises(List.of(first))
                     .build();
 
-            when(workoutSessionRepository.findWithExercisesByIdAndUserId(sessionId, userId))
+            when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
                     .thenReturn(Optional.of(session));
 
             assertThatThrownBy(() -> workoutSessionService.updateSessionExercisePosition(
@@ -450,7 +451,7 @@ class WorkoutSessionServiceTest {
                     .forUser(UserBuilder.aUser(FAKER).build())
                     .build();
 
-            when(workoutSessionRepository.findWithExercisesByIdAndUserId(sessionId, userId))
+            when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
                     .thenReturn(Optional.of(session));
 
             assertThatThrownBy(() -> workoutSessionService.updateSessionExercisePosition(
@@ -485,7 +486,7 @@ class WorkoutSessionServiceTest {
                     .withExercises(List.of(first, second, third))
                     .build();
 
-            when(workoutSessionRepository.findWithExercisesByIdAndUserId(sessionId, userId))
+            when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
                     .thenReturn(Optional.of(session));
             List<SessionExercisePositionDTO> response = List.of(
                     new SessionExercisePositionDTO(first.getId(), 1), new SessionExercisePositionDTO(third.getId(), 2));
@@ -522,7 +523,7 @@ class WorkoutSessionServiceTest {
                     .withExercises(List.of(first))
                     .build();
 
-            when(workoutSessionRepository.findWithExercisesByIdAndUserId(sessionId, userId))
+            when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
                     .thenReturn(Optional.of(session));
 
             assertThatThrownBy(() -> workoutSessionService.deleteSessionExercise(sessionId, first.getId(), userId))
@@ -539,7 +540,7 @@ class WorkoutSessionServiceTest {
                     .forUser(UserBuilder.aUser(FAKER).build())
                     .build();
 
-            when(workoutSessionRepository.findWithExercisesByIdAndUserId(sessionId, userId))
+            when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
                     .thenReturn(Optional.of(session));
 
             assertThatThrownBy(() -> workoutSessionService.deleteSessionExercise(sessionId, UUID.randomUUID(), userId))
@@ -572,9 +573,8 @@ class WorkoutSessionServiceTest {
                     .build();
             SessionSetRequestDTO dto = new SessionSetRequestDTO(null, 8, 20.0, null, null, true);
 
-            when(sessionExerciseRepository
-                            .findWithWorkoutSessionAndExerciseByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
-                                    sessionExercise.getId(), sessionId, userId))
+            when(sessionExerciseRepository.findForUpdateWithWorkoutSessionAndExerciseAndSets(
+                            sessionExercise.getId(), sessionId, userId))
                     .thenReturn(Optional.of(sessionExercise));
             when(sessionSetRepository.save(any(SessionSet.class))).thenAnswer(invocation -> invocation.getArgument(0));
             when(sessionSetMapper.toSessionSetResponseDTO(any(SessionSet.class)))
@@ -626,9 +626,8 @@ class WorkoutSessionServiceTest {
                     .build();
             sessionExercise.setWorkoutSession(session);
 
-            when(sessionExerciseRepository
-                            .findWithWorkoutSessionAndExerciseByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
-                                    sessionExercise.getId(), sessionId, userId))
+            when(sessionExerciseRepository.findForUpdateWithWorkoutSessionAndExerciseAndSets(
+                            sessionExercise.getId(), sessionId, userId))
                     .thenReturn(Optional.of(sessionExercise));
 
             assertThatThrownBy(() -> workoutSessionService.addNewSessionSet(
@@ -674,9 +673,8 @@ class WorkoutSessionServiceTest {
             sessionExercise.setWorkoutSession(session);
             SessionSetRequestDTO dto = new SessionSetRequestDTO(1, 12, 20.0, null, null, true);
 
-            when(sessionSetRepository
-                            .findByIdAndSessionExerciseIdAndSessionExerciseWorkoutSessionIdAndSessionExerciseWorkoutSessionUserId(
-                                    sessionSetId, sessionExercise.getId(), sessionId, userId))
+            when(sessionSetRepository.findForUpdateWithSessionExerciseAndWorkoutSessionAndExercise(
+                            sessionSetId, sessionExercise.getId(), sessionId, userId))
                     .thenReturn(Optional.of(sessionSet));
             when(sessionSetMapper.toSessionSetResponseDTO(sessionSet)).thenAnswer(invocation -> {
                 SessionSet set = invocation.getArgument(0);
@@ -726,9 +724,8 @@ class WorkoutSessionServiceTest {
             sessionSet.setSessionExercise(sessionExercise);
             sessionExercise.setWorkoutSession(session);
 
-            when(sessionSetRepository
-                            .findByIdAndSessionExerciseIdAndSessionExerciseWorkoutSessionIdAndSessionExerciseWorkoutSessionUserId(
-                                    sessionSetId, sessionExercise.getId(), sessionId, userId))
+            when(sessionSetRepository.findForUpdateWithSessionExerciseAndWorkoutSessionAndExercise(
+                            sessionSetId, sessionExercise.getId(), sessionId, userId))
                     .thenReturn(Optional.of(sessionSet));
 
             assertThatThrownBy(() -> workoutSessionService.updateSessionSet(
@@ -762,9 +759,8 @@ class WorkoutSessionServiceTest {
             sessionSet.setSessionExercise(sessionExercise);
             sessionExercise.setWorkoutSession(session);
 
-            when(sessionSetRepository
-                            .findByIdAndSessionExerciseIdAndSessionExerciseWorkoutSessionIdAndSessionExerciseWorkoutSessionUserId(
-                                    sessionSetId, sessionExercise.getId(), sessionId, userId))
+            when(sessionSetRepository.findForUpdateWithSessionExerciseAndWorkoutSessionAndExercise(
+                            sessionSetId, sessionExercise.getId(), sessionId, userId))
                     .thenReturn(Optional.of(sessionSet));
 
             assertThatThrownBy(() -> workoutSessionService.updateSessionSet(
@@ -785,9 +781,8 @@ class WorkoutSessionServiceTest {
             UUID sessionExerciseId = UUID.randomUUID();
             UUID sessionSetId = UUID.randomUUID();
 
-            when(sessionSetRepository
-                            .findByIdAndSessionExerciseIdAndSessionExerciseWorkoutSessionIdAndSessionExerciseWorkoutSessionUserId(
-                                    sessionSetId, sessionExerciseId, sessionId, userId))
+            when(sessionSetRepository.findForUpdateWithSessionExerciseAndWorkoutSessionAndExercise(
+                            sessionSetId, sessionExerciseId, sessionId, userId))
                     .thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> workoutSessionService.updateSessionSet(
@@ -830,7 +825,7 @@ class WorkoutSessionServiceTest {
             secondSet.setSessionExercise(sessionExercise);
             sessionExercise.setWorkoutSession(session);
 
-            when(sessionExerciseRepository.findWithWorkoutSessionByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
+            when(sessionExerciseRepository.findForUpdateWithWorkoutSessionAndSets(
                             sessionExercise.getId(), sessionId, userId))
                     .thenReturn(Optional.of(sessionExercise));
 
@@ -866,7 +861,7 @@ class WorkoutSessionServiceTest {
             firstSet.setSessionExercise(sessionExercise);
             sessionExercise.setWorkoutSession(session);
 
-            when(sessionExerciseRepository.findWithWorkoutSessionByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
+            when(sessionExerciseRepository.findForUpdateWithWorkoutSessionAndSets(
                             sessionExercise.getId(), sessionId, userId))
                     .thenReturn(Optional.of(sessionExercise));
 
@@ -883,8 +878,7 @@ class WorkoutSessionServiceTest {
             UUID sessionExerciseId = UUID.randomUUID();
             UUID sessionSetId = UUID.randomUUID();
 
-            when(sessionExerciseRepository.findWithWorkoutSessionByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
-                            sessionExerciseId, sessionId, userId))
+            when(sessionExerciseRepository.findForUpdateWithWorkoutSessionAndSets(sessionExerciseId, sessionId, userId))
                     .thenReturn(Optional.empty());
 
             assertThatThrownBy(() ->
@@ -910,14 +904,14 @@ class WorkoutSessionServiceTest {
                     .build();
             sessionExercise.setWorkoutSession(session);
 
-            when(sessionExerciseRepository.findWithWorkoutSessionByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
+            when(sessionExerciseRepository.findForUpdateWithWorkoutSessionAndSets(
                             sessionExercise.getId(), sessionId, userId))
                     .thenReturn(Optional.of(sessionExercise));
 
             assertThatThrownBy(() -> workoutSessionService.deleteSessionSet(
                             sessionId, sessionExercise.getId(), sessionSetId, userId))
                     .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessage("SessionSet not found");
+                    .hasMessage("Session set not found");
         }
     }
 
@@ -940,8 +934,7 @@ class WorkoutSessionServiceTest {
                     .forExercise(ExerciseBuilder.anExercise(FAKER).build())
                     .build();
 
-            when(sessionExerciseRepository.findWithWorkoutSessionByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
-                            sessionExerciseId, sessionId, userId))
+            when(sessionExerciseRepository.findForUpdateWithWorkoutSession(sessionExerciseId, sessionId, userId))
                     .thenReturn(Optional.of(sessionExercise));
 
             workoutSessionService.updateSessionExerciseNotes(
@@ -966,8 +959,7 @@ class WorkoutSessionServiceTest {
                     .forExercise(ExerciseBuilder.anExercise(FAKER).build())
                     .build();
 
-            when(sessionExerciseRepository.findWithWorkoutSessionByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
-                            sessionExerciseId, sessionId, userId))
+            when(sessionExerciseRepository.findForUpdateWithWorkoutSession(sessionExerciseId, sessionId, userId))
                     .thenReturn(Optional.of(sessionExercise));
 
             assertThatThrownBy(() -> workoutSessionService.updateSessionExerciseNotes(
@@ -982,8 +974,7 @@ class WorkoutSessionServiceTest {
             UUID sessionId = UUID.randomUUID();
             UUID sessionExerciseId = UUID.randomUUID();
 
-            when(sessionExerciseRepository.findWithWorkoutSessionByIdAndWorkoutSessionIdAndWorkoutSessionUserId(
-                            sessionExerciseId, sessionId, userId))
+            when(sessionExerciseRepository.findForUpdateWithWorkoutSession(sessionExerciseId, sessionId, userId))
                     .thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> workoutSessionService.updateSessionExerciseNotes(
@@ -1030,9 +1021,9 @@ class WorkoutSessionServiceTest {
                 .forUser(UserBuilder.aUser(FAKER).build())
                 .build();
         WorkoutSessionResponseDTO response =
-                new WorkoutSessionResponseDTO(sessionId, SessionStatus.IN_PROGRESS, null, "notes", List.of());
+                new WorkoutSessionResponseDTO(sessionId, SessionStatus.IN_PROGRESS, null, null, "notes", List.of());
 
-        when(workoutSessionRepository.findWithExercisesAndSetsByIdAndUserId(sessionId, userId))
+        when(workoutSessionRepository.findWithExercisesByIdAndUserId(sessionId, userId))
                 .thenReturn(Optional.of(session));
         when(workoutSessionMapper.toWorkoutSessionResponseDTO(session)).thenReturn(response);
 
@@ -1046,7 +1037,7 @@ class WorkoutSessionServiceTest {
         UUID userId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
 
-        when(workoutSessionRepository.findWithExercisesAndSetsByIdAndUserId(sessionId, userId))
+        when(workoutSessionRepository.findWithExercisesByIdAndUserId(sessionId, userId))
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> workoutSessionService.getWorkoutSessionById(sessionId, userId))
@@ -1089,8 +1080,8 @@ class WorkoutSessionServiceTest {
                 .withDefaultDistanceKm(1.2)
                 .build();
         routine.setExercises(List.of(firstRoutineExercise, secondRoutineExercise));
-        WorkoutSessionResponseDTO response =
-                new WorkoutSessionResponseDTO(UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, "created", List.of());
+        WorkoutSessionResponseDTO response = new WorkoutSessionResponseDTO(
+                UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "created", List.of());
 
         when(routineRepository.findByIdAndUserIdAndActiveTrue(routineId, userId))
                 .thenReturn(Optional.of(routine));
@@ -1145,6 +1136,52 @@ class WorkoutSessionServiceTest {
     }
 
     @Test
+    void should_rejectCompletedSessionWithoutCompletionTime() {
+        WorkoutSessionRequestDTO request = new WorkoutSessionRequestDTO(
+                SessionStatus.COMPLETED,
+                Instant.now().minusSeconds(60),
+                null,
+                null,
+                List.of(new SessionExerciseRequestDTO(
+                        1, null, UUID.randomUUID(), List.of(new SessionSetRequestDTO(1, 10, 20.0, null, null, true)))));
+
+        assertThatThrownBy(() -> workoutSessionService.createWorkoutSessionFromScratch(request, UUID.randomUUID()))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("The completedAt field cannot be null for a completed workout session");
+        verifyNoInteractions(exerciseFinder, workoutSessionRepository);
+    }
+
+    @Test
+    void should_rejectFutureCompletionTime() {
+        WorkoutSessionRequestDTO request = new WorkoutSessionRequestDTO(
+                SessionStatus.COMPLETED,
+                Instant.now().minusSeconds(60),
+                Instant.now().plusSeconds(60),
+                null,
+                List.of());
+
+        assertThatThrownBy(() -> workoutSessionService.createWorkoutSessionFromScratch(request, UUID.randomUUID()))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("completedAt cannot be in the future");
+        verifyNoInteractions(exerciseFinder, workoutSessionRepository);
+    }
+
+    @Test
+    void should_rejectCompletionTimeForInProgressSession() {
+        WorkoutSessionRequestDTO request = new WorkoutSessionRequestDTO(
+                SessionStatus.IN_PROGRESS,
+                Instant.now().minusSeconds(60),
+                Instant.now().minusSeconds(30),
+                null,
+                List.of());
+
+        assertThatThrownBy(() -> workoutSessionService.createWorkoutSessionFromScratch(request, UUID.randomUUID()))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("The completedAt field can only be provided for a completed workout session");
+        verifyNoInteractions(exerciseFinder, workoutSessionRepository);
+    }
+
+    @Test
     void should_createWorkoutSessionFromScratchWithSequentialPositions() {
         UUID userId = UUID.randomUUID();
         UUID firstExerciseId = UUID.randomUUID();
@@ -1165,9 +1202,13 @@ class WorkoutSessionServiceTest {
                 secondExerciseId,
                 List.of(new SessionSetRequestDTO(null, null, null, 120, null, false)));
         WorkoutSessionRequestDTO request = new WorkoutSessionRequestDTO(
-                SessionStatus.IN_PROGRESS, null, "session notes", List.of(firstExerciseRequest, secondExerciseRequest));
+                SessionStatus.IN_PROGRESS,
+                null,
+                null,
+                "session notes",
+                List.of(firstExerciseRequest, secondExerciseRequest));
         WorkoutSessionResponseDTO response = new WorkoutSessionResponseDTO(
-                UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, "session notes", List.of());
+                UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "session notes", List.of());
 
         when(exerciseFinder.findActiveByIds(eq(List.of(firstExerciseId, secondExerciseId)), any()))
                 .thenReturn(Map.of(firstExerciseId, firstExercise, secondExerciseId, secondExercise));
@@ -1216,6 +1257,7 @@ class WorkoutSessionServiceTest {
         WorkoutSessionRequestDTO request = new WorkoutSessionRequestDTO(
                 SessionStatus.IN_PROGRESS,
                 null,
+                null,
                 "notes",
                 List.of(new SessionExerciseRequestDTO(
                         null,
@@ -1248,7 +1290,8 @@ class WorkoutSessionServiceTest {
                 .withNotes("old")
                 .build();
 
-        when(workoutSessionRepository.findByIdAndUserId(sessionId, userId)).thenReturn(Optional.of(session));
+        when(workoutSessionRepository.findForUpdateByIdAndUserId(sessionId, userId))
+                .thenReturn(Optional.of(session));
 
         workoutSessionService.updateWorkoutSessionNotes(sessionId, userId, new NotesUpdateRequestDTO("new"));
 
@@ -1265,7 +1308,8 @@ class WorkoutSessionServiceTest {
                 .forUser(UserBuilder.aUser(FAKER).build())
                 .build();
 
-        when(workoutSessionRepository.findByIdAndUserId(sessionId, userId)).thenReturn(Optional.of(session));
+        when(workoutSessionRepository.findForUpdateByIdAndUserId(sessionId, userId))
+                .thenReturn(Optional.of(session));
 
         assertThatThrownBy(() -> workoutSessionService.updateWorkoutSessionNotes(
                         sessionId, userId, new NotesUpdateRequestDTO("new")))
@@ -1277,7 +1321,8 @@ class WorkoutSessionServiceTest {
         UUID userId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
 
-        when(workoutSessionRepository.findByIdAndUserId(sessionId, userId)).thenReturn(Optional.empty());
+        when(workoutSessionRepository.findForUpdateByIdAndUserId(sessionId, userId))
+                .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> workoutSessionService.updateWorkoutSessionNotes(
                         sessionId, userId, new NotesUpdateRequestDTO("new")))
@@ -1294,7 +1339,8 @@ class WorkoutSessionServiceTest {
                 .forUser(UserBuilder.aUser(FAKER).build())
                 .build();
 
-        when(workoutSessionRepository.findByIdAndUserId(sessionId, userId)).thenReturn(Optional.of(session));
+        when(workoutSessionRepository.findForUpdateByIdAndUserId(sessionId, userId))
+                .thenReturn(Optional.of(session));
 
         workoutSessionService.completeWorkoutSession(sessionId, userId);
 
@@ -1312,7 +1358,8 @@ class WorkoutSessionServiceTest {
                 .forUser(UserBuilder.aUser(FAKER).build())
                 .build();
 
-        when(workoutSessionRepository.findByIdAndUserId(sessionId, userId)).thenReturn(Optional.of(session));
+        when(workoutSessionRepository.findForUpdateByIdAndUserId(sessionId, userId))
+                .thenReturn(Optional.of(session));
 
         assertThatThrownBy(() -> workoutSessionService.completeWorkoutSession(sessionId, userId))
                 .isInstanceOf(BadRequestException.class);
@@ -1323,7 +1370,8 @@ class WorkoutSessionServiceTest {
         UUID userId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
 
-        when(workoutSessionRepository.findByIdAndUserId(sessionId, userId)).thenReturn(Optional.empty());
+        when(workoutSessionRepository.findForUpdateByIdAndUserId(sessionId, userId))
+                .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> workoutSessionService.completeWorkoutSession(sessionId, userId))
                 .isInstanceOf(ResourceNotFoundException.class)
@@ -1339,7 +1387,8 @@ class WorkoutSessionServiceTest {
                 .forUser(UserBuilder.aUser(FAKER).build())
                 .build();
 
-        when(workoutSessionRepository.findByIdAndUserId(sessionId, userId)).thenReturn(Optional.of(session));
+        when(workoutSessionRepository.findForUpdateByIdAndUserId(sessionId, userId))
+                .thenReturn(Optional.of(session));
 
         workoutSessionService.deleteWorkoutSession(sessionId, userId);
 
@@ -1351,7 +1400,8 @@ class WorkoutSessionServiceTest {
         UUID userId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
 
-        when(workoutSessionRepository.findByIdAndUserId(sessionId, userId)).thenReturn(Optional.empty());
+        when(workoutSessionRepository.findForUpdateByIdAndUserId(sessionId, userId))
+                .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> workoutSessionService.deleteWorkoutSession(sessionId, userId))
                 .isInstanceOf(ResourceNotFoundException.class)

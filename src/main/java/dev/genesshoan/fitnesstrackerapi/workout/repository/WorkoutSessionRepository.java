@@ -36,7 +36,7 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
     @Query("""
         SELECT DISTINCT ws
         FROM WorkoutSession ws
-        JOIN FETCH ws.exercises e
+        LEFT JOIN FETCH ws.exercises e
         WHERE ws.id = :id
             AND ws.user.id = :userId
         """)

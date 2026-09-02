@@ -105,6 +105,7 @@ public class WorkoutSessionService {
         routine.getExercises().forEach(re -> {
             SessionExercise exercise = new SessionExercise();
 
+            exercise.setExercise(re.getExercise());
             session.addExerciseAt(exercise, re.getPosition());
 
             for (int i = 1; i <= re.getDefaultSets(); i++) {
