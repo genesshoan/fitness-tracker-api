@@ -27,7 +27,7 @@ public class AuthControllerIT extends AbstractIntegrationTest {
     @Test
     @DisplayName("Should register user and return tokens")
     void register_ShouldReturn201WithTokens() throws Exception {
-        var request = new RegisterRequestDTO("shoan", "StrongPass123!", "shoan@mail.com");
+        var request = new RegisterRequestDTO("shoan", "StrongPass123!", "shoan@mail.com", "America/Sao_Paulo");
 
         mockMvc.perform(post(REGISTER_URL)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -40,7 +40,7 @@ public class AuthControllerIT extends AbstractIntegrationTest {
     @Test
     @DisplayName("Should return 400 when email is invalid")
     void register_ShouldReturn400WhenEmailIsInvalid() throws Exception {
-        var request = new RegisterRequestDTO("shoan", "StrongPass123!", "invalid-email");
+        var request = new RegisterRequestDTO("shoan", "StrongPass123!", "invalid-email", "America/Sao_Paulo");
 
         mockMvc.perform(post(REGISTER_URL)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -51,14 +51,14 @@ public class AuthControllerIT extends AbstractIntegrationTest {
     @Test
     @DisplayName("Should return 409 when username already exists")
     void register_ShouldReturn409WhenUsernameExists() throws Exception {
-        var request = new RegisterRequestDTO("shoan", "StrongPass123!", "shoan@mail.com");
+        var request = new RegisterRequestDTO("shoan", "StrongPass123!", "shoan@mail.com", "America/Sao_Paulo");
 
         mockMvc.perform(post(REGISTER_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
 
-        var duplicate = new RegisterRequestDTO("shoan", "StrongPass123!", "other@mail.com");
+        var duplicate = new RegisterRequestDTO("shoan", "StrongPass123!", "other@mail.com", "America/Sao_Paulo");
 
         mockMvc.perform(post(REGISTER_URL)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -69,7 +69,7 @@ public class AuthControllerIT extends AbstractIntegrationTest {
     @Test
     @DisplayName("Should login and return tokens")
     void login_ShouldReturn200WithTokens() throws Exception {
-        var register = new RegisterRequestDTO("shoan", "StrongPass123!", "shoan@mail.com");
+        var register = new RegisterRequestDTO("shoan", "StrongPass123!", "shoan@mail.com", "America/Sao_Paulo");
 
         mockMvc.perform(post(REGISTER_URL)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -100,7 +100,7 @@ public class AuthControllerIT extends AbstractIntegrationTest {
     @Test
     @DisplayName("Should refresh tokens successfully")
     void refresh_ShouldReturn200WithNewTokens() throws Exception {
-        var register = new RegisterRequestDTO("shoan", "StrongPass123!", "shoan@mail.com");
+        var register = new RegisterRequestDTO("shoan", "StrongPass123!", "shoan@mail.com", "America/Sao_Paulo");
 
         String refreshToken = JsonPath.read(
                 mockMvc.perform(post(REGISTER_URL)
@@ -127,7 +127,7 @@ public class AuthControllerIT extends AbstractIntegrationTest {
     @Test
     @DisplayName("Should logout successfully")
     void logout_ShouldReturn204() throws Exception {
-        var register = new RegisterRequestDTO("shoan", "StrongPass123!", "shoan@mail.com");
+        var register = new RegisterRequestDTO("shoan", "StrongPass123!", "shoan@mail.com", "America/Sao_Paulo");
 
         String refreshToken = JsonPath.read(
                 mockMvc.perform(post(REGISTER_URL)

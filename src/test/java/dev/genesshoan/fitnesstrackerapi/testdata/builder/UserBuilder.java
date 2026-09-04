@@ -13,6 +13,7 @@ public class UserBuilder {
     private String email;
     private String passwordHash;
     private Role role = Role.USER;
+    private String timezone;
 
     public UserBuilder(Faker faker) {
         this.username = faker.name().firstName().toLowerCase() + "_"
@@ -21,6 +22,7 @@ public class UserBuilder {
                 + UUID.randomUUID().toString().substring(0, 8);
         this.passwordHash = faker.internet().password();
         this.id = UUID.randomUUID();
+        this.timezone = faker.address().timeZone();
     }
 
     public static UserBuilder aUser(Faker faker) {
@@ -49,6 +51,11 @@ public class UserBuilder {
 
     public UserBuilder withRole(Role role) {
         this.role = role;
+        return this;
+    }
+
+    public UserBuilder withTimezone(String timezone) {
+        this.timezone = timezone;
         return this;
     }
 

@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.hibernate.validator.constraints.Length;
 
 @Schema(description = "Request for user registration")
 public record RegisterRequestDTO(
@@ -25,4 +26,6 @@ public record RegisterRequestDTO(
                 requiredMode = Schema.RequiredMode.REQUIRED)
         @NotBlank
         @Email
-        String email) {}
+        String email,
+
+        @NotBlank @Length(max = 50) String timezone) {}
