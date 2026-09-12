@@ -7,9 +7,9 @@ public class StreakCalculator {
 
     public record StreakResult(int currentStreak, int longestStreak) {}
 
-    public static StreakResult calculate(List<LocalDate> activeDaysSorted, LocalDate referenceDate) {
+    public static StreakResult calculate(List<LocalDate> activeDaysAscending, LocalDate referenceDate) {
 
-        if (activeDaysSorted.isEmpty()) {
+        if (activeDaysAscending.isEmpty()) {
             return new StreakResult(0, 0);
         }
 
@@ -18,7 +18,7 @@ public class StreakCalculator {
 
         LocalDate previousDate = null;
 
-        for (LocalDate date : activeDaysSorted) {
+        for (LocalDate date : activeDaysAscending) {
             if (previousDate == null) {
                 previousDate = date;
                 currentStreak = 1;
@@ -38,7 +38,7 @@ public class StreakCalculator {
 
         longestStreak = Math.max(longestStreak, currentStreak);
 
-        LocalDate lastActive = activeDaysSorted.getLast();
+        LocalDate lastActive = activeDaysAscending.getLast();
         boolean streakStillAlive = lastActive.equals(referenceDate) || lastActive.equals(referenceDate.minusDays(1));
 
         currentStreak = streakStillAlive ? currentStreak : 0;

@@ -58,6 +58,6 @@ public interface SessionSetRepository extends JpaRepository<SessionSet, UUID> {
             AND ws.completed_at IS NOT NULL
         ORDER BY e.id, ws.completed_at DESC, ss.set_number DESC
         """, nativeQuery = true)
-    List<LastSetProjection> findLastSetsByExerciseIdAndUserId(
-            @Param("exerciseIds") Set<UUID> exerciseIds, @Param("userId") UUID userId);
+        List<LastSetProjection> findLastSetsByExerciseIdAndUserId(
+                @Param("exerciseIds") Set<UUID> exerciseIds, @Param("userId") UUID userId);
 }

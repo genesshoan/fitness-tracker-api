@@ -1,14 +1,15 @@
 package dev.genesshoan.fitnesstrackerapi.stats.calculator;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import dev.genesshoan.fitnesstrackerapi.common.domain.ExerciseMetrics;
 import dev.genesshoan.fitnesstrackerapi.stats.domain.Achievement;
 import dev.genesshoan.fitnesstrackerapi.stats.domain.AchievementType;
 import dev.genesshoan.fitnesstrackerapi.stats.domain.PersonalRecordHolder;
 import dev.genesshoan.fitnesstrackerapi.stats.domain.PersonalRecordHolders;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 public class AchievementCalculator {
 

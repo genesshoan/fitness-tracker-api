@@ -20,6 +20,8 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
 
     Page<WorkoutSession> findAllByUserId(UUID userId, Pageable pageable);
 
+    boolean existsByIdAndUserId(UUID id, UUID userId);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<WorkoutSession> findForUpdateByIdAndUserId(UUID sessionId, UUID userId);
 
