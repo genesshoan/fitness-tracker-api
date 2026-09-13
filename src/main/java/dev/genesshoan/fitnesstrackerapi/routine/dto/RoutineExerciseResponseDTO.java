@@ -3,6 +3,7 @@ package dev.genesshoan.fitnesstrackerapi.routine.dto;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseListItemDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+/** Response data for one exercise assigned to a routine. */
 @Schema(description = "The routine's exercise response")
 public record RoutineExerciseResponseDTO(
         ExerciseListItemDTO exercise,

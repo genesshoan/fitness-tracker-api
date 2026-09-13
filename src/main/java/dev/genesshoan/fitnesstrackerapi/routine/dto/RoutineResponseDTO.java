@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+/** Complete routine data returned by detail and mutation endpoints. */
 @Schema(description = "The routine's response")
 public record RoutineResponseDTO(
         @Schema(description = "The routine's unique identifier", example = "123e4567-e89b-12d3-a456-426614174000")

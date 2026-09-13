@@ -10,7 +10,7 @@ All operations validate ownership via `findAndValidateRoutine`:
 
 ## Uniqueness Constraint
 
-Routine names must be unique per user. The system enforces this constraint through the `existsByNameAndUserIdAndActiveTrue` method. If a user attempts to create or update a routine with a name that already exists, a `ResourceAlreadyExistsException` is thrown.
+Routine names must be unique per user, including inactive routines. The system checks active routines through the `existsByNameAndUserIdAndActiveTrue` method, while the database constraint on `(name, user_id)` enforces uniqueness for all routines. If a user attempts to create or update a routine with a name that already exists, a `ResourceAlreadyExistsException` or database constraint violation can occur.
 
 This applies to both creation and update operations.
 
@@ -75,7 +75,7 @@ Validation is performed per-exercise in `resolveAndValidateExercises`. If any ex
 
 ### Database Constraints
 
-- Unique constraint on `(name, user_id)` for routine names
+- Unique constraint on `(name, user_id)` for routine names, including inactive routines
 - Unique constraint on `(routine_id, position)` for exercise positions
 - `name` column is NOT NULL
 - `active` column is NOT NULL with default `true`
