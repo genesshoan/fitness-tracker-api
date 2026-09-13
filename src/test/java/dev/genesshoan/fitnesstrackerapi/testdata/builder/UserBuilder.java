@@ -66,6 +66,7 @@ public class UserBuilder {
                 .email(email)
                 .passwordHash(passwordHash)
                 .role(role)
+                .timezone(timezone)
                 .build();
     }
 }

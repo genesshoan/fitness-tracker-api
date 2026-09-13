@@ -127,10 +127,9 @@ public class StatsService {
 
         if (sessionSets.isEmpty()) return resultsBySetId;
 
-        Set<UUID> exerciseIds =
-                sessionSets.stream()
-                        .map(set -> set.getSessionExercise().getExercise().getId())
-                        .collect(Collectors.toSet());
+        Set<UUID> exerciseIds = sessionSets.stream()
+                .map(set -> set.getSessionExercise().getExercise().getId())
+                .collect(Collectors.toSet());
         Instant startedAt = session.getStartedAt();
         Map<UUID, PersonalRecordHolders> recordsPerExercise =
                 getPersonalRecordHoldersPerExercise(userId, exerciseIds, startedAt);
@@ -154,11 +153,10 @@ public class StatsService {
 
         if (!sessionSet.isCompleted()) return List.of();
 
-        PersonalRecordHolders holders =
-                getPersonalRecordHolders(
-                        userId,
-                        sessionSet.getSessionExercise().getExercise().getId(),
-                        sessionSet.getSessionExercise().getWorkoutSession().getStartedAt());
+        PersonalRecordHolders holders = getPersonalRecordHolders(
+                userId,
+                sessionSet.getSessionExercise().getExercise().getId(),
+                sessionSet.getSessionExercise().getWorkoutSession().getStartedAt());
 
         ExerciseMetrics metrics = exerciseMetricsMapper.toExerciseMetrics(sessionSet);
 
@@ -167,14 +165,11 @@ public class StatsService {
         return achievementMapper.toDtos(achievements);
     }
 
-    private void updateHolders(
-            PersonalRecordHolders current, SessionSet set, List<Achievement> achievements) {
+    private void updateHolders(PersonalRecordHolders current, SessionSet set, List<Achievement> achievements) {
 
         for (Achievement achievement : achievements) {
             PersonalRecordHolder holder = new PersonalRecordHolder(
-                    set.getId(),
-                    set.getSessionExercise().getWorkoutSession().getId(),
-                    achievement.value());
+                    set.getId(), set.getSessionExercise().getWorkoutSession().getId(), achievement.value());
 
             switch (achievement.type()) {
                 case NEW_MAX_WEIGHT -> current.setMaxWeight(holder);

@@ -40,13 +40,11 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
         SELECT DISTINCT ws
         FROM WorkoutSession ws
         LEFT JOIN FETCH ws.exercises e
-        LEFT JOIN FETCH e.sets
         LEFT JOIN FETCH e.exercise
         WHERE ws.id = :id
             AND ws.user.id = :userId
         """)
-    Optional<WorkoutSession> findForUpdateWithExercisesAndSets(
-            @Param("id") UUID id, @Param("userId") UUID userId);
+    Optional<WorkoutSession> findForUpdateWithExercisesAndSets(@Param("id") UUID id, @Param("userId") UUID userId);
 
     @Query("""
         SELECT DISTINCT ws

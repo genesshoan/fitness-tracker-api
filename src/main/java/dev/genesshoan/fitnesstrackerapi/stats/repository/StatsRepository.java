@@ -2,6 +2,7 @@ package dev.genesshoan.fitnesstrackerapi.stats.repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +61,7 @@ public class StatsRepository {
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("userId", userId)
                 .addValue("exerciseIds", exerciseIds)
-                .addValue("beforeStartedAt", beforeStartedAt);
+                .addValue("beforeStartedAt", Timestamp.from(beforeStartedAt));
 
         List<RankedSetProjection> results = jdbcTemplate.query(sql, params, this::mapRow);
 

@@ -1,13 +1,14 @@
 package dev.genesshoan.fitnesstrackerapi.workout.mapper;
 
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import dev.genesshoan.fitnesstrackerapi.routine.mapper.RoutineMapper;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.AchievementDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionListItemDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionResponseDTO;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import org.mapstruct.Builder;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
