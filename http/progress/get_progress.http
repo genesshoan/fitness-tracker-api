@@ -1,0 +1,3 @@
+# Get progress records in an inclusive date range
+GET {{baseUrl}}/progress?from=2026-01-01&to=2026-12-31&page=0&size=20
+Authorization: Bearer {{accessToken}}

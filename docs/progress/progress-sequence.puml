@@ -1,0 +1,76 @@
+@startuml progress-sequence
+
+title Progress Record Module Request Flows
+
+autonumber
+actor User
+participant "Frontend\n(Application)" as FE
+participant "Progress API\n(/api/v1/progress)" as API
+participant "ProgressRecordService" as PS
+participant "ProgressRecordRepository" as PR
+participant "ProgressRecord Entity\n(progress_records)" as PREC
+participant "User Entity\n(users)" as USER
+
+== View Progress Over Time ==
+User -> FE : Select date range
+FE -> API : GET /api/v1/progress?from=...&to=...&page=0&size=10
+API -> PS : getProgressRecordsInDateRange(userId, from, to, pageable)
+PS -> PS : validate from <= to
+alt Date range invalid
+    PS --> API : BadRequestException
+    API --> FE : HTTP 400
+else Date range valid
+    PS -> PR : findAllByUserIdAndRecordedAtBetweenOrderByRecordedAtAsc
+    PR --> PREC : query records
+    loop Matching records
+        PR --> USER : load user reference
+    end
+    PR --> PS : Page<ProgressRecord>
+    PS -> PS : map to ProgressRecordResponseDTO
+    PS --> API : Page<ProgressRecordResponseDTO>
+    API --> FE : HTTP 200 OK\n{ content: [...] }
+    FE -> FE : Display chart/timeline\n(weight trend, body fat trend)
+end
+
+== Log Measurement ==
+User -> FE : Fill measurement form\n(date, weight, body fat)
+FE -> API : POST /api/v1/progress\nJSON body
+API -> PS : createProgressRecord(userId, requestDTO)
+PS -> PS : progressRecordMapper.toEntity(requestDTO)
+PS -> USER : getReferenceById(userId)
+PS -> PR : save(progressRecord)
+alt Duplicate date (DataIntegrityViolationException)
+    PR --> PS : exception
+    PS --> API : ResourceAlreadyExistsException
+    API --> FE : HTTP 409 Conflict\n"Already recorded for this date"
+else Success
+    PR --> PS : saved record
+    PS -> PS : map to response DTO
+    PS --> API : ProgressRecordResponseDTO
+    API --> FE : HTTP 201 Created\nJSON response
+    FE -> FE : Add data point to chart/list
+end
+
+== Delete Measurement ==
+User -> FE : Select record to delete
+FE -> API : DELETE /api/v1/progress/{id}
+API -> PS : deleteProgressRecord(id, userId)
+PS -> PR : existsByIdAndUserId(id, userId)
+alt Record does not exist or wrong user
+    PR --> PS : false
+    PS --> API : ResourceNotFoundException
+    API --> FE : HTTP 404 Not Found
+else Record exists and belongs to user
+    PR --> PS : true
+    PS -> PR : deleteById(id)
+    PR --> PS : deleted
+    PS --> API : void
+    API --> FE : HTTP 204 No Content
+    FE -> FE : Remove data point from chart/list
+end
+
+== Error Handling ==
+alt Unauthorized (401)
+    API --> FE : Redirect to login
+end
+@enduml

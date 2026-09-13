@@ -1,0 +1,34 @@
+@startuml
+!theme plain
+actor Client
+participant WorkoutSessionController
+participant WorkoutSessionService
+participant RoutineRepository
+participant ExerciseRepository
+participant SessionRepository
+participant StatsService
+
+group Create from routine
+  Client -> WorkoutSessionController : POST /sessions/from-routine/{routineId}
+  WorkoutSessionController -> WorkoutSessionService : createWorkoutSessionFromRoutine
+  WorkoutSessionService -> RoutineRepository : find active owned routine
+  RoutineRepository --> WorkoutSessionService : routine with exercises
+  WorkoutSessionService -> WorkoutSessionService : copy positions, metrics, default sets
+  WorkoutSessionService -> SessionRepository : save session
+  SessionRepository --> WorkoutSessionService : saved session
+  WorkoutSessionService -> StatsService : calculateForSession
+  StatsService --> WorkoutSessionService : achievements
+  WorkoutSessionService --> Client : 201 session response
+end
+
+group Create from scratch
+  Client -> WorkoutSessionController : POST /sessions
+  WorkoutSessionController -> WorkoutSessionService : createWorkoutSessionFromScratch
+  WorkoutSessionService -> ExerciseRepository : find active exercises in batch
+  ExerciseRepository --> WorkoutSessionService : exercise map
+  WorkoutSessionService -> SessionRepository : load last-set defaults in batch
+  SessionRepository --> WorkoutSessionService : defaults by exercise
+  WorkoutSessionService -> WorkoutSessionService : synthesize missing sets
+  WorkoutSessionService --> Client : 201 session response
+end
+@enduml

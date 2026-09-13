@@ -22,6 +22,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+/**
+ * A routine is a named, ordered collection of exercises belonging to a user.
+ *
+ * <p>Routines use soft deletion via the {@code active} flag.
+ * A unique constraint ensures a user cannot have two routines with the same name.
+ */
 @Entity
 @Getter
 @Setter
@@ -31,19 +37,24 @@ import lombok.experimental.SuperBuilder;
 @Table(name = "routines", uniqueConstraints = @UniqueConstraint(columnNames = {"name", "user_id"}))
 public class Routine extends BaseEntity {
 
+    /** The user-visible name of the routine. */
     @Column(nullable = false)
     private String name;
 
+    /** Optional description shown with the routine details. */
     @Column(columnDefinition = "TEXT")
     String description;
 
+    /** Whether this routine is visible to normal routine operations. */
     @Builder.Default
     private boolean active = true;
 
+    /** The user who owns this routine. */
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
+    /** Exercises in this routine, ordered by their one-based position. */
     @OneToMany(mappedBy = "routine", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("position ASC")
     private List<RoutineExercise> exercises;

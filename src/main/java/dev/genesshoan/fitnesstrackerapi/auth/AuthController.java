@@ -63,7 +63,8 @@ public class AuthController {
     @Operation(
             summary = "Register a new user",
             description =
-                    "Creates a new user account, encodes password securely, and returns JWT access and refresh tokens.")
+                    "Creates a new user account, encodes password securely, and returns JWT access and refresh tokens.",
+            security = {})
     @ApiResponses(
             value = {
                 @ApiResponse(
@@ -96,7 +97,8 @@ public class AuthController {
 
     @Operation(
             summary = "Authenticate user",
-            description = "Validates credentials and returns JWT access and refresh tokens.")
+            description = "Validates credentials and returns JWT access and refresh tokens.",
+            security = {})
     @ApiResponses(
             value = {
                 @ApiResponse(

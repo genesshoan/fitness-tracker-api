@@ -1,0 +1,10 @@
+# Update a set
+PUT {{baseUrl}}/sessions/{{sessionId}}/exercises/{{sessionExerciseId}}/sets/{{sessionSetId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "reps": 10,
+  "weightKg": 62.5,
+  "completed": true
+}

@@ -1,0 +1,146 @@
+@startuml
+!theme plain
+actor Client
+
+participant "RoutineController" as RoutineController
+participant "RoutineService" as RoutineService
+participant "RoutineRepository" as RoutineRepository
+participant "ExerciseRepository" as ExerciseRepository
+
+' =========================
+' LIST ROUTINES
+' =========================
+group LIST ROUTINES
+  Client -> RoutineController : GET /routines
+  RoutineController -> RoutineService : getRoutinesByUserId(user, pageable)
+  RoutineService -> RoutineRepository : findAllByUserIdAndActiveTrueWithExerciseCount(userId, pageable)
+  RoutineRepository --> RoutineService : Page<RoutineListItemDTO>
+  RoutineService --> RoutineController : Page<RoutineListItemDTO>
+  RoutineController --> Client : 200 Page<RoutineListItemDTO>
+end
+
+' =========================
+' GET ROUTINE BY ID
+' =========================
+group GET ROUTINE BY ID
+  Client -> RoutineController : GET /routines/{routineId}
+  RoutineController -> RoutineService : getRoutineById(routineId, user)
+  RoutineService -> RoutineService : findAndValidateRoutine(routineId, user)
+  RoutineService -> RoutineRepository : findByIdAndActiveTrue(routineId)
+  RoutineRepository --> RoutineService : Routine
+  RoutineService -> RoutineMapper : toRoutineResponseDTO(routine)
+  RoutineMapper --> RoutineService : RoutineResponseDTO
+  RoutineService --> RoutineController : RoutineResponseDTO
+  RoutineController --> Client : 200 RoutineResponseDTO
+end
+
+' =========================
+' CREATE ROUTINE
+' =========================
+group CREATE ROUTINE
+  Client -> RoutineController : POST /routines
+  RoutineController -> RoutineService : createRoutine(dto, user)
+  RoutineService -> RoutineRepository : existsByNameAndUserIdAndActiveTrue(name, userId)
+  RoutineRepository --> RoutineService : false
+  RoutineService -> RoutineService : Routine.builder().name().description().user()
+  RoutineService -> RoutineRepository : save(routine)
+  RoutineRepository --> RoutineService : saved routine
+  RoutineService -> RoutineService : resolveAndValidateExercises(dto.exercises())
+  RoutineService -> ExerciseRepository : findAllByIdInAndActiveTrue(exerciseIds)
+  ExerciseRepository --> RoutineService : List<Exercise>
+  RoutineService -> RoutineService : validate exercise metrics per category
+  RoutineService -> RoutineService : buildRoutineExercises(dto, routine, exercises)
+  RoutineService -> Routine : setExercises(routineExercises)
+  RoutineService -> RoutineMapper : toRoutineResponseDTO(routine)
+  RoutineMapper --> RoutineService : RoutineResponseDTO
+  RoutineService --> RoutineController : RoutineResponseDTO
+  RoutineController --> Client : 201 RoutineResponseDTO
+end
+
+' =========================
+' UPDATE ROUTINE
+' =========================
+group UPDATE ROUTINE
+  Client -> RoutineController : PUT /routines/{routineId}
+  RoutineController -> RoutineService : updateRoutine(routineId, dto, user)
+  RoutineService -> RoutineService : findAndValidateRoutine(routineId, user)
+  RoutineService -> RoutineRepository : existsByNameAndUserIdAndActiveTrue(name, userId)
+  RoutineRepository --> RoutineService : false
+  RoutineService -> Routine : setName(), setDescription()
+  RoutineService -> RoutineService : resolveAndValidateExercises(dto.exercises())
+  RoutineService -> ExerciseRepository : findAllByIdInAndActiveTrue(exerciseIds)
+  ExerciseRepository --> RoutineService : List<Exercise>
+  RoutineService -> RoutineService : replaceRoutineExercises(routine, exercisesMap, dto.exercises)
+  RoutineService -> RoutineMapper : toRoutineResponseDTO(routine)
+  RoutineMapper --> RoutineService : RoutineResponseDTO
+  RoutineService --> RoutineController : RoutineResponseDTO
+  RoutineController --> Client : 200 RoutineResponseDTO
+end
+
+' =========================
+' DELETE ROUTINE
+' =========================
+group DELETE ROUTINE
+  Client -> RoutineController : DELETE /routines/{routineId}
+  RoutineController -> RoutineService : deleteRoutine(routineId, user)
+  RoutineService -> RoutineService : findAndValidateRoutine(routineId, user)
+  RoutineService -> Routine : setActive(false)
+  RoutineService --> RoutineController : void
+  RoutineController --> Client : 204 No Content
+end
+
+' =========================
+' ADD EXERCISE TO ROUTINE
+' =========================
+group ADD EXERCISE TO ROUTINE
+  Client -> RoutineController : POST /routines/{routineId}/exercises/{position}
+  RoutineController -> RoutineService : addRoutineExercise(routineId, position, dto, user)
+  RoutineService -> RoutineService : findAndValidateRoutine(routineId, user)
+  RoutineService -> ExerciseRepository : findById(dto.exerciseId)
+  ExerciseRepository --> RoutineService : Exercise
+  RoutineService -> Exercise : validateExerciseMetrics(dto.toExerciseMetrics())
+  RoutineService -> Routine : buildRoutineExercise(routine, exercise, dto, position)
+  RoutineService -> Routine : getExercises().stream().filter(e -> e.getPosition() >= position).forEach(e -> e.setPosition(e.getPosition() + 1))
+  RoutineService -> Routine : getExercises().add(newRoutineExercise)
+  RoutineService -> RoutineMapper : toRoutineResponseDTO(routine)
+  RoutineMapper --> RoutineService : RoutineResponseDTO
+  RoutineService --> RoutineController : RoutineResponseDTO
+  RoutineController --> Client : 200 RoutineResponseDTO
+end
+
+' =========================
+' UPDATE EXERCISE IN ROUTINE
+' =========================
+group UPDATE EXERCISE IN ROUTINE
+  Client -> RoutineController : PUT /routines/{routineId}/exercises/{position}
+  RoutineController -> RoutineService : updateRoutineExercise(routineId, position, dto, user)
+  RoutineService -> RoutineService : findAndValidateRoutine(routineId, user)
+  RoutineService -> ExerciseRepository : findById(dto.exerciseId)
+  ExerciseRepository --> RoutineService : Exercise
+  RoutineService -> Exercise : validateExerciseMetrics(dto.toExerciseMetrics())
+  RoutineService -> Routine : buildRoutineExercise(routine, exercise, dto, position)
+  RoutineService -> Routine : getExercises().stream().filter(re -> re.getPosition() == position).findFirst()
+  RoutineService -> Routine : getExercises().remove(routineExercise)
+  RoutineService -> Routine : getExercises().add(newRoutineExercise)
+  RoutineService -> RoutineMapper : toRoutineResponseDTO(routine)
+  RoutineMapper --> RoutineService : RoutineResponseDTO
+  RoutineService --> RoutineController : RoutineResponseDTO
+  RoutineController --> Client : 200 RoutineResponseDTO
+end
+
+' =========================
+' DELETE EXERCISE FROM ROUTINE
+' =========================
+group DELETE EXERCISE FROM ROUTINE
+  Client -> RoutineController : DELETE /routines/{routineId}/exercises/{position}
+  RoutineController -> RoutineService : deleteRoutineExercise(routineId, position, user)
+  RoutineService -> RoutineService : findAndValidateRoutine(routineId, user)
+  RoutineService -> Routine : getExercises().stream().filter(re -> re.getPosition() == position).findFirst()
+  RoutineService -> Routine : getExercises().remove(routineExercise)
+  RoutineService -> RoutineRepository : flush()
+  RoutineService -> Routine : getExercises().stream().filter(e -> e.getPosition() > position).forEach(e -> e.setPosition(e.getPosition() - 1))
+  RoutineService --> RoutineController : void
+  RoutineController --> Client : 204 No Content
+end
+
+@enduml

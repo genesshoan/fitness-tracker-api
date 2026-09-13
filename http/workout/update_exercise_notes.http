@@ -1,0 +1,8 @@
+# Update session exercise notes
+PATCH {{baseUrl}}/sessions/{{sessionId}}/exercises/{{sessionExerciseId}}/notes
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "notes": "Keep the elbows tucked"
+}

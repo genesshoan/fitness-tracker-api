@@ -2,6 +2,12 @@ package dev.genesshoan.fitnesstrackerapi.exercise.domain;
 
 import dev.genesshoan.fitnesstrackerapi.common.domain.ExerciseMetrics;
 
+/**
+ * Categorizes exercises by their primary movement type.
+ *
+ * <p>Each category defines validation rules for exercise metrics
+ * and default metric values. Used for filtering exercises.
+ */
 public enum Category {
     STRENGTH {
         @Override
@@ -51,7 +57,18 @@ public enum Category {
         }
     };
 
+    /**
+     * Validates that exercise metrics match this category's requirements.
+     *
+     * @param metrics the exercise metrics to validate
+     * @return true if the metrics match this category
+     */
     public abstract boolean validate(ExerciseMetrics metrics);
 
+    /**
+     * Returns the default metric values for this category.
+     *
+     * @return default exercise metrics
+     */
     public abstract ExerciseMetrics defaultMetrics();
 }

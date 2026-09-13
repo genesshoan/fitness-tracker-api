@@ -36,6 +36,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 
+/**
+ * HTTP endpoints for creating and managing user-owned workout sessions.
+ */
 @Validated
 @RestController
 @RequiredArgsConstructor

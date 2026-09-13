@@ -16,23 +16,9 @@ import lombok.Setter;
 /**
  * Persistent representation of JWT refresh tokens.
  *
- * Refresh tokens are used in the authentication flow to obtain new access
- * tokens
- * after the current access token expires, without requiring re-authentication.
- *
- * Each refresh token is uniquely identified by its JWT ID (jti) and is stored
- * to enable server-side control over session validity.
- *
- * Tokens are organized by a family identifier (familyId) which represents a
- * login session. This allows multiple refresh tokens to be related to the same
- * session and supports multi-device authentication.
- *
- * Refresh tokens are rotated on each use: a new token is issued and the
- * previous
- * token can be revoked to prevent reuse.
- *
- * Storing refresh tokens enables logout, session management, and detection of
- * compromised or reused tokens.
+ * Each refresh token is uniquely identified by its JWT ID (jti)
+ * and grouped into a session family (familyId) for revocation and rotation.
+ * The user relationship is lazy-loaded.
  */
 @Entity
 @Getter
@@ -43,20 +29,39 @@ import lombok.Setter;
 @Table(name = "tokens")
 public class Token {
 
+    /**
+     * Unique JWT ID for this token instance.
+     * Used for database tracking, revocation, and reuse detection.
+     */
     @Id
     @Column(updatable = false, nullable = false, unique = true)
     @Builder.Default
     private UUID jti = UuidCreator.getTimeOrderedEpoch();
 
+    /**
+     * Session family identifier. Groups all refresh tokens belonging
+     * to the same login session for batch revocation.
+     */
     @Column(nullable = false)
     private UUID familyId;
 
+    /**
+     * Revocation status. {@code true} when the token has been
+     * invalidated (logged out or detected as reused).
+     */
     @Builder.Default
     private boolean revoked = false;
 
+    /**
+     * Expiration instant for this token.
+     */
     @Column(nullable = false)
     private Instant expiresAt;
 
+    /**
+     * The user to whom this refresh token belongs.
+     * Lazy-loaded; must be initialized within an active persistence context.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

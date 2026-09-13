@@ -1,0 +1,9 @@
+# Create a workout session from an active routine
+POST {{baseUrl}}/sessions/from-routine/{{routineId}}
+Authorization: Bearer {{accessToken}}
+
+> {%
+    client.global.set("sessionId", response.body.id);
+    client.global.set("sessionExerciseId", response.body.exercises[0].id);
+    client.global.set("sessionSetId", response.body.exercises[0].sets[0].id);
+%}

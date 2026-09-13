@@ -1,0 +1,3 @@
+# Get the highest estimated one-repetition maximum for an exercise
+GET {{baseUrl}}/stats/1rm?exerciseId={{exerciseId}}
+Authorization: Bearer {{accessToken}}

@@ -1,0 +1,3 @@
+# Get exercise progression; from is inclusive and to is exclusive
+GET {{baseUrl}}/stats/progress?exerciseId={{exerciseId}}&from=2026-01-01T00:00:00Z&to=2027-01-01T00:00:00Z
+Authorization: Bearer {{accessToken}}

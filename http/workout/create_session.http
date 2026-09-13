@@ -1,0 +1,31 @@
+# Create a workout session from scratch
+POST {{baseUrl}}/sessions
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "status": "IN_PROGRESS",
+  "startedAt": "2026-09-13T10:00:00Z",
+  "notes": "Upper body session",
+  "exercises": [
+    {
+      "position": 1,
+      "exerciseId": "{{exerciseId}}",
+      "notes": "Controlled tempo",
+      "sets": [
+        {
+          "setNumber": 1,
+          "reps": 8,
+          "weightKg": 60.0,
+          "completed": true
+        }
+      ]
+    }
+  ]
+}
+
+> {%
+    client.global.set("sessionId", response.body.id);
+    client.global.set("sessionExerciseId", response.body.exercises[0].id);
+    client.global.set("sessionSetId", response.body.exercises[0].sets[0].id);
+%}

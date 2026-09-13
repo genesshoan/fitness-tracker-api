@@ -1,0 +1,3 @@
+# Get completed strength volume for a session
+GET {{baseUrl}}/stats/volume?sessionId={{sessionId}}
+Authorization: Bearer {{accessToken}}

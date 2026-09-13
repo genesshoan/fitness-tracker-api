@@ -9,6 +9,12 @@ import jakarta.validation.constraints.Positive;
 import dev.genesshoan.fitnesstrackerapi.common.domain.ExerciseMetrics;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+/**
+ * Request data for adding or replacing an exercise in a routine.
+ *
+ * <p>The service validates the metric combination against the referenced
+ * exercise category.
+ */
 @Schema(description = "Request DTO for creating a routine exercise")
 public record RoutineExerciseRequestDTO(
         @NotNull(message = "Exercise id is required")
@@ -39,6 +45,11 @@ public record RoutineExerciseRequestDTO(
 
         @Schema(description = "Notes", example = "None") String notes) {
 
+    /**
+     * Converts the request fields used for category-specific validation.
+     *
+     * @return the requested exercise metrics
+     */
     public ExerciseMetrics toExerciseMetrics() {
         return new ExerciseMetrics(defaultReps, defaultWeightKg, defaultDurationSeconds, defaultDistanceKm);
     }

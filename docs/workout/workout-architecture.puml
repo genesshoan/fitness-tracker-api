@@ -1,0 +1,36 @@
+@startuml
+!theme plain
+
+class WorkoutSessionController
+class SessionExerciseController
+class SessionSetController
+class WorkoutSessionService
+class WorkoutSessionRepository
+class SessionExerciseRepository
+class SessionSetRepository
+class RoutineRepository
+class ExerciseRepository
+class StatsService
+class WorkoutSession
+class SessionExercise
+class SessionSet
+
+WorkoutSessionController --> WorkoutSessionService
+SessionExerciseController --> WorkoutSessionService
+SessionSetController --> WorkoutSessionService
+WorkoutSessionService --> WorkoutSessionRepository
+WorkoutSessionService --> SessionExerciseRepository
+WorkoutSessionService --> SessionSetRepository
+WorkoutSessionService --> RoutineRepository
+WorkoutSessionService --> ExerciseRepository
+WorkoutSessionService --> StatsService
+WorkoutSession "1" *-- "0..*" SessionExercise
+SessionExercise "1" *-- "0..*" SessionSet
+
+note right of WorkoutSessionService
+  Clamps positions
+  Renumbers sets
+  Reuses last completed sets
+  Rejects completed-session mutations
+end note
+@enduml

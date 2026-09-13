@@ -32,10 +32,12 @@ public record SessionSetRequestDTO(
         @NotNull @Schema(description = "Whether the set was completed")
         Boolean completed) {
 
+    /** Converts the request metrics for exercise-category validation. */
     public ExerciseMetrics toExerciseMetrics() {
         return new ExerciseMetrics(reps, weightKg, durationSeconds, distanceKm);
     }
 
+    /** Returns whether the request contains no performance metric values. */
     public boolean isEmpty() {
         return reps == null && weightKg == null && durationSeconds == null && distanceKm == null;
     }

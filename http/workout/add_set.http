@@ -1,0 +1,14 @@
+# Add a set; setNumber is assigned sequentially for an existing session
+POST {{baseUrl}}/sessions/{{sessionId}}/exercises/{{sessionExerciseId}}/sets
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "reps": 8,
+  "weightKg": 60.0,
+  "completed": false
+}
+
+> {%
+    client.global.set("sessionSetId", response.body.id);
+%}

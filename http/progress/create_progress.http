@@ -1,0 +1,10 @@
+# Create a progress record
+POST {{baseUrl}}/progress
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "recordedAt": "2026-09-13",
+  "weightKg": 75.5,
+  "bodyFatPercentage": 20.0
+}

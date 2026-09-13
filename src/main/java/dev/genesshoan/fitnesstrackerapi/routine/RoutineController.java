@@ -37,6 +37,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 
+/**
+ * REST controller for managing routines.
+ * Exposes endpoints for creating, reading, updating, and deleting routines and routine exercises.
+ * All endpoints require authentication via Bearer token.
+ */
 @Validated
 @RestController
 @RequiredArgsConstructor
@@ -46,6 +51,13 @@ public class RoutineController {
 
     private final RoutineService routineService;
 
+    /**
+     * Retrieve a paginated list of routines for the authenticated user.
+     *
+     * @param principal  the authenticated user details
+     * @param pageable   pagination parameters
+     * @return a page of routine list items
+     */
     @Operation(
             summary = "Get all routines",
             description = "Retrieve a paginated list of routines for the authenticated user")
@@ -75,6 +87,13 @@ public class RoutineController {
         return ResponseEntity.ok(routineService.getRoutinesByUserId(principal.getUser(), pageable));
     }
 
+    /**
+     * Retrieve a single routine by its ID.
+     *
+     * @param routineId the routine identifier
+     * @param principal the authenticated user details
+     * @return the routine response
+     */
     @Operation(summary = "Get routine by id", description = "Retrieve a routine by its id")
     @ApiResponses({
         @ApiResponse(
@@ -113,6 +132,13 @@ public class RoutineController {
         return ResponseEntity.ok(routineService.getRoutineById(routineId, principal.getUser()));
     }
 
+    /**
+     * Create a new routine for the authenticated user.
+     *
+     * @param requestDTO the routine request data
+     * @param principal  the authenticated user details
+     * @return the created routine
+     */
     @Operation(summary = "Create routine", description = "Create a new routine for the authenticated user")
     @ApiResponses({
         @ApiResponse(
@@ -158,6 +184,14 @@ public class RoutineController {
                 .body(routineService.createRoutine(requestDTO, principal.getUser()));
     }
 
+    /**
+     * Update an existing routine's metadata and exercises.
+     *
+     * @param routineId  the routine identifier
+     * @param requestDTO the updated routine data
+     * @param principal  the authenticated user details
+     * @return the updated routine
+     */
     @Operation(summary = "Update routine", description = "Update an existing routine")
     @ApiResponses({
         @ApiResponse(
@@ -211,6 +245,13 @@ public class RoutineController {
         return ResponseEntity.ok(routineService.updateRoutine(routineId, requestDTO, principal.getUser()));
     }
 
+    /**
+     * Soft delete a routine by deactivating it.
+     *
+     * @param routineId the routine identifier
+     * @param principal the authenticated user details
+     * @return no content
+     */
     @Operation(summary = "Delete routine", description = "Soft delete a routine")
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Routine deleted successfully"),
@@ -245,6 +286,15 @@ public class RoutineController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Add an exercise at a specific position in the routine.
+     *
+     * @param routineId  the routine identifier
+     * @param position   the 1-based position to insert the exercise
+     * @param requestDTO the exercise request data
+     * @param principal  the authenticated user details
+     * @return the updated routine
+     */
     @Operation(
             summary = "Add exercise to routine",
             description = "Add an exercise at a specific position in the routine")
@@ -295,6 +345,14 @@ public class RoutineController {
                 routineService.addRoutineExercise(routineId, position, requestDTO, principal.getUser()));
     }
 
+    /**
+     * Remove an exercise at a specific position from the routine.
+     *
+     * @param routineId  the routine identifier
+     * @param position   the 1-based position of the exercise to remove
+     * @param principal  the authenticated user details
+     * @return no content
+     */
     @Operation(
             summary = "Delete exercise from routine",
             description = "Remove an exercise at a specific position from the routine")
@@ -332,6 +390,15 @@ public class RoutineController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Update an exercise at a specific position in the routine.
+     *
+     * @param routineId  the routine identifier
+     * @param position   the 1-based position of the exercise to update
+     * @param requestDTO the exercise request data
+     * @param principal  the authenticated user details
+     * @return the updated routine
+     */
     @Operation(
             summary = "Update exercise in routine",
             description = "Update an exercise at a specific position in the routine")

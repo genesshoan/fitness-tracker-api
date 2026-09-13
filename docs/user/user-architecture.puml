@@ -1,0 +1,28 @@
+@startuml
+!theme plain
+
+class UserController
+class UserService
+interface UserRepository
+class UserMapper
+class User
+class UserResponseDTO
+class ChangePasswordRequestDTO
+class ChangeUsernameRequestDTO
+class PasswordEncoder
+
+UserController --> UserService
+UserService --> UserRepository
+UserService --> UserMapper
+UserService --> PasswordEncoder
+UserRepository --> User
+UserMapper --> UserResponseDTO
+UserController ..> ChangePasswordRequestDTO
+UserController ..> ChangeUsernameRequestDTO
+
+note right of UserService
+  Identity comes from the
+  authenticated principal.
+  Passwords are encoded.
+end note
+@enduml

@@ -52,6 +52,69 @@ run ./routines/delete_exercise_from_routine.http
 ### Elimina (soft delete) la rutina completa
 run ./routines/delete_routine.http
 
+### Lista los registros de progreso del usuario
+run ./progress/get_progress.http
+
+### Crea un registro de progreso
+run ./progress/create_progress.http
+
+### Elimina un registro de progreso
+run ./progress/delete_progress.http
+
+### Obtiene el volumen de una sesión
+run ./stats/get_volume.http
+
+### Obtiene el 1RM estimado de un ejercicio
+run ./stats/get_1rm.http
+
+### Obtiene la racha de entrenamiento
+run ./stats/get_streak.http
+
+### Obtiene la progresión de un ejercicio
+run ./stats/get_progress.http
+
+### Lista las sesiones de entrenamiento
+run ./workout/get_sessions.http
+
+### Obtiene una sesión de entrenamiento
+run ./workout/get_session.http
+
+### Crea una sesión desde cero
+run ./workout/create_session.http
+
+### Crea una sesión desde una rutina
+run ./workout/create_session_from_routine.http
+
+### Actualiza las notas de una sesión
+run ./workout/update_session_notes.http
+
+### Completa una sesión
+run ./workout/finish_session.http
+
+### Elimina una sesión
+run ./workout/delete_session.http
+
+### Agrega un ejercicio a una sesión
+run ./workout/add_exercise.http
+
+### Actualiza las notas de un ejercicio de sesión
+run ./workout/update_exercise_notes.http
+
+### Mueve un ejercicio dentro de una sesión
+run ./workout/update_exercise_position.http
+
+### Elimina un ejercicio de una sesión
+run ./workout/delete_exercise.http
+
+### Agrega una serie a un ejercicio de sesión
+run ./workout/add_set.http
+
+### Actualiza una serie
+run ./workout/update_set.http
+
+### Elimina una serie
+run ./workout/delete_set.http
+
 ## Rota accessToken/refreshToken usando el refreshToken actual
 # run ./auth/refresh.http
 

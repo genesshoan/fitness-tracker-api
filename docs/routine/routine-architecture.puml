@@ -1,0 +1,171 @@
+@startuml
+!theme plain
+
+' =========================
+' DTOs
+' =========================
+class RoutineRequestDTO {
+  + name: String
+  + description: String
+  + exercises: List<RoutineExerciseRequestDTO>
+}
+
+class RoutineResponseDTO {
+  + id: UUID
+  + name: String
+  + description: String
+  + exercises: List<RoutineExerciseResponseDTO>
+}
+
+class RoutineListItemDTO {
+  + id: UUID
+  + name: String
+  + exerciseCount: Long
+  + updatedAt: LocalDateTime
+}
+
+class RoutineExerciseRequestDTO {
+  + exerciseId: UUID
+  + defaultRestSeconds: Integer
+  + defaultSets: Integer
+  + defaultReps: Integer
+  + defaultWeightKg: Double
+  + defaultDurationSeconds: Integer
+  + defaultDistanceKm: Double
+  + notes: String
+}
+
+class RoutineExerciseResponseDTO {
+  + exercise: ExerciseListItemDTO
+  + position: int
+  + defaultRestSeconds: int
+  + defaultSets: int
+  + defaultReps: Integer
+  + defaultWeightKg: Double
+  + defaultDurationSeconds: Integer
+  + defaultDistanceKm: Double
+  + notes: String
+}
+
+' =========================
+' DOMAIN
+' =========================
+class User {
+  - id: UUID
+  - username: String
+  - email: String
+  - role: Role
+}
+
+class Routine {
+  - id: UUID
+  - name: String
+  - description: String
+  + active: boolean
+}
+
+class RoutineExercise {
+  - id: UUID
+  - position: Integer
+  - defaultRestSeconds: Integer
+  - defaultSets: Integer
+  - defaultReps: Integer
+  - defaultWeightKg: Double
+  - defaultDurationSeconds: Integer
+  - defaultDistanceKm: Double
+  - notes: String
+}
+
+class Exercise {
+  - id: UUID
+  - name: String
+  - slug: String
+  - description: String
+  - category: Category
+  - difficulty: Difficulty
+}
+
+' =========================
+' REPOSITORY
+' =========================
+interface RoutineRepository {
+  + existsByNameAndUserIdAndActiveTrue(name: String, userId: UUID): boolean
+  + findAllByUserIdAndActiveTrueWithExerciseCount(userId: UUID, pageable: Pageable): Page<RoutineListItemDTO>
+  + findByIdAndActiveTrue(routineId: UUID): Optional<Routine>
+}
+
+' =========================
+' SERVICES
+' =========================
+class RoutineService {
+  - routineRepository: RoutineRepository
+  - exerciseRepository: ExerciseRepository
+  - routineMapper: RoutineMapper
+  + getRoutinesByUserId(user: User, pageable: Pageable): Page<RoutineListItemDTO>
+  + getRoutineById(routineId: UUID, user: User): RoutineResponseDTO
+  + createRoutine(dto: RoutineRequestDTO, user: User): RoutineResponseDTO
+  + updateRoutine(routineId: UUID, dto: RoutineRequestDTO, user: User): RoutineResponseDTO
+  + deleteRoutine(routineId: UUID, user: User): void
+  + addRoutineExercise(routineId: UUID, position: int, dto: RoutineExerciseRequestDTO, user: User): RoutineResponseDTO
+  + updateRoutineExercise(routineId: UUID, position: int, dto: RoutineExerciseRequestDTO, user: User): RoutineResponseDTO
+  + deleteRoutineExercise(routineId: UUID, position: int, user: User): void
+}
+
+' =========================
+' MAPPER
+' =========================
+interface RoutineMapper {
+  + toRoutineResponseDTO(routine: Routine): RoutineResponseDTO
+  + toRoutineListItemDTO(routine: Routine): RoutineListItemDTO
+}
+
+interface RoutineExerciseMapper {
+  + toRoutineExerciseResponseDTO(routineExercise: RoutineExercise): RoutineExerciseResponseDTO
+}
+
+' =========================
+' CONTROLLER
+' =========================
+class RoutineController {
+  - routineService: RoutineService
+  + getRoutines(principal: UserDetailsImpl, pageable: Pageable): ResponseEntity<Page<RoutineListItemDTO>>
+  + getRoutine(routineId: UUID, principal: UserDetailsImpl): ResponseEntity<RoutineResponseDTO>
+  + createRoutine(dto: RoutineRequestDTO, principal: UserDetailsImpl): ResponseEntity<RoutineResponseDTO>
+  + updateRoutine(routineId: UUID, dto: RoutineRequestDTO, principal: UserDetailsImpl): ResponseEntity<RoutineResponseDTO>
+  + deleteRoutine(routineId: UUID, principal: UserDetailsImpl): ResponseEntity<Void>
+  + addRoutineExercise(routineId: UUID, position: int, dto: RoutineExerciseRequestDTO, principal: UserDetailsImpl): ResponseEntity<RoutineResponseDTO>
+  + updateRoutineExercise(routineId: UUID, position: int, dto: RoutineExerciseRequestDTO, principal: UserDetailsImpl): ResponseEntity<RoutineResponseDTO>
+  + deleteRoutineExercise(routineId: UUID, position: int, principal: UserDetailsImpl): ResponseEntity<Void>
+}
+
+' =========================
+' COMPOSITION
+' =========================
+RoutineController *-- RoutineService
+RoutineService *-- RoutineRepository
+RoutineService *-- ExerciseRepository
+RoutineService *-- RoutineMapper
+RoutineMapper *-- RoutineExerciseMapper
+
+' =========================
+' ASSOCIATIONS
+' =========================
+Routine "1" *-- "0..*" RoutineExercise : exercises
+Routine "1" *-- "1" User : user
+RoutineExercise "1" *-- "1" Exercise : exercise
+RoutineExercise "1" *-- "1" Routine : routine
+
+' =========================
+' DEPENDENCIES
+' =========================
+RoutineController ..> RoutineResponseDTO : <<uses>>
+RoutineController ..> RoutineListItemDTO : <<uses>>
+RoutineController ..> RoutineRequestDTO : <<uses>>
+RoutineController ..> RoutineExerciseRequestDTO : <<uses>>
+RoutineService ..> RoutineResponseDTO : <<creates>>
+RoutineService ..> RoutineListItemDTO : <<creates>>
+RoutineService ..> ResourceNotFoundException : <<throws>>
+RoutineService ..> ResourceAlreadyExistsException : <<throws>>
+RoutineService ..> ValidationException : <<throws>>
+
+@enduml

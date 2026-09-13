@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+/** Summary data returned when listing a user's routines. */
 @Schema(description = "A routine list item")
 public record RoutineListItemDTO(
         @Schema(description = "The routine's unique identifier", example = "123e4567-e89b-12d3-a456-426614174000")

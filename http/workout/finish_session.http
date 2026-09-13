@@ -1,0 +1,3 @@
+# Complete a workout session
+PATCH {{baseUrl}}/sessions/{{sessionId}}/finish
+Authorization: Bearer {{accessToken}}

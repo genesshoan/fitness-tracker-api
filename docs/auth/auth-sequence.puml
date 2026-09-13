@@ -1,0 +1,117 @@
+@startuml auth-sequence
+
+title Auth Module Authentication Sequence
+
+autonumber
+actor User
+participant "Frontend\n(Application)" as FE
+participant "Auth API\n(/api/v1/auth)" as API
+participant "AuthService" as AS
+participant "JwtService" as JS
+participant "TokenRepository" as TR
+participant "UserRepository" as UR
+participant "Token Entity\n(tokens table)" as TE
+participant "User Entity\n(users table)" as UE
+
+== Registration ==
+User -> FE : Fill register form\n(username, email, password)
+FE -> API : POST /api/v1/auth/register\nJSON request
+API -> AS : register(dto)
+AS -> UR : existsByUsername(username)
+alt Username exists
+    UR --> AS : true
+    AS --> API : ResourceAlreadyExistsException
+    API --> FE : HTTP 409 Conflict
+else Username available
+    UR --> AS : false
+    AS -> UR : existsByEmail(email)
+    alt Email exists
+        UR --> AS : true
+        AS --> API : ResourceAlreadyExistsException
+        API --> FE : HTTP 409 Conflict
+    else Email available
+        UR --> AS : false
+        AS -> AS : userMapper.toEntity(dto)\nuser.setRole(Role.USER)\npasswordEncoder.encode(password)
+        AS -> UR : save(user)
+        UR --> AS : savedUser
+        AS -> AS : UUID familyId = randomUUID()
+        AS -> TR : save(Token{familyId, user, expiresAt})
+        TR --> AS : persisted Token
+        AS -> JS : generateToken(userDetails)
+        AS -> JS : generateRefreshToken(userDetails, jti, familyId)
+        JS --> AS : access + refresh tokens
+        AS --> API : TokenResponseDTO\n{accessToken, refreshToken}
+        API --> FE : HTTP 201 Created\nJSON response
+    end
+end
+
+== Login ==
+User -> FE : Fill login form\n(email, password)
+FE -> API : POST /api/v1/auth/login\nJSON request
+API -> AS : login(dto)
+AS -> AS : authenticationManager.authenticate\ntoken)
+AS -> UR : findByEmail(email)
+alt User not found
+    UR --> AS : Optional.empty()
+    AS --> API : InvalidCredentialsException\nor ResourceNotFoundException
+    API --> FE : HTTP 401 Unauthorized
+else User found
+    UR --> AS : Optional.of(user)
+    AS -> AS : UUID familyId = randomUUID()
+    AS -> TR : save(Token{familyId, user, expiresAt})
+    TR --> AS : persisted Token
+    AS -> JS : generateToken(userDetails)
+    AS -> JS : generateRefreshToken(userDetails, jti, familyId)
+    JS --> AS : access + refresh tokens
+    AS --> API : TokenResponseDTO\n{accessToken, refreshToken}
+    API --> FE : HTTP 200 OK\nJSON response
+end
+
+== API Calls with Access Token ==
+User -> FE : Trigger API action\n(e.g., GET /api/v1/user/me)
+FE -> API : GET /api/v1/user/me\nAuthorization: Bearer <accessToken>
+API -> AS : handle request\n(JWT filter validates token)
+loop Access token valid
+    AS --> API : Resource data
+    API --> FE : HTTP 200 OK\nResource data
+end
+
+alt Access token expired or invalid (HTTP 401)
+    FE -> API : POST /api/v1/auth/refresh\nAuthorization: Bearer <refreshToken>
+    API -> AS : refreshToken(authHeader)
+    AS -> JS : extractJti(refreshToken)\nextractFamilyId(refreshToken)
+    AS -> UR : findByEmail(extractUsername)
+    UR --> AS : Optional.of(user)
+    AS -> TR : findById(jti)
+    TR --> AS : Optional.of(token)
+    alt Token already revoked (reuse detected)
+        TR --> AS : revoked = true
+        AS -> TR : revokeByFamily(familyId)
+        AS --> API : InvalidJwtException
+        API --> FE : HTTP 401 Unauthorized
+    else Token valid
+        TR --> AS : revoked = false
+        AS -> TR : token.setRevoked(true)
+        AS -> TR : save(new Token{familyId, user, expiresAt})
+        TR --> AS : persisted Token
+        AS -> JS : generateToken(userDetails)
+        AS -> JS : generateRefreshToken(userDetails, jti, familyId)
+        JS --> AS : new access + refresh tokens
+        AS --> API : TokenResponseDTO\n(new accessToken, refreshToken)
+        API --> FE : HTTP 200 OK\nJSON response
+        FE -> FE : Replace stored tokens\nRetry original request
+    end
+end
+
+== Logout ==
+User -> FE : Trigger logout action
+FE -> API : DELETE /api/v1/auth/logout\nAuthorization: Bearer <refreshToken>
+API -> AS : logout(authHeader)
+AS -> JS : extractFamilyId(refreshToken)
+AS -> TR : revokeByFamily(familyId)
+TR --> AS : revoked all tokens in family
+AS --> API : no content
+API --> FE : HTTP 204 No Content
+FE -> FE : Clear all stored tokens
+FE --> User : Unauthenticated UI
+@enduml

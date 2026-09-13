@@ -1,0 +1,3 @@
+# Get paginated workout sessions
+GET {{baseUrl}}/sessions?page=0&size=20&sort=startedAt,desc
+Authorization: Bearer {{accessToken}}

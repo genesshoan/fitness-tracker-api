@@ -1,0 +1,27 @@
+@startuml
+!theme plain
+actor Client
+participant UserController
+participant UserService
+participant UserRepository
+participant PasswordEncoder
+
+group Get profile
+  Client -> UserController : GET /user/me
+  UserController -> UserService : getProfile(authenticated user)
+  UserService -> UserRepository : findById(userId)
+  UserRepository --> UserService : User
+  UserService --> Client : UserResponseDTO
+end
+
+group Change password
+  Client -> UserController : PUT /user/me/password
+  UserController -> UserService : changePassword(userId, request)
+  UserService -> UserRepository : findById(userId)
+  UserService -> PasswordEncoder : matches(old password)
+  PasswordEncoder --> UserService : valid
+  UserService -> PasswordEncoder : encode(new password)
+  UserService -> UserRepository : persist changed hash
+  UserService --> Client : 204 No Content
+end
+@enduml

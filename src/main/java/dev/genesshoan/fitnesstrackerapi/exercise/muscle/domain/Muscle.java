@@ -12,6 +12,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+/**
+ * Represents a target muscle group.
+ *
+ * <p>Muscles are organized by {@link BodyRegion} and are used to
+ * filter exercises and track target/stabilizer relationships
+ * in training sessions.
+ */
 @Entity
 @Getter
 @Setter
@@ -20,12 +27,21 @@ import lombok.experimental.SuperBuilder;
 @Table(name = "muscles")
 public class Muscle extends BaseEntity {
 
+    /**
+     * Unique muscle name.
+     */
     @Column(unique = true, nullable = false)
     private String name;
 
+    /**
+     * URL-friendly identifier used for lookup operations.
+     */
     @Column(unique = true, nullable = false)
     private String slug;
 
+    /**
+     * The body region where this muscle is located.
+     */
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private BodyRegion bodyRegion;

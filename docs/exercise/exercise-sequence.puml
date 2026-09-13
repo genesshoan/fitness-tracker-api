@@ -1,0 +1,75 @@
+@startuml exercise-sequence
+
+title Exercise Module Request Flows
+
+autonumber
+actor User
+participant "Frontend\n(Application)" as FE
+participant "Exercise API\n(/api/v1/exercises)" as API
+participant "ExerciseService" as ES
+participant "ExerciseRepository" as ER
+participant "Exercise Entity\n(exercises)" as EX
+participant "ExerciseMuscle Entity\n(exercise_muscles)" as EXM
+participant "Muscle Entity\n(muscles)" as MUS
+
+== Browse Exercises ==
+User -> FE : Navigate to exercise catalog
+FE -> API : GET /api/v1/exercises\n(cursor, size, category, difficulty, muscleSlugs)
+API -> ES : getAllExercises(request)
+ES -> ER : findByFiltersAndActiveTrue\ncursor + filters + pageable
+ER -> EX : active = true AND\nfilters match
+loop Matching exercises
+    ER --> EXM : load exercise muscles
+    EXM --> MUS : resolve muscle slugs
+end
+ER --> ES : List<Exercise>
+ES --> API : CursorPage<ExerciseListItemDTO>
+API --> FE : HTTP 200 OK\n{ page: [...] }
+FE -> FE : Display exercise cards\n(name, category, difficulty)
+FE -> FE : Store cursor for next page
+
+== View Exercise Detail ==
+User -> FE : Click exercise from list
+FE -> API : GET /api/v1/exercises/{slug}
+API -> ES : getExerciseBySlug(slug)
+ES -> ER : findBySlugAndActiveTrue(slug)
+ER --> EXM : eager load via @EntityGraph\n(exerciseMuscles.muscle)
+EXM --> MUS : load muscle details
+ER --> ES : Exercise (muscles populated)
+ES --> API : ExerciseDetailDTO
+API --> FE : HTTP 200 OK\n{ exerciseMuscles: [...] }
+FE -> FE : Display exercise details\n(description, muscles, impact levels)
+
+== Browse Muscles ==
+User -> FE : Navigate to muscle directory
+FE -> API : GET /api/v1/muscles?page=0&size=10
+API -> ES : getMuscles(pageable)
+ES -> ER : findAll(pageable)
+ER --> MUS : load muscles
+ER --> ES : Page<Muscle>
+ES --> API : Page<MuscleResponseDTO>
+API --> FE : HTTP 200 OK\n{ content: [...] }
+FE -> FE : Display muscles grouped by bodyRegion
+
+== View Muscle Detail ==
+User -> FE : Click muscle from directory
+FE -> API : GET /api/v1/muscles/{slug}
+API -> ES : getMuscleBySlug(slug)
+ES -> ER : findBySlug(slug)
+ER --> MUS : load muscle
+ER --> ES : Muscle
+ES --> API : MuscleResponseDTO
+API --> FE : HTTP 200 OK\n{ name, slug, bodyRegion }
+FE -> FE : Display muscle details
+
+== Error Handling ==
+alt Exercise not found (404)
+    ER --> ES : Optional.empty()
+    ES --> API : ResourceNotFoundException
+    API --> FE : Show "Exercise not found"
+else Invalid cursor/size (400)
+    API --> FE : Show validation error
+else Unauthorized (401)
+    API --> FE : Redirect to login
+end
+@enduml

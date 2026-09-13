@@ -1,0 +1,100 @@
+@startuml progress-architecture
+
+title Progress Record Module Architecture
+
+skinparam componentStyle uml2
+skinparam backgroundColor #FEFEFE
+skinparam component {
+    BackgroundColor #D6E4F0
+    BorderColor #4A90D9
+}
+skinparam database {
+    BackgroundColor #E8E8E8
+    BorderColor #888888
+}
+skinparam node {
+    BackgroundColor #F0F0F0
+    BorderColor #AAAAAA
+}
+skinparam package {
+    BackgroundColor #F5F5F5
+    BorderColor #CCCCCC
+}
+
+package "progress module" as pmod {
+
+    component "ProgressRecordController" as ctrl {
+    }
+
+    component "ProgressRecordService" as svc {
+    }
+
+    component "ProgressRecordRepository" as repo {
+    }
+
+    database "ProgressRecord Entity\n(progress_records table)" as pr {
+    }
+
+    component "ProgressRecordMapper" as mapper {
+    }
+}
+
+package "user module" as umod {
+    database "User Entity\n(users table)" as user {
+    }
+}
+
+package "common module" as commod {
+    component "Exception Types\n(BadRequest,\nResourceNotFound,\nResourceAlreadyExists)" as exc {
+    }
+
+    component "UserDetailsImpl\n(security)" as udi {
+    }
+}
+
+package "security module" as secmod {
+    component "JwtFilter" as jf {
+    }
+
+    component "SecurityConfig\n(authenticated: /api/v1/progress/**)" as sc {
+    }
+}
+
+skinparam arrowColor #4A90D9
+skinparam arrowFontSize 10
+
+HTTPRequest -[hidden]> ctrl : HTTP\nRequest
+sc ..> ctrl : authenticated\n@ /api/v1/progress/**
+jf ..> ctrl : filters\nall requests
+
+ctrl --> svc : 1. call\nservice method
+svc --> repo : 2. query /\nsave /\ndelete
+repo --> pr : 3. entity\nmapping
+svc --> mapper : 4. map to\nresponse DTOs
+mapper --> pr : 5. map to\nentity
+svc --> user : 6. getReferenceById\n(user lookup)
+
+note right of svc
+  ProgressRecordService:
+  - getProgressRecordsInDateRange()
+    date range query
+  - createProgressRecord()
+    duplicate date protection
+  - deleteProgressRecord()
+    ownership validation
+end note
+
+note bottom of pr
+  ProgressRecord:
+  - unique constraint (user_id, recorded_at)
+  - immutable fields after creation
+  - bodyFatPercentage is optional
+end note
+
+note right of user
+  User relationship:
+  - lazy-loaded
+  - validated via getReferenceById
+end note
+
+@enduml
