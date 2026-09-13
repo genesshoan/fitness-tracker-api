@@ -79,7 +79,7 @@ Controllers expose with prefix **`/api/v1`**.
 | POST | `/api/v1/sessions` | Required | `WorkoutSessionRequestDTO` | `WorkoutSessionResponseDTO` | 201 |
 | POST | `/api/v1/routines/{routineId}/sessions` | Required | None | `WorkoutSessionResponseDTO` | 201 |
 | PATCH | `/api/v1/sessions/{sessionId}/notes` | Required | `NotesUpdateRequestDTO` |None| 204 |
-| PATCH | `/api/v1/sessions/{sessionId}/finish` | Required | None |None| 204 |
+| PATCH | `/api/v1/sessions/{sessionId}/finish` | Required | None | `WorkoutSessionResponseDTO` | 200 |
 | DELETE | `/api/v1/sessions/{sessionId}` | Required | None |None| 204 |
 
 ### Session Exercises
@@ -117,7 +117,7 @@ Controllers expose with prefix **`/api/v1`**.
 
 | Método | Endpoint                                      | Auth     | Request | Response                   | Status |
 | ------- | --------------------------------------------- | -------- | ------- | -------------------------- | ------ |
-| GET     | `/api/v1/stats/volume?sessionId={sessionId}` | Required | None    | `SessionVolumeResponseDTO` | 200 |
+| GET     | `/api/v1/stats/volume?sessionId={sessionId}` | Required | None    | `SessionVolumeDTO` | 200 |
 
 ### Estimated 1RM
 
@@ -135,4 +135,4 @@ Controllers expose with prefix **`/api/v1`**.
 
 | Método | Endpoint                                                        | Auth     | Request | Response                         | Status |
 | ------- | --------------------------------------------------------------- | -------- | ------- | -------------------------------- | ------ |
-| GET     | `/api/v1/stats/progress?exerciseId={id}&from={from}&to={to}`  | Required | None    | `ExerciseProgressResponseDTO`    | 200 |
+| GET     | `/api/v1/stats/progress?exerciseId={id}&from={from}&to={to}`  | Required | None    | `ExerciseProgressPointsDTO`    | 200 |
