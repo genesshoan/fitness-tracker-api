@@ -1,0 +1,36 @@
+@startuml
+!theme plain
+
+class StatsController
+class StatsService
+class StatsRepository
+class WorkoutSessionRepository
+class ExerciseRepository
+class AchievementCalculator
+class OneRepMaxCalculator
+class VolumeCalculator
+class StreakCalculator
+class SessionVolumeDTO
+class OneRepMaxDTO
+class StreakDTO
+class ExerciseProgressPointsDTO
+
+StatsController --> StatsService
+StatsService --> StatsRepository
+StatsService --> WorkoutSessionRepository
+StatsService --> ExerciseRepository
+StatsService --> AchievementCalculator
+StatsService --> OneRepMaxCalculator
+StatsService --> VolumeCalculator
+StatsService --> StreakCalculator
+StatsService --> SessionVolumeDTO
+StatsService --> OneRepMaxDTO
+StatsService --> StreakDTO
+StatsService --> ExerciseProgressPointsDTO
+
+note right of StatsRepository
+  JDBC projections
+  SQL window functions
+  Batch ranking by exercise
+end note
+@enduml

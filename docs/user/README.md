@@ -2,6 +2,8 @@
 
 Manages the authenticated user's profile and credentials.
 
+![User architecture](user-architecture.png)
+
 ## Responsibilities
 
 - Return the current user's public profile
@@ -17,3 +19,5 @@ Manages the authenticated user's profile and credentials.
 - [Frontend Integration](frontend.md)
 
 User identity is taken from the authenticated principal. No endpoint accepts a user ID from the client for profile or credential changes.
+
+![User request flow](user-sequence.png)

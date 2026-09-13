@@ -1,0 +1,30 @@
+@startuml
+!theme plain
+actor Client
+participant StatsController
+participant StatsService
+participant StatsRepository
+participant Calculator
+
+group Session volume
+  Client -> StatsController : GET /stats/volume
+  StatsController -> StatsService : calculateSessionVolume(sessionId, userId)
+  StatsService -> StatsRepository : getSetsForVolume(sessionId, userId)
+  StatsRepository --> StatsService : completed weighted sets
+  StatsService -> Calculator : sum(weight * reps)
+  Calculator --> StatsService : volume
+  StatsService --> Client : SessionVolumeDTO
+end
+
+group Session achievements
+  Client -> StatsService : calculateForSession(session, userId)
+  StatsService -> StatsRepository : findRankedSets(all exercise IDs)
+  StatsRepository --> StatsService : ranked records in one batch
+  loop completed sets
+    StatsService -> Calculator : compare current metrics
+    Calculator --> StatsService : achievements
+    StatsService -> StatsService : update in-memory records
+  end
+  StatsService --> Client : achievements grouped by set
+end
+@enduml
