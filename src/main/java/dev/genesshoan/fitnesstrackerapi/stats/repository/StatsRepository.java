@@ -78,8 +78,9 @@ public class StatsRepository {
                 ORDER BY ws.completed_at ASC
             """;
 
-        MapSqlParameterSource params =
-                new MapSqlParameterSource().addValue("userId", userId).addValue("beforeCompletedAt", beforeCompletedAt);
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("userId", userId)
+                .addValue("beforeCompletedAt", Timestamp.from(beforeCompletedAt));
 
         return jdbcTemplate.query(
                 sql, params, (rs, rowNum) -> rs.getTimestamp("completed_at").toInstant());
@@ -91,7 +92,7 @@ public class StatsRepository {
                 SELECT
                     ss.reps,
                     ss.weight_kg
-                FROM sets ss
+                FROM session_sets ss
                 JOIN session_exercises se ON ss.session_exercise_id = se.id
                 JOIN workout_sessions ws ON se.session_id = ws.id
                 WHERE ss.completed = true
@@ -113,7 +114,7 @@ public class StatsRepository {
         String sql = """
                 SELECT
                     ss.weight_kg * (1 + ss.reps / 30.0) AS estimated_one_rep_max
-                FROM sets ss
+                FROM session_sets ss
                 JOIN session_exercises se ON ss.session_exercise_id = se.id
                 JOIN workout_sessions ws ON se.session_id = ws.id
                 WHERE se.exercise_id = :exerciseId
@@ -145,7 +146,7 @@ public class StatsRepository {
                         ss.reps,
                         ss.weight_kg * (1 + ss.reps / 30.0) AS estimated_one_rep_max,
                         ROW_NUMBER() OVER (PARTITION BY ws.id ORDER BY ss.weight_kg * (1 + ss.reps / 30.0) DESC) AS rn
-                    FROM sets ss
+                    FROM session_sets ss
                     JOIN session_exercises se ON ss.session_exercise_id = se.id
                     JOIN workout_sessions ws ON se.session_id = ws.id
                     WHERE se.exercise_id = :exerciseId
@@ -169,8 +170,8 @@ public class StatsRepository {
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("exerciseId", exerciseId)
                 .addValue("userId", userId)
-                .addValue("from", from)
-                .addValue("to", to);
+                .addValue("from", Timestamp.from(from))
+                .addValue("to", Timestamp.from(to));
 
         return jdbcTemplate.query(
                 sql,
@@ -191,10 +192,14 @@ public class StatsRepository {
                 (Integer) rs.getObject("reps"),
                 (Double) rs.getObject("distance_km"),
                 (Integer) rs.getObject("duration_seconds"),
-                (Integer) rs.getObject("rn_weight"),
-                (Integer) rs.getObject("rn_1rm"),
-                (Integer) rs.getObject("rn_distance"),
-                (Integer) rs.getObject("rn_duration"),
-                (Integer) rs.getObject("rn_reps_per_weight"));
+                toInteger(rs.getObject("rn_weight")),
+                toInteger(rs.getObject("rn_1rm")),
+                toInteger(rs.getObject("rn_distance")),
+                toInteger(rs.getObject("rn_duration")),
+                toInteger(rs.getObject("rn_reps_per_weight")));
+    }
+
+    private Integer toInteger(Object value) {
+        return value == null ? null : ((Number) value).intValue();
     }
 }
