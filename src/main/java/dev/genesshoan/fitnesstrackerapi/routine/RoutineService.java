@@ -32,6 +32,10 @@ import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Business logic for routines and routine exercises.
+ * Handles CRUD operations, exercise ordering, metric validation, and ownership checks.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -42,16 +46,37 @@ public class RoutineService {
     private final ExerciseRepository exerciseRepository;
     private final RoutineMapper routineMapper;
 
+    /**
+     * Retrieve a paginated list of active routines for the given user.
+     *
+     * @param user     the user whose routines are requested
+     * @param pageable pagination parameters
+     * @return a page of routine list items with exercise counts
+     */
     public Page<RoutineListItemDTO> getRoutinesByUserId(User user, Pageable pageable) {
         log.info("Getting routines for user: {} with pageable: {}", user.getId(), pageable);
         return routineRepository.findAllByUserIdAndActiveTrueWithExerciseCount(user.getId(), pageable);
     }
 
+    /**
+     * Retrieve a routine by its ID for the given user.
+     *
+     * @param routineId the routine identifier
+     * @param user      the user requesting the routine
+     * @return the routine response
+     */
     public RoutineResponseDTO getRoutineById(UUID routineId, User user) {
         log.info("Getting routine by id: {} for user: {}", routineId, user.getId());
         return toResponseDTO(findAndValidateRoutine(routineId, user));
     }
 
+    /**
+     * Create a new routine for the given user.
+     *
+     * @param dto  the routine request data
+     * @param user the user creating the routine
+     * @return the created routine
+     */
     @Transactional
     public RoutineResponseDTO createRoutine(RoutineRequestDTO dto, User user) {
         log.info("Creating routine with name: {} for user: {}", dto.name(), user.getId());
@@ -83,6 +108,14 @@ public class RoutineService {
         return toResponseDTO(routine);
     }
 
+    /**
+     * Update an existing routine.
+     *
+     * @param routineId the routine identifier
+     * @param dto       the updated routine data
+     * @param user      the user updating the routine
+     * @return the updated routine
+     */
     @Transactional
     public RoutineResponseDTO updateRoutine(UUID routineId, RoutineRequestDTO dto, User user) {
         log.info("Updating routine: {} for user: {}", routineId, user.getId());
@@ -108,6 +141,12 @@ public class RoutineService {
         return toResponseDTO(routine);
     }
 
+    /**
+     * Soft delete a routine by deactivating it.
+     *
+     * @param routineId the routine identifier
+     * @param user      the user deleting the routine
+     */
     @Transactional
     public void deleteRoutine(UUID routineId, User user) {
         log.info("Deleting routine: {} for user: {}", routineId, user.getId());
@@ -117,6 +156,15 @@ public class RoutineService {
         log.info("Routine deactivated: {}", routineId);
     }
 
+    /**
+     * Add an exercise at the specified position in the routine.
+     *
+     * @param routineId  the routine identifier
+     * @param position   the 1-based position to insert the exercise; adjusted to a valid range if necessary
+     * @param dto        the exercise request data
+     * @param user       the user owning the routine
+     * @return the updated routine
+     */
     @Transactional
     public RoutineResponseDTO addRoutineExercise(
             UUID routineId, int position, RoutineExerciseRequestDTO dto, User user) {
@@ -152,6 +200,13 @@ public class RoutineService {
         return toResponseDTO(routine);
     }
 
+    /**
+     * Remove an exercise at the specified position from the routine.
+     *
+     * @param routineId the routine identifier
+     * @param position  the 1-based position of the exercise to remove
+     * @param user      the user owning the routine
+     */
     @Transactional
     public void deleteRoutineExercise(UUID routineId, int position, User user) {
         log.info("Deleting exercise at position: {} from routine: {} for user: {}", position, routineId, user.getId());
@@ -178,6 +233,15 @@ public class RoutineService {
         log.info("Exercise at position {} removed from routine: {}", deletedPosition, routineId);
     }
 
+    /**
+     * Update the exercise at the specified position in the routine.
+     *
+     * @param routineId  the routine identifier
+     * @param position   the 1-based position of the exercise to update
+     * @param dto        the updated exercise request data
+     * @param user       the user owning the routine
+     * @return the updated routine
+     */
     @Transactional
     public RoutineResponseDTO updateRoutineExercise(
             UUID routineId, int position, RoutineExerciseRequestDTO dto, User user) {
@@ -214,6 +278,15 @@ public class RoutineService {
         return toResponseDTO(routine);
     }
 
+    /**
+     * Build a new {@link RoutineExercise} from the given parameters.
+     *
+     * @param routine     the owning routine
+     * @param exercise    the referenced exercise
+     * @param dto         the exercise request data
+     * @param position    the exercise position
+     * @return the built routine exercise
+     */
     private RoutineExercise buildRoutineExercise(
             Routine routine, Exercise exercise, RoutineExerciseRequestDTO dto, int position) {
         log.debug(
@@ -235,6 +308,14 @@ public class RoutineService {
                 .build();
     }
 
+    /**
+     * Build a list of {@link RoutineExercise} for a routine starting at position 1.
+     *
+     * @param exerciseDTOs the exercise request data
+     * @param routine      the owning routine
+     * @param exercises    the resolved exercises
+     * @return the list of routine exercises
+     */
     private List<RoutineExercise> buildRoutineExercises(
             List<RoutineExerciseRequestDTO> exerciseDTOs, Routine routine, Map<UUID, Exercise> exercises) {
         log.debug("Building {} routine exercises for routine: {}", exerciseDTOs.size(), routine.getId());
@@ -248,6 +329,14 @@ public class RoutineService {
         return routineExercises;
     }
 
+    /**
+     * Resolve exercise IDs to active exercises and validate their metrics.
+     *
+     * @param exerciseDTOs the exercise request data
+     * @return a map of exercise ID to exercise
+     * @throws BadRequestException if any exercise is not found
+     * @throws ValidationException if any exercise metrics are invalid for its category
+     */
     private Map<UUID, Exercise> resolveAndValidateExercises(List<RoutineExerciseRequestDTO> exerciseDTOs) {
         log.debug("Resolving and validating {} exercises", exerciseDTOs.size());
         Set<UUID> exerciseIds =
@@ -291,6 +380,14 @@ public class RoutineService {
         return exerciseMap;
     }
 
+    /**
+     * Find a routine by ID and validate that the user is its owner.
+     *
+     * @param routineId the routine identifier
+     * @param user      the user requesting the routine
+     * @return the routine
+     * @throws ResourceNotFoundException if the routine is not found or not owned by the user
+     */
     private Routine findAndValidateRoutine(UUID routineId, User user) {
         log.debug("Finding and validating routine: {} for user: {}", routineId, user.getId());
         Routine routine = routineRepository.findByIdAndActiveTrue(routineId).orElseThrow(() -> {
@@ -306,6 +403,12 @@ public class RoutineService {
         return routine;
     }
 
+    /**
+     * Convert a routine to a response DTO, sorting exercises by position.
+     *
+     * @param routine the routine
+     * @return the routine response DTO
+     */
     private RoutineResponseDTO toResponseDTO(Routine routine) {
         if (routine.getExercises() != null) {
             routine.getExercises().sort(Comparator.comparingInt(RoutineExercise::getPosition));
@@ -313,6 +416,13 @@ public class RoutineService {
         return routineMapper.toRoutineResponseDTO(routine);
     }
 
+    /**
+     * Replace all exercises of a routine with a new list built from the request data.
+     *
+     * @param routine       the routine whose exercises are replaced
+     * @param exercisesMap  the resolved exercises
+     * @param exerciseDTOs  the new exercise request data
+     */
     private void replaceRoutineExercises(
             Routine routine, Map<UUID, Exercise> exercisesMap, List<RoutineExerciseRequestDTO> exerciseDTOs) {
         log.debug("Replacing exercises for routine: {}", routine.getId());

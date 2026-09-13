@@ -22,6 +22,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+/**
+ * A routine is a named, ordered collection of exercises belonging to a user.
+ *
+ * <p>Routines use soft deletion via the {@code active} flag.
+ * A unique constraint ensures a user cannot have two active routines with the same name.
+ */
 @Entity
 @Getter
 @Setter

@@ -1,0 +1,104 @@
+@startuml auth-architecture
+
+title Auth Module Architecture
+
+skinparam componentStyle uml2
+skinparam backgroundColor #FEFEFE
+skinparam component {
+    BackgroundColor #D6E4F0
+    BorderColor #4A90D9
+}
+skinparam database {
+    BackgroundColor #E8E8E8
+    BorderColor #888888
+}
+skinparam node {
+    BackgroundColor #F0F0F0
+    BorderColor #AAAAAA
+}
+skinparam package {
+    BackgroundColor #F5F5F5
+    BorderColor #CCCCCC
+}
+
+package "auth module" as authmod {
+
+    component "AuthController" as ctrl {
+    }
+
+    component "AuthService" as svc {
+    }
+
+    component "JwtService" as jwt {
+    }
+
+    component "TokenRepository" as repo {
+    }
+
+    database "Token Entity\n(tokens table)" as token {
+    }
+}
+
+package "user module" as usermod {
+    database "User Entity\n(users table)" as user {
+    }
+}
+
+package "security module" as secmod {
+    component "UserDetailsImpl" as udi {
+    }
+
+    component "JwtFilter" as jf {
+    }
+}
+
+package "common module" as commod {
+    component "Exception Types\n(BadRequest,\nInvalidJwt,\nResourceNotFound,\nResourceAlreadyExists)" as exc {
+    }
+}
+
+package "config" as cfg {
+    component "SecurityConfig\n(public: /api/v1/auth/**)" as sc {
+    }
+
+    component "OpenApiConfig\n(Bearer Auth scheme)" as oc {
+    }
+}
+
+skinparam arrowColor #4A90D9
+skinparam arrowFontSize 10
+
+HTTPRequest -[hidden]> ctrl : HTTP\nRequest
+
+sc ..> ctrl : permitAll\n@ /api/v1/auth/**
+jf ..> ctrl : filters\nall requests
+
+ctrl --> svc : 1. call\nservice method
+svc --> jwt : 2. generate /\nparse tokens
+svc --> repo : 3. persist /\nquery refresh\ntokens
+repo --> token : 4. entity\nmapping
+svc --> user : 5. lookup\nuser by email
+user --> usermod : entity\nreference
+svc --> exc : throws\nexceptions
+
+cfg ..> sc : security\nfilter chain
+cfg ..> oc : global\nsecurity\nrequirement
+
+note right of jwt
+  Access Token:
+  - short-lived, stateless
+  - contains user identity + roles
+
+  Refresh Token:
+  - long-lived, persisted
+  - contains jti + familyId
+end note
+
+note bottom of repo
+  Token rotation:
+  each refresh revokes
+  old token, persists
+  new one
+end note
+
+@enduml

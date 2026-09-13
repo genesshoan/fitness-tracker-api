@@ -11,6 +11,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Composite primary key for the {@link ExerciseMuscle} join entity.
+ *
+ * <p>Consists of the exercise ID and muscle ID to uniquely
+ * identify each exercise-muscle relationship.
+ */
 @Getter
 @Setter
 @Embeddable
@@ -18,7 +24,10 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ExerciseMuscleId implements Serializable {
 
+    /** The exercise ID. */
     private UUID exerciseId;
+
+    /** The muscle ID. */
     private UUID muscleId;
 
     @Override

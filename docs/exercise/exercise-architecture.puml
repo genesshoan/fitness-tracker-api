@@ -1,0 +1,106 @@
+@startuml exercise-architecture
+
+title Exercise Module Architecture
+
+skinparam componentStyle uml2
+skinparam backgroundColor #FEFEFE
+skinparam component {
+    BackgroundColor #D6E4F0
+    BorderColor #4A90D9
+}
+skinparam database {
+    BackgroundColor #E8E8E8
+    BorderColor #888888
+}
+skinparam node {
+    BackgroundColor #F0F0F0
+    BorderColor #AAAAAA
+}
+skinparam package {
+    BackgroundColor #F5F5F5
+    BorderColor #CCCCCC
+}
+
+package "exercise module" as exmod {
+
+    component "ExerciseController" as exc {
+    }
+
+    component "ExerciseService" as exs {
+    }
+
+    component "ExerciseRepository" as exr {
+    }
+
+    database "Exercise Entity\n(exercises table)" as ex {
+    }
+
+    database "ExerciseMuscle Entity\n(exercise_muscles table)" as exm {
+    }
+
+    database "Muscle Entity\n(muscles table)" as mus {
+    }
+
+    component "ExerciseMapper" as exm {
+    }
+
+    component "MuscleMapper" as mm {
+    }
+}
+
+package "common module" as commod {
+    component "CursorPage / CursorPageRequest" as cp {
+    }
+
+    component "BaseEntity\n(id, createdAt, updatedAt)" as be {
+    }
+}
+
+package "security module" as secmod {
+    component "JwtFilter" as jf {
+    }
+
+    component "SecurityConfig\n(authenticated: /api/v1/exercises/**)" as sc {
+    }
+}
+
+skinparam arrowColor #4A90D9
+skinparam arrowFontSize 10
+
+HTTPRequest -[hidden]> exc : HTTP\nRequest
+sc ..> exc : authenticated\n@ /api/v1/exercises/**
+
+exc --> exs : 1. call\nservice method
+exs --> exr : 2. query\nfiltered exercises
+exr --> ex : 3. entity\nmapping
+exr --> exm : 4. join entity\nmapping
+exr --> mus : 5. muscle\nmapping
+
+exs --> exm : 6. map to DTOs
+exm --> exm : 7. map to ExerciseListItemDTO\n/ ExerciseDetailDTO
+mm --> mus : 8. map to MuscleResponseDTO
+
+note right of exs
+  ExerciseService:
+  - getAllExercises()
+    cursor pagination + filters
+  - getExerciseBySlug()
+    detail with muscles
+end note
+
+note bottom of exm
+  ExerciseMuscle:
+  - composite key (exerciseId, muscleId)
+  - impactLevel: PRIMARY / SECONDARY /
+    STABILIZER
+end note
+
+note right of ex {
+  Exercise:
+  - soft delete via active flag
+  - category: STRENGTH / CARDIO / MOBILITY
+  - difficulty: BEGINNER / INTERMEDIATE /
+    ADVANCED
+}
+
+@enduml
