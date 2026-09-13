@@ -247,7 +247,13 @@ public class WorkoutSessionController {
             summary = "Complete workout session",
             description = "Complete workout session for the authenticated user")
     @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Session completed successfully"),
+        @ApiResponse(
+                responseCode = "200",
+                description = "Session completed successfully",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema = @Schema(implementation = WorkoutSessionResponseDTO.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Workout session is already completed",
@@ -277,12 +283,11 @@ public class WorkoutSessionController {
                                 mediaType = "application/problem+json",
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @PatchMapping("/{sessionId}/finish")
-    public void completeWorkoutSession(
+    public ResponseEntity<WorkoutSessionResponseDTO> completeWorkoutSession(
             @AuthenticationPrincipal UserDetailsImpl principal,
             @Parameter(description = "Workout session id") @PathVariable UUID sessionId) {
-        workoutSessionService.completeWorkoutSession(sessionId, principal.getId());
+        return ResponseEntity.ok(workoutSessionService.completeWorkoutSession(sessionId, principal.getId()));
     }
 
     @Operation(summary = "Delete workout session", description = "Delete workout session for the authenticated user")
