@@ -4,7 +4,7 @@ CREATE TABLE workout_sessions
     user_id      UUID NOT NULL,
     routine_id   UUID,
     status       VARCHAR NOT NULL DEFAULT 'IN_PROGRESS',
-    startedAt    TIMESTAMP WITH TIME ZONE NOT NULL,
+    started_at    TIMESTAMP WITH TIME ZONE NOT NULL,
     completed_at TIMESTAMP WITH TIME ZONE,
     notes        TEXT,
     created_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
