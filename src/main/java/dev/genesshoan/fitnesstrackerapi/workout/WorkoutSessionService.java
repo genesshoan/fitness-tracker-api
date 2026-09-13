@@ -53,6 +53,13 @@ import dev.genesshoan.fitnesstrackerapi.workout.repository.projection.LastSetPro
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Manages workout sessions, their exercises, and performed sets.
+ *
+ * <p>Mutating operations lock the relevant session graph and reject changes
+ * after completion. New exercise positions are clamped and existing positions
+ * are shifted; set numbers are always assigned sequentially by the service.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -75,6 +82,7 @@ public class WorkoutSessionService {
     private final SessionSetMapper sessionSetMapper;
     private final ExerciseMetricsMapper exerciseMetricsMapper;
 
+    /** Lists the user's sessions using repository pagination. */
     public Page<WorkoutSessionListItemDTO> getAllWorkoutSessions(UUID userId, Pageable pageable) {
 
         log.info("Getting workouts sessions from user: {} with pageable: {}", userId, pageable);
@@ -84,6 +92,7 @@ public class WorkoutSessionService {
                 .map(workoutSessionMapper::toWorkoutSessionListItemDTO);
     }
 
+    /** Loads one user-owned session with exercises and sets. */
     public WorkoutSessionResponseDTO getWorkoutSessionById(UUID sessionId, UUID userId) {
 
         log.info("Getting workout session: {} for user: {}", sessionId, userId);
@@ -96,6 +105,11 @@ public class WorkoutSessionService {
         return toWorkoutSessionResponseDTO(workoutSession, userId);
     }
 
+    /**
+     * Creates an in-progress session from an active routine.
+     *
+     * <p>Routine exercise positions, metrics, and default set counts are copied.
+     */
     @Transactional
     public WorkoutSessionResponseDTO createWorkoutSessionFromRoutine(UUID routineId, UUID userId) {
 
@@ -134,6 +148,13 @@ public class WorkoutSessionService {
         return toWorkoutSessionResponseDTO(saved, userId);
     }
 
+    /**
+     * Creates a session from request data after validating status, timestamps,
+     * exercises, and category-specific set metrics.
+     *
+     * <p>When an exercise has no sets in the request, one set is synthesized
+     * from the exercise's last completed set, or its category defaults.
+     */
     @Transactional
     public WorkoutSessionResponseDTO createWorkoutSessionFromScratch(WorkoutSessionRequestDTO dto, UUID userId) {
 
@@ -173,6 +194,7 @@ public class WorkoutSessionService {
         return toWorkoutSessionResponseDTO(saved, userId);
     }
 
+    /** Updates notes on an in-progress user-owned session. */
     @Transactional
     public void updateWorkoutSessionNotes(UUID sessionId, UUID userId, NotesUpdateRequestDTO dto) {
 
@@ -187,6 +209,10 @@ public class WorkoutSessionService {
         session.setNotes(dto.notes());
     }
 
+    /**
+     * Finishes an in-progress session and assigns {@code completedAt} to the
+     * current instant.
+     */
     @Transactional
     public WorkoutSessionResponseDTO completeWorkoutSession(UUID sessionId, UUID userId) {
 
@@ -209,6 +235,7 @@ public class WorkoutSessionService {
         return toWorkoutSessionResponseDTO(session, userId);
     }
 
+    /** Permanently deletes a user-owned workout session and its children. */
     @Transactional
     public void deleteWorkoutSession(UUID sessionId, UUID userId) {
 
@@ -222,6 +249,10 @@ public class WorkoutSessionService {
         log.info("Deleted session workout: {} from user: {}", sessionId, userId);
     }
 
+    /**
+     * Adds an exercise, using the requested position or appending when null.
+     * Positions after the insertion point are shifted.
+     */
     @Transactional
     public SessionExerciseAddedResponseDTO addNewSessionExercise(
             UUID sessionId, UUID userId, SessionExerciseRequestDTO dto) {
@@ -268,6 +299,7 @@ public class WorkoutSessionService {
         return sessionExerciseMapper.toSessionExerciseAddedResponseDTO(sessionExercise, shifted);
     }
 
+    /** Updates notes while the parent session remains in progress. */
     @Transactional
     public void updateSessionExerciseNotes(
             UUID workoutSessionId, UUID sessionExerciseId, UUID userId, NotesUpdateRequestDTO dto) {
@@ -287,6 +319,10 @@ public class WorkoutSessionService {
         sessionExercise.setNotes(dto.notes());
     }
 
+    /**
+     * Moves an exercise to a clamped one-based position and returns all
+     * resulting positions.
+     */
     @Transactional
     public List<SessionExercisePositionDTO> updateSessionExercisePosition(
             UUID workoutSessionId, UUID sessionExerciseId, UUID userId, PositionRequestDTO dto) {
@@ -321,6 +357,7 @@ public class WorkoutSessionService {
         return sessionExerciseMapper.toSessionExercisePositionDTOList(workoutSession.getExercises());
     }
 
+    /** Removes an exercise and closes the position gap. */
     @Transactional
     public List<SessionExercisePositionDTO> deleteSessionExercise(
             UUID workoutSessionId, UUID sessionExerciseId, UUID userId) {
@@ -350,6 +387,10 @@ public class WorkoutSessionService {
         return sessionExerciseMapper.toSessionExercisePositionDTOList(workoutSession.getExercises());
     }
 
+    /**
+     * Adds a set with the next sequential number. An empty metrics request
+     * reuses the last completed set for the exercise, or category defaults.
+     */
     @Transactional
     public SessionSetResponseDTO addNewSessionSet(
             UUID workoutSessionId, UUID sessionExerciseId, UUID userId, SessionSetRequestDTO dto) {
@@ -387,6 +428,7 @@ public class WorkoutSessionService {
         return toSessionSetResponseDTO(saved, userId);
     }
 
+    /** Updates set metrics and completion state without changing its number. */
     @Transactional
     public SessionSetResponseDTO updateSessionSet(
             UUID workoutSessionId, UUID sessionExerciseId, UUID sessionSetId, UUID userId, SessionSetRequestDTO dto) {
@@ -422,6 +464,7 @@ public class WorkoutSessionService {
         return toSessionSetResponseDTO(sessionSet, userId);
     }
 
+    /** Removes a set, closing its number gap; a sole set removes the exercise. */
     @Transactional
     public void deleteSessionSet(UUID workoutSessionId, UUID sessionExerciseId, UUID sessionSetId, UUID userId) {
 

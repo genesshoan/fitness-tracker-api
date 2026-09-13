@@ -13,6 +13,10 @@ import dev.genesshoan.fitnesstrackerapi.stats.domain.PersonalRecordHolders;
 
 public class AchievementCalculator {
 
+    /**
+     * Compares current metrics with personal records and emits every record
+     * exceeded by the set. Null metrics are ignored.
+     */
     public static List<Achievement> compareData(ExerciseMetrics currentData, PersonalRecordHolders holders) {
 
         List<Achievement> achievements = new ArrayList<>();

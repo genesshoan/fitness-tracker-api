@@ -42,6 +42,13 @@ import dev.genesshoan.fitnesstrackerapi.workout.repository.WorkoutSessionReposit
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Provides user-scoped workout statistics and achievement calculations.
+ *
+ * <p>Statistics use completed sets and completed workout sessions only where
+ * the underlying query requires historical performance. Date conversion uses
+ * the user's configured timezone.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -55,6 +62,14 @@ public class StatsService {
     private final ExerciseMetricsMapper exerciseMetricsMapper;
     private final AchievementMapper achievementMapper;
 
+    /**
+     * Calculates the current and longest consecutive workout-day streak.
+     *
+     * @param userId the user whose sessions are considered
+     * @param referenceInstant the instant treated as "today"
+     * @param userTimezone the user's IANA timezone
+     * @return streak counts and the most recent active local date
+     */
     public StreakDTO getCurrentStreak(UUID userId, Instant referenceInstant, String userTimezone) {
 
         ZoneId userZoneId = ZoneId.of(userTimezone);
@@ -74,6 +89,14 @@ public class StatsService {
         return new StreakDTO(streakResult.currentStreak(), streakResult.longestStreak(), lastActiveDate);
     }
 
+    /**
+     * Calculates strength volume for completed sets in a session.
+     *
+     * @param sessionId the session identifier
+     * @param userId the authenticated owner
+     * @return the sum of {@code weightKg * reps}; sets missing either value are excluded
+     * @throws ResourceNotFoundException if the session is not owned by the user
+     */
     public SessionVolumeDTO calculateSessionVolume(UUID sessionId, UUID userId) {
 
         if (!workoutSessionRepository.existsByIdAndUserId(sessionId, userId)) {
@@ -85,6 +108,16 @@ public class StatsService {
         return new SessionVolumeDTO(VolumeCalculator.calculate(setVolumes));
     }
 
+    /**
+     * Finds the highest estimated one-repetition maximum for an exercise.
+     *
+     * <p>If the user has no qualifying completed set, the result is zero.
+     *
+     * @param userId the user whose history is searched
+     * @param exerciseId the exercise identifier
+     * @return the highest estimated 1RM, using the Epley formula
+     * @throws ResourceNotFoundException if the exercise does not exist
+     */
     public OneRepMaxDTO getOneRepMax(UUID userId, UUID exerciseId) {
 
         if (!exerciseRepository.existsById(exerciseId)) {
@@ -97,6 +130,19 @@ public class StatsService {
         return new OneRepMaxDTO(exerciseId, projection.estimatedOneRepMax());
     }
 
+    /**
+     * Returns one best estimated-1RM point per completed session in a range.
+     *
+     * <p>{@code from} is inclusive and {@code to} is exclusive. Timestamps are
+     * converted to local dates using the user's timezone.
+     *
+     * @param userId the user whose history is searched
+     * @param exerciseId the exercise identifier
+     * @param from inclusive range start
+     * @param to exclusive range end
+     * @param userTimezone the user's IANA timezone
+     * @return chronological progress points
+     */
     public ExerciseProgressPointsDTO getExerciseProgress(
             UUID userId, UUID exerciseId, Instant from, Instant to, String userTimezone) {
 
@@ -122,6 +168,17 @@ public class StatsService {
         return new ExerciseProgressPointsDTO(exerciseId, progress);
     }
 
+    /**
+     * Calculates achievements for all completed sets in a session.
+     *
+     * <p>Historical personal records are loaded in one batch for all exercises,
+     * then updated in memory as sets are processed in session order. This makes
+     * achievements within the same session compare against earlier sets too.
+     *
+     * @param session the session being evaluated
+     * @param userId the session owner
+     * @return achievements grouped by set ID; incomplete or non-achieving sets are absent
+     */
     public Map<UUID, List<AchievementDTO>> calculateForSession(WorkoutSession session, UUID userId) {
 
         Map<UUID, List<AchievementDTO>> resultsBySetId = new HashMap<>();
@@ -154,6 +211,13 @@ public class StatsService {
         return resultsBySetId;
     }
 
+    /**
+     * Calculates achievements for one set against records before its session.
+     *
+     * @param sessionSet the set being evaluated
+     * @param userId the set owner
+     * @return achievements, or an empty list when the set is incomplete
+     */
     public List<AchievementDTO> calculateForSet(SessionSet sessionSet, UUID userId) {
 
         if (!sessionSet.isCompleted()) return List.of();

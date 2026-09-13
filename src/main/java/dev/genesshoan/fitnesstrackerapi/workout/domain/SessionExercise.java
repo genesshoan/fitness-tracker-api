@@ -25,6 +25,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.BatchSize;
 
+/** An ordered exercise within a workout session and its performed sets. */
 @Getter
 @Setter
 @Entity
@@ -59,11 +60,13 @@ public class SessionExercise extends BaseEntity {
     @BatchSize(size = 20)
     private List<SessionSet> sets = new ArrayList<>();
 
+    /** Adds a set and synchronizes its parent relationship. */
     public void addSet(SessionSet set) {
         sets.add(set);
         set.setSessionExercise(this);
     }
 
+    /** Removes a set and closes the following set-number gap. */
     public void removeSet(SessionSet set) {
         int deletedPosition = set.getSetNumber();
 
@@ -73,10 +76,12 @@ public class SessionExercise extends BaseEntity {
         closeSetNumberGap(deletedPosition);
     }
 
+    /** Finds a set by its session-set ID. */
     public Optional<SessionSet> findSet(UUID sessionSetId) {
         return sets.stream().filter(set -> set.getId().equals(sessionSetId)).findFirst();
     }
 
+    /** Returns the current number of sets in this exercise. */
     public int getSetCount() {
         return sets.size();
     }

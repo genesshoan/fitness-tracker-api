@@ -34,6 +34,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * HTTP endpoints for editing exercises within an in-progress session.
+ */
 @Validated
 @RestController
 @RequiredArgsConstructor

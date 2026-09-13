@@ -32,6 +32,7 @@ public record SessionSetResponseDTO(
         @Schema(description = "Achievements obtained by this set")
         List<AchievementDTO> achievements) {
 
+    /** Converts the response metrics to the common metric value object. */
     public ExerciseMetrics toExerciseMetrics() {
         return new ExerciseMetrics(reps, weightKg, durationSeconds, distanceKm);
     }

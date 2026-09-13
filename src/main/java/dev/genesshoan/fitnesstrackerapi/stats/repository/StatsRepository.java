@@ -21,12 +21,27 @@ import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.RankedSetPro
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.VolumeSetProjection;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * JDBC queries for aggregate workout statistics.
+ *
+ * <p>Queries are user-scoped and use set/session completion flags and time
+ * boundaries explicitly. {@link #findRankedSets} is the batch query used to
+ * load all personal-record candidates for multiple exercises at once.
+ */
 @Repository
 @RequiredArgsConstructor
 public class StatsRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
+    /**
+     * Loads the top historical set candidates for every requested exercise.
+     *
+     * @param userId owner of the sessions
+     * @param exerciseIds exercise IDs to rank
+     * @param beforeStartedAt exclusive session start boundary
+     * @return candidates grouped by exercise ID
+     */
     public Map<UUID, List<RankedSetProjection>> findRankedSets(
             UUID userId, Set<UUID> exerciseIds, Instant beforeStartedAt) {
 
@@ -68,6 +83,12 @@ public class StatsRepository {
         return results.stream().collect(Collectors.groupingBy(RankedSetProjection::exerciseId));
     }
 
+    /**
+     * Loads distinct completed session timestamps before a boundary.
+     *
+     * @return timestamps in ascending order; duplicate calendar days remain
+     *         until the service converts them to the user's timezone
+     */
     public List<Instant> getTrainedDatesBeforeAsc(UUID userId, Instant beforeCompletedAt) {
 
         String sql = """
@@ -86,6 +107,10 @@ public class StatsRepository {
                 sql, params, (rs, rowNum) -> rs.getTimestamp("completed_at").toInstant());
     }
 
+    /**
+     * Loads completed strength sets in one session for volume calculation.
+     * Sets without reps or weight are excluded by SQL.
+     */
     public List<VolumeSetProjection> getSetsForVolume(UUID sessionId, UUID userId) {
 
         String sql = """
@@ -109,6 +134,10 @@ public class StatsRepository {
                 sql, params, (rs, rowNum) -> new VolumeSetProjection(rs.getDouble("weight_kg"), rs.getInt("reps")));
     }
 
+    /**
+     * Loads the single highest estimated 1RM for a user and exercise.
+     * Returns no projection when no qualifying completed set exists.
+     */
     public Optional<OneRepMaxProjection> getSetForOneRepMax(UUID userId, UUID exerciseId) {
 
         String sql = """
@@ -135,6 +164,10 @@ public class StatsRepository {
                 .findFirst();
     }
 
+    /**
+     * Loads one best estimated-1RM set per completed session in the half-open
+     * {@code [from, to)} interval.
+     */
     public List<ExerciseProgressProjection> getExerciseProgressPoints(
             UUID userId, UUID exerciseId, Instant from, Instant to) {
 

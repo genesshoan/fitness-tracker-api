@@ -27,6 +27,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+/** A user-owned workout session containing ordered exercises and sets. */
 @Getter
 @Setter
 @Entity
@@ -61,11 +62,16 @@ public class WorkoutSession extends BaseEntity {
     @OrderBy("position ASC")
     private List<SessionExercise> exercises = new ArrayList<>();
 
+    /** Marks the session completed at the current instant. */
     public void finish() {
         this.status = SessionStatus.COMPLETED;
         this.completedAt = Instant.now();
     }
 
+    /**
+     * Inserts an exercise at a clamped position and shifts later exercises.
+     * A null position appends the exercise.
+     */
     public void addExerciseAt(SessionExercise sessionExercise, Integer requestedPosition) {
         int resolvedPosition = resolvePosition(requestedPosition, exercises.size() + 1);
 
@@ -74,6 +80,7 @@ public class WorkoutSession extends BaseEntity {
         addExercise(sessionExercise);
     }
 
+    /** Removes an exercise and closes the position gap. */
     public void removeExercise(SessionExercise exercise) {
         int deletedPosition = exercise.getPosition();
 
@@ -83,6 +90,7 @@ public class WorkoutSession extends BaseEntity {
         closePositionGap(deletedPosition);
     }
 
+    /** Moves an exercise to a clamped position and shifts affected siblings. */
     public void moveExercise(SessionExercise sessionExercise, int requestedPosition) {
         int newPosition = resolvePosition(requestedPosition, exercises.size());
         int oldPosition = sessionExercise.getPosition();
@@ -108,6 +116,7 @@ public class WorkoutSession extends BaseEntity {
         sessionExercise.setPosition(newPosition);
     }
 
+    /** Finds a child exercise by its session-exercise ID. */
     public Optional<SessionExercise> findExercise(UUID exerciseId) {
         return exercises.stream().filter(se -> se.getId().equals(exerciseId)).findFirst();
     }

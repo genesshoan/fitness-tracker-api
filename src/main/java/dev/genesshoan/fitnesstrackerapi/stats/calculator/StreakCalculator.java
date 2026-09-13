@@ -5,8 +5,13 @@ import java.util.List;
 
 public class StreakCalculator {
 
+    /** Immutable current/longest streak result. */
     public record StreakResult(int currentStreak, int longestStreak) {}
 
+    /**
+     * Calculates streaks from ascending, distinct active local dates.
+     * The current streak is zero unless the last active day is today or yesterday.
+     */
     public static StreakResult calculate(List<LocalDate> activeDaysAscending, LocalDate referenceDate) {
 
         if (activeDaysAscending.isEmpty()) {
