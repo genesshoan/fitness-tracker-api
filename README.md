@@ -116,10 +116,6 @@ src/main/resources/   Profiles, seed data, and Flyway migrations
 src/test/             Unit, repository, MVC, and integration tests
 ```
 
-## Portfolio Notes
-
-This project is intentionally documented as a backend foundation for a future frontend implementation. The documentation calls out behavior that is easy for a client to miss, including ownership scoping, half-open date ranges, category-dependent metrics, batch queries, default-value reuse, position clamping, and the transition from editable to completed sessions.
-
 ## License
 
-No license has been declared yet.
+This project is licensed under the [MIT License](LICENSE).
