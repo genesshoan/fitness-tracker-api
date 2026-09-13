@@ -107,6 +107,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/progress/**")
                         .authenticated()
 
+                        // Statistics
+                        .requestMatchers("/api/v1/stats/**")
+                        .authenticated()
+
                         // WorkoutSession management
                         .requestMatchers("/api/v1/sessions/**")
                         .authenticated()

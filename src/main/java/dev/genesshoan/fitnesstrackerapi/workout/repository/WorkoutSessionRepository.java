@@ -20,6 +20,8 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
 
     Page<WorkoutSession> findAllByUserId(UUID userId, Pageable pageable);
 
+    boolean existsByIdAndUserId(UUID id, UUID userId);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<WorkoutSession> findForUpdateByIdAndUserId(UUID sessionId, UUID userId);
 
@@ -32,6 +34,17 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
             AND ws.user.id = :userId
         """)
     Optional<WorkoutSession> findForUpdateWithExercises(@Param("id") UUID id, @Param("userId") UUID userId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+        SELECT DISTINCT ws
+        FROM WorkoutSession ws
+        LEFT JOIN FETCH ws.exercises e
+        LEFT JOIN FETCH e.exercise
+        WHERE ws.id = :id
+            AND ws.user.id = :userId
+        """)
+    Optional<WorkoutSession> findForUpdateWithExercisesAndSets(@Param("id") UUID id, @Param("userId") UUID userId);
 
     @Query("""
         SELECT DISTINCT ws

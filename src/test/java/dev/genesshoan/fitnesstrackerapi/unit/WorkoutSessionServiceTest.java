@@ -22,6 +22,7 @@ import dev.genesshoan.fitnesstrackerapi.routine.RoutineRepository;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.RoutineExercise;
 import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineListItemDTO;
+import dev.genesshoan.fitnesstrackerapi.stats.service.StatsService;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.ExerciseBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.RoutineBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.RoutineExerciseBuilder;
@@ -53,6 +54,7 @@ import dev.genesshoan.fitnesstrackerapi.workout.repository.SessionExerciseReposi
 import dev.genesshoan.fitnesstrackerapi.workout.repository.SessionSetRepository;
 import dev.genesshoan.fitnesstrackerapi.workout.repository.WorkoutSessionRepository;
 import net.datafaker.Faker;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -65,7 +67,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -106,8 +110,21 @@ class WorkoutSessionServiceTest {
     @Mock
     private SessionSetMapper sessionSetMapper;
 
+    @Mock
+    private StatsService statsService;
+
     @InjectMocks
     private WorkoutSessionService workoutSessionService;
+
+    @BeforeEach
+    void configureStatsService() {
+        lenient()
+                .when(statsService.calculateForSession(any(WorkoutSession.class), any(UUID.class)))
+                .thenReturn(Map.of());
+        lenient()
+                .when(statsService.calculateForSet(any(SessionSet.class), any(UUID.class)))
+                .thenReturn(List.of());
+    }
 
     @Nested
     @DisplayName("addNewSessionExercise")
@@ -577,7 +594,7 @@ class WorkoutSessionServiceTest {
                             sessionExercise.getId(), sessionId, userId))
                     .thenReturn(Optional.of(sessionExercise));
             when(sessionSetRepository.save(any(SessionSet.class))).thenAnswer(invocation -> invocation.getArgument(0));
-            when(sessionSetMapper.toSessionSetResponseDTO(any(SessionSet.class)))
+            when(sessionSetMapper.toResponseDTO(any(SessionSet.class), anyMap()))
                     .thenAnswer(invocation -> {
                         SessionSet set = invocation.getArgument(0);
                         return new SessionSetResponseDTO(
@@ -587,7 +604,8 @@ class WorkoutSessionServiceTest {
                                 set.getWeightKg(),
                                 set.getDurationSeconds(),
                                 set.getDistanceKm(),
-                                set.isCompleted());
+                                set.isCompleted(),
+                                List.of());
                     });
 
             SessionSetResponseDTO result =
@@ -676,7 +694,7 @@ class WorkoutSessionServiceTest {
             when(sessionSetRepository.findForUpdateWithSessionExerciseAndWorkoutSessionAndExercise(
                             sessionSetId, sessionExercise.getId(), sessionId, userId))
                     .thenReturn(Optional.of(sessionSet));
-            when(sessionSetMapper.toSessionSetResponseDTO(sessionSet)).thenAnswer(invocation -> {
+            when(sessionSetMapper.toResponseDTO(eq(sessionSet), anyMap())).thenAnswer(invocation -> {
                 SessionSet set = invocation.getArgument(0);
                 return new SessionSetResponseDTO(
                         set.getId(),
@@ -685,7 +703,8 @@ class WorkoutSessionServiceTest {
                         set.getWeightKg(),
                         set.getDurationSeconds(),
                         set.getDistanceKm(),
-                        set.isCompleted());
+                        set.isCompleted(),
+                        List.of());
             });
 
             SessionSetResponseDTO result = workoutSessionService.updateSessionSet(
@@ -1025,7 +1044,8 @@ class WorkoutSessionServiceTest {
 
         when(workoutSessionRepository.findWithExercisesByIdAndUserId(sessionId, userId))
                 .thenReturn(Optional.of(session));
-        when(workoutSessionMapper.toWorkoutSessionResponseDTO(session)).thenReturn(response);
+        when(workoutSessionMapper.toWorkoutSessionResponseDTO(eq(session), anyMap()))
+                .thenReturn(response);
 
         WorkoutSessionResponseDTO result = workoutSessionService.getWorkoutSessionById(sessionId, userId);
 
@@ -1088,7 +1108,7 @@ class WorkoutSessionServiceTest {
         when(userRepository.getReferenceById(userId)).thenReturn(userReference);
         when(workoutSessionRepository.save(any(WorkoutSession.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        when(workoutSessionMapper.toWorkoutSessionResponseDTO(any(WorkoutSession.class)))
+        when(workoutSessionMapper.toWorkoutSessionResponseDTO(any(WorkoutSession.class), anyMap()))
                 .thenReturn(response);
 
         WorkoutSessionResponseDTO result = workoutSessionService.createWorkoutSessionFromRoutine(routineId, userId);
@@ -1215,7 +1235,7 @@ class WorkoutSessionServiceTest {
         when(userRepository.getReferenceById(userId)).thenReturn(userReference);
         when(workoutSessionRepository.save(any(WorkoutSession.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        when(workoutSessionMapper.toWorkoutSessionResponseDTO(any(WorkoutSession.class)))
+        when(workoutSessionMapper.toWorkoutSessionResponseDTO(any(WorkoutSession.class), anyMap()))
                 .thenReturn(response);
 
         WorkoutSessionResponseDTO result = workoutSessionService.createWorkoutSessionFromScratch(request, userId);
@@ -1338,14 +1358,19 @@ class WorkoutSessionServiceTest {
                 .withId(sessionId)
                 .forUser(UserBuilder.aUser(FAKER).build())
                 .build();
+        WorkoutSessionResponseDTO response =
+                new WorkoutSessionResponseDTO(sessionId, SessionStatus.COMPLETED, null, null, null, List.of());
 
-        when(workoutSessionRepository.findForUpdateByIdAndUserId(sessionId, userId))
+        when(workoutSessionRepository.findForUpdateWithExercisesAndSets(sessionId, userId))
                 .thenReturn(Optional.of(session));
+        when(workoutSessionMapper.toWorkoutSessionResponseDTO(eq(session), anyMap()))
+                .thenReturn(response);
 
-        workoutSessionService.completeWorkoutSession(sessionId, userId);
+        WorkoutSessionResponseDTO result = workoutSessionService.completeWorkoutSession(sessionId, userId);
 
         assertThat(session.getStatus()).isEqualTo(SessionStatus.COMPLETED);
         assertThat(session.getCompletedAt()).isNotNull();
+        assertThat(result).isEqualTo(response);
     }
 
     @Test
@@ -1358,7 +1383,7 @@ class WorkoutSessionServiceTest {
                 .forUser(UserBuilder.aUser(FAKER).build())
                 .build();
 
-        when(workoutSessionRepository.findForUpdateByIdAndUserId(sessionId, userId))
+        when(workoutSessionRepository.findForUpdateWithExercisesAndSets(sessionId, userId))
                 .thenReturn(Optional.of(session));
 
         assertThatThrownBy(() -> workoutSessionService.completeWorkoutSession(sessionId, userId))
@@ -1370,7 +1395,7 @@ class WorkoutSessionServiceTest {
         UUID userId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
 
-        when(workoutSessionRepository.findForUpdateByIdAndUserId(sessionId, userId))
+        when(workoutSessionRepository.findForUpdateWithExercisesAndSets(sessionId, userId))
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> workoutSessionService.completeWorkoutSession(sessionId, userId))

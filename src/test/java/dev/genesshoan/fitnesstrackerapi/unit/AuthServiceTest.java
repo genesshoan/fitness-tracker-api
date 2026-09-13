@@ -75,7 +75,7 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        registerDto = new RegisterRequestDTO("shoan", "12345678", "shoan@test.com");
+        registerDto = new RegisterRequestDTO("shoan", "12345678", "shoan@test.com", "America/Sao_Paulo");
 
         userId = UUID.randomUUID();
 
@@ -158,6 +158,23 @@ class AuthServiceTest {
 
         verify(userRepository, never()).save(any());
         verifyNoInteractions(tokenRepository);
+    }
+
+    @Test
+    @DisplayName("Should throw when timezone is invalid")
+    void register_shouldThrowWhenTimezoneIsInvalid() {
+        RegisterRequestDTO invalidTimezone =
+                new RegisterRequestDTO("shoan", "12345678", "shoan@test.com", "Invalid/Timezone");
+
+        when(userRepository.existsByUsername(invalidTimezone.username())).thenReturn(false);
+        when(userRepository.existsByEmail(invalidTimezone.email())).thenReturn(false);
+
+        assertThatThrownBy(() -> authService.register(invalidTimezone))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Invalid time zone");
+
+        verify(userRepository, never()).save(any());
+        verifyNoInteractions(tokenRepository, userMapper, passwordEncoder);
     }
 
     @Test

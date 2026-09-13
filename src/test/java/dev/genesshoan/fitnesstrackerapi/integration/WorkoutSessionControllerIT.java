@@ -281,7 +281,7 @@ class WorkoutSessionControllerIT extends AbstractIntegrationTest {
         void shouldReturn400WhenSessionIsCompleted() throws Exception {
             mockMvc.perform(patch("/api/v1/sessions/{sessionId}/finish", session.getId())
                             .with(asUser(user)))
-                    .andExpect(status().isNoContent());
+                    .andExpect(status().isOk());
 
             mockMvc.perform(patch("/api/v1/sessions/{sessionId}/notes", session.getId())
                             .contentType(MediaType.APPLICATION_JSON)
@@ -313,12 +313,14 @@ class WorkoutSessionControllerIT extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Should return 204 and set status to COMPLETED with completedAt")
+        @DisplayName("Should return 200 and set status to COMPLETED with completedAt")
         @Transactional
         void shouldReturn204AndCompleteSession() throws Exception {
             mockMvc.perform(patch("/api/v1/sessions/{sessionId}/finish", session.getId())
                             .with(asUser(user)))
-                    .andExpect(status().isNoContent());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value("COMPLETED"))
+                    .andExpect(jsonPath("$.completedAt").isNotEmpty());
         }
 
         @Test
@@ -421,7 +423,9 @@ class WorkoutSessionControllerIT extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.completed").value(true));
 
         mockMvc.perform(patch("/api/v1/sessions/{sessionId}/finish", sessionId).with(asUser(user)))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(SessionStatus.COMPLETED.name()))
+                .andExpect(jsonPath("$.completedAt").exists());
 
         mockMvc.perform(get("/api/v1/sessions/{sessionId}", sessionId).with(asUser(user)))
                 .andExpect(status().isOk())

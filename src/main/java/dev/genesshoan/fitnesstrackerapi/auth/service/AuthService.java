@@ -1,5 +1,7 @@
 package dev.genesshoan.fitnesstrackerapi.auth.service;
 
+import java.time.DateTimeException;
+import java.time.ZoneId;
 import java.util.UUID;
 
 import org.springframework.security.authentication.AuthenticationManager;
@@ -73,6 +75,12 @@ public class AuthService {
             log.warn("Registration failed: email already exists. email={}", dto.email());
 
             throw new ResourceAlreadyExistsException("Email already exists");
+        }
+
+        try {
+            ZoneId.of(dto.timezone());
+        } catch (DateTimeException e) {
+            throw new BadRequestException("Invalid time zone");
         }
 
         var user = userMapper.toEntity(dto);
