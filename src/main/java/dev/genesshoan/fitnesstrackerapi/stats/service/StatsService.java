@@ -62,7 +62,8 @@ public class StatsService {
         List<LocalDate> activeDaysAscending =
                 statsRepository.getTrainedDatesBeforeAsc(userId, referenceInstant).stream()
                         .map(i -> i.atZone(userZoneId).toLocalDate())
-                        .toList();
+                        .distinct()
+                        .toList()
 
         LocalDate referenceDate = referenceInstant.atZone(userZoneId).toLocalDate();
 
