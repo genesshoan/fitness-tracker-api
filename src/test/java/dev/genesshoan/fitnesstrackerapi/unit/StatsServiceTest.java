@@ -162,6 +162,20 @@ class StatsServiceTest {
     }
 
     @Test
+    @DisplayName("Should reject progress when start date is after end date")
+    void getExerciseProgress_shouldThrowWhenFromIsAfterTo() {
+        UUID exerciseId = UUID.randomUUID();
+        Instant from = Instant.parse("2026-02-01T00:00:00Z");
+        Instant to = Instant.parse("2026-01-01T00:00:00Z");
+
+        assertThatThrownBy(() -> statsService.getExerciseProgress(UUID.randomUUID(), exerciseId, from, to, "UTC"))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Exercise progress not found");
+
+        verifyNoInteractions(statsRepository, exerciseRepository);
+    }
+
+    @Test
     @DisplayName("Should reject session volume for an unknown session")
     void calculateSessionVolume_shouldThrowWhenSessionDoesNotBelongToUser() {
         UUID sessionId = UUID.randomUUID();

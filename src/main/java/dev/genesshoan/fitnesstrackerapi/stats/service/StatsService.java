@@ -63,7 +63,7 @@ public class StatsService {
                 statsRepository.getTrainedDatesBeforeAsc(userId, referenceInstant).stream()
                         .map(i -> i.atZone(userZoneId).toLocalDate())
                         .distinct()
-                        .toList()
+                        .toList();
 
         LocalDate referenceDate = referenceInstant.atZone(userZoneId).toLocalDate();
 
@@ -99,6 +99,10 @@ public class StatsService {
 
     public ExerciseProgressPointsDTO getExerciseProgress(
             UUID userId, UUID exerciseId, Instant from, Instant to, String userTimezone) {
+
+        if (from.isAfter(to)) {
+            throw new ResourceNotFoundException("Exercise progress not found");
+        }
 
         if (!exerciseRepository.existsById(exerciseId)) {
             throw new ResourceNotFoundException("Exercise not found");
