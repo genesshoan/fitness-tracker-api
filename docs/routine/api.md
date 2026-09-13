@@ -123,11 +123,11 @@ All endpoints require authentication via Bearer token. The authenticated user's 
 - `exerciseId` – required, valid UUID
 - `defaultRestSeconds` – required, must be non-negative (>= 0)
 - `defaultSets` – required, must be positive (> 0)
-- `defaultReps` – optional, must be positive (> 0)
-- `defaultWeightKg` – optional, must be positive (> 0)
-- `defaultDurationSeconds` – optional, must be positive (> 0)
-- `defaultDistanceKm` – optional, must be positive (> 0)
-- Exercise metrics must be valid for the exercise category (STRENGTH, CARDIO, MOBILITY)
+- `defaultReps`, `defaultWeightKg`, `defaultDurationSeconds`, and `defaultDistanceKm` – optional and non-negative when provided
+- Exercise metrics must match the referenced exercise category:
+  - `STRENGTH` requires positive reps and weight, with no duration or distance
+  - `CARDIO` requires a positive duration or distance, with no reps or weight
+  - `MOBILITY` requires a positive duration, with no reps, weight, or distance
 
 **Success Response (201):**
 ```json
@@ -312,6 +312,8 @@ All endpoints require authentication via Bearer token. The authenticated user's 
 - `404` – Routine or exercise not found
 - `500` – Internal server error
 
+The authenticated user must own the routine. Inactive routines are treated as not found.
+
 ## Update Exercise in Routine (`PUT /api/v1/routines/{routineId}/exercises/{position}`)
 
 **Description:** Updates the metrics for an exercise at a specific position in the routine.
@@ -374,6 +376,8 @@ All endpoints require authentication via Bearer token. The authenticated user's 
 - `401` – Unauthorized
 - `404` – Routine or exercise not found
 - `500` – Internal server error
+
+The authenticated user must own the routine. Inactive routines are treated as not found.
 
 ## Delete Exercise from Routine (`DELETE /api/v1/routines/{routineId}/exercises/{position}`)
 

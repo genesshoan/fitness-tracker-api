@@ -45,10 +45,10 @@
 | exerciseId | Yes | Valid UUID | Exercise to add |
 | defaultRestSeconds | Yes | ≥ 0 | Rest between sets |
 | defaultSets | Yes | > 0 | Number of sets |
-| defaultReps | No | > 0 | Repetitions per set |
-| defaultWeightKg | No | > 0 | Weight in kilograms |
-| defaultDurationSeconds | No | > 0 | Duration in seconds |
-| defaultDistanceKm | No | > 0 | Distance in kilometers |
+| defaultReps | No | ≥ 0; category-dependent | Repetitions per set |
+| defaultWeightKg | No | ≥ 0; category-dependent | Weight in kilograms |
+| defaultDurationSeconds | No | ≥ 0; category-dependent | Duration in seconds |
+| defaultDistanceKm | No | ≥ 0; category-dependent | Distance in kilometers |
 | notes | No | - | Optional notes |
 
 ### Position Field
@@ -134,3 +134,13 @@
 - **Access token**: Store in client memory or localStorage; include in Authorization header for API calls
 - All endpoints require Bearer token authentication
 - On 401 response, redirect user to login
+
+## Category-Specific Metrics
+
+The API validates the complete metric combination against the referenced exercise:
+
+- **STRENGTH**: positive `defaultReps` and `defaultWeightKg`; duration and distance must be omitted
+- **CARDIO**: positive `defaultDurationSeconds` or `defaultDistanceKm`; reps and weight must be omitted
+- **MOBILITY**: positive `defaultDurationSeconds`; reps, weight, and distance must be omitted
+
+The frontend should clear incompatible metric fields when the selected exercise changes category and display the validation response without assuming that every optional field is accepted for every category.
