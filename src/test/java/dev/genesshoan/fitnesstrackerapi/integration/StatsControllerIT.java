@@ -3,9 +3,6 @@ package dev.genesshoan.fitnesstrackerapi.integration;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -18,6 +15,9 @@ import dev.genesshoan.fitnesstrackerapi.testdata.builder.WorkoutSessionBuilder;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -53,13 +53,12 @@ class StatsControllerIT extends AbstractIntegrationTest {
                         .withStartedAt(completedAt.minusSeconds(3600)));
 
         var sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
-        testEntityFactory.createAndPersistSessionSet(
-                SessionSetBuilder.aSessionSet(testEntityFactory.faker())
-                        .forSessionExercise(sessionExercise)
-                        .withSetNumber(1)
-                        .withCompleted(true)
-                        .withReps(8)
-                        .withWeightKg(80.0));
+        testEntityFactory.createAndPersistSessionSet(SessionSetBuilder.aSessionSet(testEntityFactory.faker())
+                .forSessionExercise(sessionExercise)
+                .withSetNumber(1)
+                .withCompleted(true)
+                .withReps(8)
+                .withWeightKg(80.0));
 
         mockMvc.perform(get("/api/v1/stats/progress")
                         .param("exerciseId", exercise.getId().toString())
