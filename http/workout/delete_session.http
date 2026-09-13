@@ -1,0 +1,3 @@
+# Delete a workout session
+DELETE {{baseUrl}}/sessions/{{sessionId}}
+Authorization: Bearer {{accessToken}}

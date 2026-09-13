@@ -1,0 +1,8 @@
+# Update workout session notes
+PATCH {{baseUrl}}/sessions/{{sessionId}}/notes
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "notes": "Updated session notes"
+}

@@ -1,0 +1,3 @@
+# Get current and longest workout streak
+GET {{baseUrl}}/stats/streak
+Authorization: Bearer {{accessToken}}

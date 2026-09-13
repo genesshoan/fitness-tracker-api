@@ -1,0 +1,3 @@
+# Delete a set; remaining sets are renumbered
+DELETE {{baseUrl}}/sessions/{{sessionId}}/exercises/{{sessionExerciseId}}/sets/{{sessionSetId}}
+Authorization: Bearer {{accessToken}}

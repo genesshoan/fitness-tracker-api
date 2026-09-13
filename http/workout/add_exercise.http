@@ -1,0 +1,22 @@
+# Add an exercise to an in-progress session
+POST {{baseUrl}}/sessions/{{sessionId}}/exercises
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "position": 1,
+  "exerciseId": "{{exerciseId}}",
+  "notes": "Added during the workout",
+  "sets": [
+    {
+      "reps": 10,
+      "weightKg": 40.0,
+      "completed": false
+    }
+  ]
+}
+
+> {%
+    client.global.set("sessionExerciseId", response.body.newExercise.id);
+    client.global.set("sessionSetId", response.body.newExercise.sets[0].id);
+%}
