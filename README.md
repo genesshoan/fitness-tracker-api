@@ -24,7 +24,7 @@ A production-minded REST API for tracking workouts, routines, body measurements,
 | Module | Responsibility | Documentation |
 | --- | --- | --- |
 | `auth` / `security` | Registration, login, JWT validation, refresh rotation, logout, and revocation | [Auth docs](docs/auth/README.md) |
-| `user` | User profile and credential management | [Endpoint overview](docs/endpoints.md#user) |
+| `user` | User profile, credentials, and timezone-aware account data | [User docs](docs/user/README.md) |
 | `exercise` | Read-only exercise and muscle catalog | [Exercise docs](docs/exercise/README.md) |
 | `routine` | Reusable ordered workout plans | [Routine docs](docs/routine/README.md) |
 | `workout` | Live and completed workout sessions, exercises, and sets | [Workout docs](docs/workout/README.md) |
