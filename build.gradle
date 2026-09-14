@@ -79,6 +79,10 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+tasks.named('jar') {
+    enabled = false
+}
+
 tasks.register('seed', JavaExec) {
     group = "tools"
     description = "Generates seed SQL"

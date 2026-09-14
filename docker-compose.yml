@@ -1,15 +1,22 @@
 services:
-  postgres:
-    image: postgres:18
-    container_name: fitness-postgres
-    environment:
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql
+  api:
+    image: ghcr.io/genesshoan/fitness-tracker-api:${APP_VERSION:?APP_VERSION must be set}
+    restart: unless-stopped
 
-volumes:
-  postgres_data:
+    networks:
+      - proxy
+      - ps_db
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:?DB_NAME must be set}
+      DB_USERNAME: ${DB_USERNAME:?DB_USERNAME must be set}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set}
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set}
+      JWT_KEY_EXPIRATION: ${JWT_KEY_EXPIRATION:?JWT_KEY_EXPIRATION must be set}
+      JWT_REFRESH_KEY_EXPIRATION: ${JWT_REFRESH_KEY_EXPIRATION:?JWT_REFRESH_KEY_EXPIRATION must be set}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+
+networks:
+  proxy:
+    external: true
+  ps_db:
+    external: true
