@@ -17,3 +17,4 @@ storage:
     bucket: ${MINIO_BUCKET}
     access-key: ${MINIO_ACCESS_KEY}
     secret-key: ${MINIO_SECRET_KEY}
+    presigned-url-expiration: ${MINIO_PRESIGNED_URL_EXPIRATION:10m}
