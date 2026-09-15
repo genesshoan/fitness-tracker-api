@@ -12,9 +12,7 @@ public class MinioConfig {
     public MinioClient minioClient(MinioProperties properties) {
         return MinioClient.builder()
                 .endpoint(properties.endpoint())
-                .credentials(
-                        properties.accessKey(),
-                        properties.secretKey()
-                )
+                .credentials(properties.accessKey(), properties.secretKey())
                 .build();
-    } }
+    }
+}

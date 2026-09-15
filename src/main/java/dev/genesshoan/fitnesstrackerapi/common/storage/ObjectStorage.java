@@ -4,7 +4,7 @@ import java.io.InputStream;
 
 public interface ObjectStorage {
 
-    String generateUploadUrl(String objectKey);
+    UploadPolicy generateUploadPolicy(String objectKey, String contentType, long maxSizeBytes);
 
     String generateDownloadUrl(String objectKey);
 
