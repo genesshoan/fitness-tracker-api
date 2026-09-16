@@ -1,3 +1,8 @@
 logging:
   level:
     d.g.f: DEBUG
+    org:
+      hibernate:
+        SQL: WARN
+    org.springframework.mail: DEBUG
+    org.eclipse.angus.mail: DEBUG
