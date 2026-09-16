@@ -55,8 +55,10 @@ dependencies {
     implementation 'org.flywaydb:flyway-database-postgresql'
 
     // UUID
-
     implementation 'com.github.f4b6a3:uuid-creator:6.0.0'
+
+    // Mail
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
