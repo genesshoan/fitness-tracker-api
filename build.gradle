@@ -65,6 +65,9 @@ dependencies {
     implementation 'org.apache.tika:tika-core:4.0.0'
     implementation 'net.coobird:thumbnailator:0.4.21'
 
+    // Mail
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
