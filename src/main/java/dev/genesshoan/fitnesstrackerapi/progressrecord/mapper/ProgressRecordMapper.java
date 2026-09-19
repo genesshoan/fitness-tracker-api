@@ -12,6 +12,9 @@ public interface ProgressRecordMapper {
 
     ProgressRecordResponseDTO toResponseDTO(ProgressRecord progressRecord);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "user", ignore = true)
     ProgressRecord toEntity(ProgressRecordRequestDTO request);
 }
