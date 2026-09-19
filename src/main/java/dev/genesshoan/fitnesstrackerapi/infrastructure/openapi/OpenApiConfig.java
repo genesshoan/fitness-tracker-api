@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.common;
+package dev.genesshoan.fitnesstrackerapi.infrastructure.openapi;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
