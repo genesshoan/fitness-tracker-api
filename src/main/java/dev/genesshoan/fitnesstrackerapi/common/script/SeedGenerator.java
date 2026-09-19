@@ -65,7 +65,8 @@ public class SeedGenerator {
 
     private void generateExercises() {
         sql.append("-- EXERCISES\n");
-        sql.append("INSERT INTO exercises (id, name, slug, description, category, difficulty) VALUES\n");
+        sql.append("INSERT INTO exercises (id, name, slug, description, category, difficulty, instructions,"
+                + " media_object_key) VALUES\n");
 
         List<String> rows = new ArrayList<>();
 
@@ -79,7 +80,9 @@ public class SeedGenerator {
                     exercise.slug(),
                     exercise.description(),
                     exercise.category(),
-                    exercise.difficulty()));
+                    exercise.difficulty(),
+                    exercise.instructions(),
+                    exercise.mediaObjectKey()));
         }
 
         sql.append(String.join(",\n", rows));
@@ -131,7 +134,15 @@ public class SeedGenerator {
         StringBuilder sb = new StringBuilder("(");
 
         for (int i = 0; i < values.length; i++) {
-            sb.append("'").append(escape(values[i])).append("'");
+            Object value = values[i];
+
+            if (value == null) {
+                sb.append("NULL");
+            } else if (value instanceof List<?> list) {
+                sb.append(formatArray(list));
+            } else {
+                sb.append("'").append(escape(value)).append("'");
+            }
 
             if (i < values.length - 1) {
                 sb.append(", ");
@@ -139,6 +150,25 @@ public class SeedGenerator {
         }
 
         sb.append(")");
+        return sb.toString();
+    }
+
+    private String formatArray(List<?> values) {
+        if (values == null || values.isEmpty()) {
+            return "ARRAY[]::TEXT[]";
+        }
+
+        StringBuilder sb = new StringBuilder("ARRAY[");
+
+        for (int i = 0; i < values.size(); i++) {
+            sb.append("'").append(escape(values.get(i))).append("'");
+
+            if (i < values.size() - 1) {
+                sb.append(", ");
+            }
+        }
+
+        sb.append("]");
         return sb.toString();
     }
 
