@@ -6,6 +6,9 @@
 |-------------|--------------|----------------|
 | Browse exercises | `GET /api/v1/exercises` | Pagination params, optional filters |
 | View exercise details | `GET /api/v1/exercises/{slug}` | Exercise slug |
+| Create exercise (admin) | `POST /api/v1/exercises` | `ExerciseRequestDTO` JSON body |
+| Update exercise (admin) | `PUT /api/v1/exercises/{slug}` | Exercise slug + `ExerciseRequestDTO` JSON body |
+| Delete exercise (admin) | `DELETE /api/v1/exercises/{slug}` | Exercise slug |
 | Browse muscles | `GET /api/v1/muscles` | Pagination params |
 | View muscle details | `GET /api/v1/muscles/{slug}` | Muscle slug |
 
@@ -18,7 +21,9 @@
 
 ### Exercise Detail
 - Display full exercise description
-- Show target muscles with impact levels (primary, secondary, stabilizer)
+- Display `instructions` as a numbered step-by-step list (hide the section when the array is empty)
+- Display the demonstration GIF from `gifUrl` when present. Note: `gifUrl` is currently always `null` (backend placeholder), so show a placeholder or hide the image until the backend starts resolving URLs. Do not try to build the GIF URL client-side from any other field — there is no public key exposed.
+- Show target muscles with impact levels (primary, secondary, stabilizer). Stabilizer data is populated, so grouping/filtering by stabilizer muscles is meaningful.
 - Exercise muscles are loaded eagerly for detail view
 
 ### Muscle Directory
@@ -39,6 +44,17 @@
 ### Exercise Detail View
 No form input required. Navigate by slug from exercise list.
 
+### Admin Exercise Forms (ADMIN role required)
+| Field | Required | Validation | Notes |
+|-------|----------|------------|-------|
+| name | Yes | Not blank | |
+| slug | Yes | Not blank, unique | May be changed on update if the new value is free |
+| description | Yes | Not blank | |
+| instructions | No | — | Ordered list of steps; omit or send `null` (defaults to empty list) |
+| category | Yes | Valid enum value | STRENGTH, CARDIO, MOBILITY |
+| difficulty | Yes | Valid enum value | BEGINNER, INTERMEDIATE, ADVANCED |
+| muscles | No | Each entry needs `muscleSlug` + `impactLevel`, no duplicate slugs | Must reference existing muscle slugs; on update the list **replaces** all current associations |
+
 ### Muscle Directory
 No form input required. Navigate by slug from muscle list.
 
@@ -55,13 +71,21 @@ No form input required. Navigate by slug from muscle list.
 1. User selects an exercise from the list
 2. `GET /api/v1/exercises/{slug}` → receives full exercise details
 3. Display exercise name, description, category, difficulty
-4. Display associated muscles with impact levels
+4. Display `instructions` as numbered steps (if present)
+5. Display GIF from `gifUrl` (if present; currently always `null`)
+6. Display associated muscles with impact levels
 
 ### Browse Muscles
 1. User navigates to muscle directory
 2. `GET /api/v1/muscles` → receives paginated muscle list
 3. Display muscle name, body region
 4. User can filter by body region
+
+### Manage Exercises (Admin)
+1. Admin opens the exercise admin panel (guard: requires ADMIN role, otherwise API returns 403)
+2. Create: `POST /api/v1/exercises` with `ExerciseRequestDTO` → 201 with the created detail; on 409 show "slug already exists", on 404 show "muscle not found"
+3. Update: `PUT /api/v1/exercises/{slug}` with `ExerciseRequestDTO` → 200; the `muscles` list replaces all current associations
+4. Delete: `DELETE /api/v1/exercises/{slug}` → 204; the exercise disappears from catalog reads (soft delete)
 
 ### View Muscle Details
 1. User selects a muscle
@@ -77,6 +101,12 @@ No form input required. Navigate by slug from muscle list.
 | `GET /api/v1/exercises/{slug}` | 400 | Show error: "Slug is required" |
 | `GET /api/v1/exercises/{slug}` | 404 | Show exercise not found message |
 | `GET /api/v1/exercises/{slug}` | 401 | Redirect to login |
+| `POST /api/v1/exercises` | 403 | Show "admin only" message |
+| `POST /api/v1/exercises` | 409 | Show "slug already exists" message |
+| `PUT /api/v1/exercises/{slug}` | 403 | Show "admin only" message |
+| `PUT /api/v1/exercises/{slug}` | 404 | Show exercise not found message |
+| `DELETE /api/v1/exercises/{slug}` | 403 | Show "admin only" message |
+| `DELETE /api/v1/exercises/{slug}` | 404 | Show exercise not found message |
 | `GET /api/v1/muscles/{slug}` | 404 | Show muscle not found message |
 
 ## Data Flow

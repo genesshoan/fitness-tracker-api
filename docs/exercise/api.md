@@ -6,6 +6,9 @@
 |--------|------|-------------|
 | GET | `/api/v1/exercises` | List exercises with filtering and pagination |
 | GET | `/api/v1/exercises/{slug}` | Get exercise details by slug |
+| POST | `/api/v1/exercises` | Create exercise (ADMIN only) |
+| PUT | `/api/v1/exercises/{slug}` | Fully update exercise (ADMIN only) |
+| DELETE | `/api/v1/exercises/{slug}` | Soft-delete exercise (ADMIN only) |
 | GET | `/api/v1/muscles` | List all muscles (paginated) |
 | GET | `/api/v1/muscles/{slug}` | Get muscle by slug |
 
@@ -69,6 +72,10 @@ All endpoints require authentication via Bearer token.
   "name": "Bicep Curl",
   "slug": "bicep-curl",
   "description": "Made with a bicep curl bar",
+  "instructions": [
+    "Stand with your feet shoulder-width apart.",
+    "Curl the bar towards your shoulders."
+  ],
   "category": "STRENGTH",
   "difficulty": "INTERMEDIATE",
   "exerciseMuscles": [
@@ -76,13 +83,81 @@ All endpoints require authentication via Bearer token.
       "muscle": { "name": "bicep", "slug": "bicep", "bodyRegion": "ARMS" },
       "impactLevel": "PRIMARY"
     }
-  ]
+  ],
+  "gifUrl": null
 }
 ```
+
+**Response fields:**
+- `instructions` – ordered list of step-by-step execution steps; empty array when the exercise has no steps.
+- `gifUrl` – public URL of the exercise demonstration GIF. Currently always `null` (placeholder); URL resolution (signed or public) from the internal storage key will be implemented later in the service layer.
+- `media_object_key` (internal object-storage key, e.g. `exercises/abc123.gif`) is **never exposed** by the API. It is an infrastructure detail, not a client-facing field.
+- `impactLevel` – one of `PRIMARY`, `SECONDARY`, `STABILIZER`. Seed data populates all three levels.
 
 **Error Responses:**
 - `400` – Slug is blank or null
 - `401` – Unauthorized
+- `404` – Exercise not found
+- `500` – Internal server error
+
+## Create Exercise (`POST /api/v1/exercises`)
+
+**Description:** Creates a new exercise with optional muscle associations. Requires `ADMIN` role.
+
+**Request Body (`ExerciseRequestDTO`):**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| name | String | Yes | Exercise name (not blank) |
+| slug | String | Yes | URL-friendly identifier, unique across active and inactive exercises |
+| description | String | Yes | Human-readable description (not blank) |
+| instructions | List[String] | No | Ordered step-by-step execution steps; omitted or null defaults to an empty list |
+| category | Category | Yes | `STRENGTH`, `CARDIO` or `MOBILITY` |
+| difficulty | Difficulty | Yes | `BEGINNER`, `INTERMEDIATE` or `ADVANCED` |
+| muscles | List | No | Muscle associations (`muscleSlug` + `impactLevel`); each slug must reference an existing muscle, without duplicates |
+
+**Success Response (201):** `ExerciseDetailDTO` of the created exercise.
+
+**Error Responses:**
+- `400` – Invalid request body (blank name/slug/description, null category/difficulty)
+- `401` – Unauthorized
+- `403` – Forbidden: ADMIN role required
+- `404` – Referenced muscle slug does not exist
+- `409` – Exercise slug already exists
+- `500` – Internal server error
+
+## Update Exercise (`PUT /api/v1/exercises/{slug}`)
+
+**Description:** Fully updates the active exercise identified by slug, replacing its muscle associations with the supplied ones. Requires `ADMIN` role. The slug itself may be changed as long as the new value is not taken.
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| slug | String | Yes | URL-friendly exercise identifier of the exercise to update |
+
+**Request Body:** same `ExerciseRequestDTO` as create.
+
+**Success Response (200):** `ExerciseDetailDTO` of the updated exercise.
+
+**Error Responses:**
+- `400` – Invalid slug or request body
+- `401` – Unauthorized
+- `403` – Forbidden: ADMIN role required
+- `404` – Exercise or referenced muscle not found
+- `409` – New slug already used by another exercise
+- `500` – Internal server error
+
+## Delete Exercise (`DELETE /api/v1/exercises/{slug}`)
+
+**Description:** Soft-deletes the active exercise: it is kept with `active = false` and excluded from all reads. Requires `ADMIN` role.
+
+**Success Response:** `204 No Content` (empty body).
+
+**Error Responses:**
+- `400` – Slug is blank or null
+- `401` – Unauthorized
+- `403` – Forbidden: ADMIN role required
 - `404` – Exercise not found
 - `500` – Internal server error
 

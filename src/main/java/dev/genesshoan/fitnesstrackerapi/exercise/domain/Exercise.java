@@ -1,5 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.exercise.domain;
 
+import java.util.List;
 import java.util.Set;
 
 import jakarta.persistence.CascadeType;
@@ -18,6 +19,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Represents an exercise in the catalog.
@@ -57,6 +60,22 @@ public class Exercise extends BaseEntity {
      */
     @Column(nullable = false)
     private String description;
+
+    /**
+     * Step-by-step instructions for performing the exercise.
+     */
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "instructions", nullable = false)
+    private List<String> instructions;
+
+    /**
+     * Internal object storage key for the exercise media file.
+     *
+     * <p>Nullable: the key is assigned later by the media pipeline, not at
+     * exercise creation time.
+     */
+    @Column(name = "media_object_key", nullable = true)
+    private String mediaObjectKey;
 
     /**
      * Exercise category (strength, cardio, or mobility).
