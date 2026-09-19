@@ -18,7 +18,9 @@
 
 ### Exercise Detail
 - Display full exercise description
-- Show target muscles with impact levels (primary, secondary, stabilizer)
+- Display `instructions` as a numbered step-by-step list (field may be `null` — hide the section in that case)
+- Display the demonstration GIF from `gifUrl` when present. Note: `gifUrl` is currently always `null` (backend placeholder), so show a placeholder or hide the image until the backend starts resolving URLs. Do not try to build the GIF URL client-side from any other field — there is no public key exposed.
+- Show target muscles with impact levels (primary, secondary, stabilizer). Stabilizer data is populated, so grouping/filtering by stabilizer muscles is meaningful.
 - Exercise muscles are loaded eagerly for detail view
 
 ### Muscle Directory
@@ -55,7 +57,9 @@ No form input required. Navigate by slug from muscle list.
 1. User selects an exercise from the list
 2. `GET /api/v1/exercises/{slug}` → receives full exercise details
 3. Display exercise name, description, category, difficulty
-4. Display associated muscles with impact levels
+4. Display `instructions` as numbered steps (if present)
+5. Display GIF from `gifUrl` (if present; currently always `null`)
+6. Display associated muscles with impact levels
 
 ### Browse Muscles
 1. User navigates to muscle directory

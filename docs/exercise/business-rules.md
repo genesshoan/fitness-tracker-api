@@ -43,6 +43,25 @@ Each exercise-muscle relationship has an impact level:
 - **SECONDARY** — a supporting muscle that also works significantly
 - **STABILIZER** — a muscle that helps stabilize the movement
 
+Seed data populates all three levels (stabilizers were backfilled for free compound, unilateral, overhead, suspension and instability exercises).
+
+### Instructions and Media
+
+- `instructions` — ordered step-by-step execution guide, persisted as a Postgres `TEXT[]` array column and exposed in the detail DTO as a JSON string array (nullable).
+- `media_object_key` — internal object-storage key (e.g. `exercises/abc123.gif`). Infrastructure detail: stored on the entity, **never exposed** in any API response.
+- `gifUrl` — client-facing placeholder for the demonstration GIF URL. Currently always `null`; real URL resolution (signed or public) from `media_object_key` will be implemented later in the service layer, not in the entity or DTO mapping.
+
+### Seed Data Review (feature/muscle-enhancement)
+
+The `seeds/exercises.yml` catalog was biomechanically reviewed:
+- 63 static-stretch / mobility drills reclassified `STRENGTH → MOBILITY`
+- `battling-ropes`, `quick-feet-v-2`, `wind-sprints` reclassified `STRENGTH → CARDIO`
+- `wheel-run` (ab-wheel rollout) reclassified `CARDIO → STRENGTH`
+- Stabilizer relationships populated for 190 exercises
+- 2 exact duplicate slugs disambiguated with a `-v2` suffix
+- `difficulty` was left untouched (all `INTERMEDIATE` in source data)
+- `V6__seed_exercise_muscle_data.sql` is regenerated from the YAML via `./gradlew seed` (note: each run generates new UUIDs)
+
 ### Data Loading
 
 - `GET /api/v1/exercises/{slug}` loads exercise muscles eagerly via `@EntityGraph`
