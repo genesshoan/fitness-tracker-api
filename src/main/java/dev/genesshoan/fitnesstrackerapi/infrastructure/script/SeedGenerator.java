@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.common.script;
+package dev.genesshoan.fitnesstrackerapi.infrastructure.script;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -6,8 +6,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 import com.github.f4b6a3.uuid.UuidCreator;
-import dev.genesshoan.fitnesstrackerapi.common.script.data.*;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
+import dev.genesshoan.fitnesstrackerapi.infrastructure.script.data.*;
 
 public class SeedGenerator {
 

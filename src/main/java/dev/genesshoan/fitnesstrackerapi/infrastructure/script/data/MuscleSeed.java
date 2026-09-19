@@ -1,3 +1,3 @@
-package dev.genesshoan.fitnesstrackerapi.common.script.data;
+package dev.genesshoan.fitnesstrackerapi.infrastructure.script.data;
 
 public record MuscleSeed(String name, String slug, String region) {}

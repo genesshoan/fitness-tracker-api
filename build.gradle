@@ -95,7 +95,7 @@ tasks.register('seed', JavaExec) {
     description = "Generates seed SQL"
 
     classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'dev.genesshoan.fitnesstrackerapi.common.script.SeedGenerator'
+    mainClass = 'dev.genesshoan.fitnesstrackerapi.infrastructure.script.SeedGenerator'
 }
 
 spotless {
