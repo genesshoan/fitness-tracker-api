@@ -69,6 +69,10 @@ All endpoints require authentication via Bearer token.
   "name": "Bicep Curl",
   "slug": "bicep-curl",
   "description": "Made with a bicep curl bar",
+  "instructions": [
+    "Stand with your feet shoulder-width apart.",
+    "Curl the bar towards your shoulders."
+  ],
   "category": "STRENGTH",
   "difficulty": "INTERMEDIATE",
   "exerciseMuscles": [
@@ -76,9 +80,16 @@ All endpoints require authentication via Bearer token.
       "muscle": { "name": "bicep", "slug": "bicep", "bodyRegion": "ARMS" },
       "impactLevel": "PRIMARY"
     }
-  ]
+  ],
+  "gifUrl": null
 }
 ```
+
+**Response fields:**
+- `instructions` – ordered list of step-by-step execution steps. May be `null` if the exercise has no instructions loaded.
+- `gifUrl` – public URL of the exercise demonstration GIF. Currently always `null` (placeholder); URL resolution (signed or public) from the internal storage key will be implemented later in the service layer.
+- `media_object_key` (internal object-storage key, e.g. `exercises/abc123.gif`) is **never exposed** by the API. It is an infrastructure detail, not a client-facing field.
+- `impactLevel` – one of `PRIMARY`, `SECONDARY`, `STABILIZER`. Seed data populates all three levels.
 
 **Error Responses:**
 - `400` – Slug is blank or null
