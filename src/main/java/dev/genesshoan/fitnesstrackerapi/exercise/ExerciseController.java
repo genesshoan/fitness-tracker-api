@@ -3,17 +3,24 @@ package dev.genesshoan.fitnesstrackerapi.exercise;
 import java.util.List;
 import java.util.UUID;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPage;
@@ -22,6 +29,7 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseDetailDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseListItemDTO;
+import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseRequestDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -126,5 +134,167 @@ public class ExerciseController {
     public ResponseEntity<ExerciseDetailDTO> getExerciseBySlug(
             @Parameter(description = "Slug of the exercise") @PathVariable @NotBlank String slug) {
         return ResponseEntity.ok(exerciseService.getExerciseBySlug(slug));
+    }
+
+    @Operation(summary = "Create exercise", description = "Create a new exercise (ADMIN only)")
+    @ApiResponses({
+        @ApiResponse(
+                responseCode = "201",
+                description = "Exercise created successfully",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema = @Schema(implementation = ExerciseDetailDTO.class))),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid request parameters",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "403",
+                description = "Forbidden: ADMIN role required",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Referenced muscle not found",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "409",
+                description = "Exercise slug already exists",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "500",
+                description = "Internal server error",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+    })
+    @PostMapping
+    public ResponseEntity<ExerciseDetailDTO> createExercise(
+            @Parameter(description = "Exercise data") @Valid @RequestBody ExerciseRequestDTO request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(exerciseService.createExercise(request));
+    }
+
+    @Operation(summary = "Update exercise", description = "Fully update an exercise by slug (ADMIN only)")
+    @ApiResponses({
+        @ApiResponse(
+                responseCode = "200",
+                description = "Exercise updated successfully",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema = @Schema(implementation = ExerciseDetailDTO.class))),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid request parameters",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "403",
+                description = "Forbidden: ADMIN role required",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Exercise or referenced muscle not found",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "409",
+                description = "Exercise slug already exists",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "500",
+                description = "Internal server error",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+    })
+    @PutMapping("/{slug}")
+    public ResponseEntity<ExerciseDetailDTO> updateExercise(
+            @Parameter(description = "Slug of the exercise") @PathVariable @NotBlank String slug,
+            @Parameter(description = "New exercise data") @Valid @RequestBody ExerciseRequestDTO request) {
+        return ResponseEntity.ok(exerciseService.updateExercise(slug, request));
+    }
+
+    @Operation(summary = "Delete exercise", description = "Soft-delete an exercise by slug (ADMIN only)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Exercise soft-deleted successfully"),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid request parameters",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "403",
+                description = "Forbidden: ADMIN role required",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Exercise not found",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "500",
+                description = "Internal server error",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+    })
+    @DeleteMapping("/{slug}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteExercise(@Parameter(description = "Slug of the exercise") @PathVariable @NotBlank String slug) {
+        exerciseService.deleteExercise(slug);
     }
 }

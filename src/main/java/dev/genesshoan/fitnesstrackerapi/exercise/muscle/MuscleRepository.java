@@ -1,5 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.exercise.muscle;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -9,4 +10,6 @@ import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.Muscle;
 
 public interface MuscleRepository extends JpaRepository<Muscle, UUID> {
     Optional<Muscle> findBySlug(String slug);
+
+    List<Muscle> findBySlugIn(List<String> slugs);
 }

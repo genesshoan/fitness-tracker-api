@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -45,4 +46,20 @@ public interface ExerciseRepository extends JpaRepository<Exercise, UUID> {
     List<Exercise> findAllByIdInAndActiveTrue(Set<UUID> ids);
 
     Optional<Exercise> findByIdAndActiveTrue(UUID id);
+
+    boolean existsBySlug(String slug);
+
+    /**
+     * Soft-deletes the active exercise with the given slug without loading it.
+     *
+     * <p>Bulk updates bypass Hibernate's automatic timestamp handling, so
+     * {@code updatedAt} is set explicitly.
+     *
+     * @param slug the exercise slug
+     * @return the number of rows updated (0 when no active exercise matches)
+     */
+    @Modifying
+    @Query("UPDATE Exercise e SET e.active = false, e.updatedAt = CURRENT_TIMESTAMP"
+            + " WHERE e.slug = :slug AND e.active = true")
+    int softDeleteBySlug(@Param("slug") String slug);
 }
