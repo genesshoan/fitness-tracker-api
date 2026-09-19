@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.common.script.data;
+package dev.genesshoan.fitnesstrackerapi.infrastructure.script.data;
 
 import java.io.InputStream;
 import java.util.Set;
