@@ -37,6 +37,8 @@ entity "exercises" {
     * name : VARCHAR <<UK>>
     * slug : VARCHAR <<UK>>
     * description : VARCHAR
+    * instructions : TEXT[]
+    * media_object_key : VARCHAR <<UK>>
     * category : VARCHAR
     * difficulty : VARCHAR
     * active : BOOLEAN
