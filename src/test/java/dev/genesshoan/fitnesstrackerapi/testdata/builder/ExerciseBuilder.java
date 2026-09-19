@@ -27,6 +27,7 @@ public class ExerciseBuilder {
         this.name = faker.ancient().hero() + UUID.randomUUID().toString();
         this.slug = faker.internet().slug() + UUID.randomUUID().toString();
         this.description = faker.lorem().sentence();
+        this.mediaObjectKey = "exercises/" + UUID.randomUUID() + ".gif";
     }
 
     public static ExerciseBuilder anExercise(Faker faker) {
