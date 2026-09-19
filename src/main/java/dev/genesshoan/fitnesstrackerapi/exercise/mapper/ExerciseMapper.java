@@ -5,6 +5,7 @@ import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseDetailDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseListItemDTO;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(
         componentModel = "spring",
@@ -13,5 +14,6 @@ import org.mapstruct.Mapper;
 public interface ExerciseMapper {
     ExerciseListItemDTO toItemDTO(Exercise exercise);
 
+    @Mapping(target = "gifUrl", expression = "java(null)")
     ExerciseDetailDTO toDetailDTO(Exercise exercise);
 }
