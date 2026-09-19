@@ -65,11 +65,14 @@ public class Exercise extends BaseEntity {
      * Step-by-step instructions for performing the exercise.
      */
     @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "instructions", nullable = true)
+    @Column(name = "instructions", nullable = false)
     private List<String> instructions;
 
     /**
      * Internal object storage key for the exercise media file.
+     *
+     * <p>Nullable: the key is assigned later by the media pipeline, not at
+     * exercise creation time.
      */
     @Column(name = "media_object_key", nullable = true)
     private String mediaObjectKey;
