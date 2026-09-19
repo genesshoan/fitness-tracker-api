@@ -18,7 +18,7 @@ The module is read-only: no create/update/delete operations are exposed via API.
 
 ## Resources
 
-- **Exercise** — catalog entry with name, slug, description, category, difficulty, and muscle relationships
+- **Exercise** — catalog entry with name, slug, description, instructions, category, difficulty, muscle relationships and a nullable `gifUrl` (demo GIF placeholder). The internal `media_object_key` storage key is never exposed via API.
 - **Muscle** — target muscle group with body region classification
 - **ExerciseMuscle** — join entity linking exercises to muscles with impact level (primary, secondary, stabilizer)
 
