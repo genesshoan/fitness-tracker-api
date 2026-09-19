@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.PageRequest;
 
 import dev.genesshoan.fitnesstrackerapi.base.AbstractPostgresTest;
@@ -30,6 +31,29 @@ public class ExerciseRepositoryTest extends AbstractPostgresTest {
 
     @Autowired
     TestEntityFactory testEntityFactory;
+
+    @Autowired
+    TestEntityManager entityManager;
+
+    @Test
+    @DisplayName("Should persist and read instructions as Postgres text array")
+    void findBySlugAndActiveTrue_ShouldRoundTripInstructionsAndMediaObjectKey() {
+        // Given
+        var exercise = testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker())
+                .withInstructions(List.of("Step 1", "Step 2 with 'quote'"))
+                .withMediaObjectKey("exercises/abc123.gif"));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        // When
+        var result = exerciseRepository.findBySlugAndActiveTrue(exercise.getSlug());
+
+        // Then
+        assertThat(result).isPresent();
+        assertThat(result.get().getInstructions()).containsExactly("Step 1", "Step 2 with 'quote'");
+        assertThat(result.get().getMediaObjectKey()).isEqualTo("exercises/abc123.gif");
+    }
 
     @Test
     @DisplayName("Should return exercise by slug and active only")

@@ -78,16 +78,21 @@ class ExerciseServiceTest {
         // Given
         String slug = "bench-press";
 
-        var exercise = ExerciseBuilder.anExercise(FAKER).withSlug(slug).build();
+        var exercise = ExerciseBuilder.anExercise(FAKER)
+                .withSlug(slug)
+                .withInstructions(List.of("Step 1", "Step 2"))
+                .build();
 
         var detailDTO = new ExerciseDetailDTO(
                 UUID.randomUUID(),
                 exercise.getName(),
                 exercise.getSlug(),
                 exercise.getDescription(),
+                exercise.getInstructions(),
                 exercise.getCategory(),
                 exercise.getDifficulty(),
-                List.of());
+                List.of(),
+                null);
 
         when(exerciseRepository.findBySlugAndActiveTrue(slug)).thenReturn(Optional.of(exercise));
 

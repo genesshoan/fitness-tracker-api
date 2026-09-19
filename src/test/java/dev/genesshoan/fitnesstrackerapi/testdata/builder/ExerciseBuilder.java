@@ -1,6 +1,7 @@
 package dev.genesshoan.fitnesstrackerapi.testdata.builder;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -15,6 +16,8 @@ public class ExerciseBuilder {
     private String name;
     private String slug;
     private String description;
+    private List<String> instructions = List.of("Step 1", "Step 2");
+    private String mediaObjectKey;
     private Category category = Category.STRENGTH;
     private Difficulty difficulty = Difficulty.INTERMEDIATE;
     private boolean active = true;
@@ -45,6 +48,16 @@ public class ExerciseBuilder {
         return this;
     }
 
+    public ExerciseBuilder withInstructions(List<String> instructions) {
+        this.instructions = instructions;
+        return this;
+    }
+
+    public ExerciseBuilder withMediaObjectKey(String mediaObjectKey) {
+        this.mediaObjectKey = mediaObjectKey;
+        return this;
+    }
+
     public ExerciseBuilder withCategory(Category category) {
         this.category = category;
         return this;
@@ -70,6 +83,8 @@ public class ExerciseBuilder {
                 .name(name)
                 .slug(slug)
                 .description(description)
+                .instructions(instructions)
+                .mediaObjectKey(mediaObjectKey)
                 .category(category)
                 .difficulty(difficulty)
                 .active(active)
