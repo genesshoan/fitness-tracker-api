@@ -2,6 +2,8 @@ package dev.genesshoan.fitnesstrackerapi.common.script.data;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public record ExerciseSeed(
         String name,
         String slug,
@@ -9,7 +11,7 @@ public record ExerciseSeed(
         String category,
         String difficulty,
         List<String> instructions,
-        String mediaObjectKey,
+        @JsonProperty("media_object_key") String mediaObjectKey,
         MuscleLinks muscles) {
     public record MuscleLinks(List<String> primary, List<String> secondary, List<String> stabilizer) {}
 }
