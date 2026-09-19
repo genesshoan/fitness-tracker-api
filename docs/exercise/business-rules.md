@@ -7,7 +7,7 @@
 Exercises use a soft delete model via the `active` flag:
 - `active = true` — exercise is visible and returned by API
 - `active = false` — exercise is hidden from all read operations
-- No DELETE endpoint exists; exercises are never hard-deleted
+- The `DELETE /api/v1/exercises/{slug}` endpoint (ADMIN only) only flips the flag; exercises are never hard-deleted
 
 This means:
 - `GET /api/v1/exercises` only returns active exercises
@@ -33,6 +33,14 @@ Pagination uses cursor-based pagination:
 - `size` — number of items per page (max 100); default applied by pageable
 - Results are ordered by ID ascending
 - Cursor ensures consistent ordering across pages
+
+### Write Operations (ADMIN only)
+
+`POST`, `PUT` and `DELETE /api/v1/exercises/**` require the `ADMIN` role (`hasRole("ADMIN")` in `SecurityConfig`); other authenticated users receive `403`.
+
+- **Create** — the slug must be unique across active and inactive exercises (`409` on conflict); every `muscles[].muscleSlug` must reference an existing muscle (`404` otherwise); duplicated muscle slugs are rejected with `400`; null `instructions` default to an empty list. New exercises are created active.
+- **Full update** — the supplied `muscles` list replaces all current associations (orphans are removed). The slug may be changed as long as the new value is free (`409` on conflict).
+- **Delete** — soft delete only (`active = false`); the slug stays reserved, so recreating an exercise with the same slug returns `409` unless the slug is changed.
 
 ## Exercise-Muscle Relationship
 
