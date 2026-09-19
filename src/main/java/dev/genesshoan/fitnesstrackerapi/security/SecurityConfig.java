@@ -39,6 +39,8 @@ import lombok.RequiredArgsConstructor;
  * <ul>
  * <li>/api/v1/auth/** → public endpoints (login, register, refresh,
  * logout)</li>
+ * <li>Exercise catalog writes (POST/PUT/DELETE /api/v1/exercises/**) →
+ * ADMIN role only</li>
  * <li>All other endpoints require authentication via JWT</li>
  * <li>No server-side sessions are used (STATELESS)</li>
  * </ul>
@@ -98,6 +100,12 @@ public class SecurityConfig {
                         .authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/exercises/**")
                         .authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/exercises/**")
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/exercises/**")
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/exercises/**")
+                        .hasRole("ADMIN")
 
                         // Routine management
                         .requestMatchers("/api/v1/routines/**")
