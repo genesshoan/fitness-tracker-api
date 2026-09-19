@@ -25,6 +25,10 @@
   region: CHEST
 
 # SHOULDERS
+- name: Rotator Cuff
+  slug: rotator-cuff
+  region: SHOULDERS
+
 - name: Anterior Deltoid
   slug: shoulder-front
   region: SHOULDERS
@@ -54,6 +58,10 @@
   slug: biceps
   region: ARMS
 
+- name: Brachialis
+  slug: brachialis
+  region: ARMS
+
 - name: Triceps Long Head
   slug: triceps-long
   region: ARMS
@@ -71,6 +79,10 @@
   region: ARMS
 
 # BACK
+- name: Rhomboids
+  slug: rhomboids
+  region: BACK
+
 - name: Upper Latissimus Dorsi
   slug: lats-upper
   region: BACK
@@ -117,6 +129,10 @@
   region: CORE
 
 # LEGS
+- name: Intrinsic Foot Muscles
+  slug: feet
+  region: LEGS
+
 - name: Quadriceps
   slug: quads
   region: LEGS
