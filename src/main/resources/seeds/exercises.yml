@@ -50,7 +50,7 @@
 - name: all fours squad stretch
   slug: all-fours-squad-stretch
   description: all fours squad stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/qBcKorM.gif
   instructions: [Start on all fours with your hands directly under your shoulders
@@ -97,7 +97,7 @@
 - name: ankle circles
   slug: ankle-circles
   description: ankle circles using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/uL9CsKm.gif
   instructions: [Sit on the ground with your legs extended in front of you., Lift
@@ -235,7 +235,7 @@
   muscles:
     primary: [abs-upper, abs-lower]
     secondary: [hip-flexor]
-    stabilizer: []
+    stabilizer: [forearm-flexors]
 - name: assisted hanging knee raise with throw down
   slug: assisted-hanging-knee-raise-with-throw-down
   description: assisted hanging knee raise with throw down using assisted.
@@ -250,11 +250,11 @@
   muscles:
     primary: [abs-upper, abs-lower]
     secondary: [hip-flexor, lower-back-erectors, lower-back-ql]
-    stabilizer: []
+    stabilizer: [forearm-flexors]
 - name: assisted lying calves stretch
   slug: assisted-lying-calves-stretch
   description: assisted lying calves stretch using assisted.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/GxDwDX0.gif
   instructions: [Lie on your back with your legs extended., Bend one knee and place
@@ -268,7 +268,7 @@
 - name: assisted lying glutes stretch
   slug: assisted-lying-glutes-stretch
   description: assisted lying glutes stretch using assisted.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/yn0LjwL.gif
   instructions: [Lie on your back with your legs extended., 'Bend your right knee
@@ -282,7 +282,7 @@
 - name: assisted lying gluteus and piriformis stretch
   slug: assisted-lying-gluteus-and-piriformis-stretch
   description: assisted lying gluteus and piriformis stretch using assisted.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/RQNVT10.gif
   instructions: [Lie on your back with your legs extended., 'Bend your right knee
@@ -380,7 +380,7 @@
 - name: assisted prone lying quads stretch
   slug: assisted-prone-lying-quads-stretch
   description: assisted prone lying quads stretch using assisted.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/YUYAMEj.gif
   instructions: [Lie face down on the ground with your legs extended., Bend your left
@@ -394,7 +394,7 @@
 - name: assisted prone rectus femoris stretch
   slug: assisted-prone-rectus-femoris-stretch
   description: assisted prone rectus femoris stretch using assisted.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/2Ryn564.gif
   instructions: [Lie face down on the ground with your legs straight., Bend your right
@@ -427,7 +427,7 @@
   slug: assisted-seated-pectoralis-major-stretch-with-stability-ball
   description: assisted seated pectoralis major stretch with stability ball using
     assisted.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/RoV1Rfa.gif
   instructions: [Sit on a stability ball with your feet flat on the ground and your
@@ -442,7 +442,7 @@
 - name: assisted side lying adductor stretch
   slug: assisted-side-lying-adductor-stretch
   description: assisted side lying adductor stretch using assisted.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/hC6oYY5.gif
   instructions: [Lie on your side with your legs straight and stacked on top of each
@@ -615,13 +615,12 @@
       back down to the starting position.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [traps-upper, traps-mid]
-    secondary: [biceps, forearm-flexors, forearm-extensors, abs-upper, abs-lower,
-      obliques]
-    stabilizer: []
+    secondary: [biceps, forearm-flexors, forearm-extensors, abs-upper, abs-lower, obliques]
+    stabilizer: [rotator-cuff]
 - name: back pec stretch
   slug: back-pec-stretch
   description: back pec stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/chfnQnM.gif
   instructions: [Stand tall with your feet shoulder-width apart., 'Extend your arms
@@ -652,7 +651,7 @@
 - name: balance board
   slug: balance-board
   description: balance board using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/xAySMB0.gif
   instructions: [Place the balance board on a flat surface., 'Step onto the balance
@@ -1046,7 +1045,7 @@
   muscles:
     primary: [quads]
     secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: band one arm standing low row
   slug: band-one-arm-standing-low-row
   description: band one arm standing low row using band.
@@ -1064,7 +1063,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, shoulder-front, shoulder-side, deltoid-rear]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower, obliques]
 - name: band one arm twisting chest press
   slug: band-one-arm-twisting-chest-press
   description: band one arm twisting chest press using band.
@@ -1166,7 +1165,7 @@
       for the desired number of repetitions.]
   muscles:
     primary: [forearm-flexors, forearm-extensors]
-    secondary: [forearm-flexors, forearm-extensors]
+    secondary: []
     stabilizer: []
 - name: band seated hip internal rotation
   slug: band-seated-hip-internal-rotation
@@ -1214,7 +1213,7 @@
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
     secondary: [triceps-long, triceps-lateral, traps-upper, traps-mid]
-    stabilizer: []
+    stabilizer: [rotator-cuff]
 - name: band shrug
   slug: band-shrug
   description: band shrug using band.
@@ -1294,7 +1293,7 @@
   muscles:
     primary: [quads]
     secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: band squat
   slug: band-squat
   description: band squat using band.
@@ -1309,9 +1308,8 @@
       position.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: band squat row
   slug: band-squat-row
   description: band squat row using band.
@@ -1328,9 +1326,8 @@
     Repeat for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [hamstrings-medial, hamstrings-lateral, quads, lats-upper, lats-mid,
-      lats-lower]
-    stabilizer: []
+    secondary: [hamstrings-medial, hamstrings-lateral, quads, lats-upper, lats-mid, lats-lower]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: band standing crunch
   slug: band-standing-crunch
   description: band standing crunch using band.
@@ -1395,9 +1392,8 @@
       alternating legs for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [abs-upper, abs-lower]
 - name: band stiff leg deadlift
   slug: band-stiff-leg-deadlift
   description: band stiff leg deadlift using band.
@@ -1415,7 +1411,7 @@
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
     secondary: [hamstrings-medial, hamstrings-lateral, lower-back-erectors, lower-back-ql]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: band straight back stiff leg deadlift
   slug: band-straight-back-stiff-leg-deadlift
   description: band straight back stiff leg deadlift using band.
@@ -1432,7 +1428,7 @@
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
     secondary: [hamstrings-medial, hamstrings-lateral, lower-back-erectors, lower-back-ql]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: band straight leg deadlift
   slug: band-straight-leg-deadlift
   description: band straight leg deadlift using band.
@@ -1449,7 +1445,7 @@
   muscles:
     primary: [lower-back-erectors]
     secondary: [hamstrings-medial, hamstrings-lateral, gluteus-maximus, gluteus-medius]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: band twisting overhead press
   slug: band-twisting-overhead-press
   description: band twisting overhead press using band.
@@ -1466,7 +1462,7 @@
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
     secondary: [triceps-long, triceps-lateral, traps-upper, traps-mid]
-    stabilizer: []
+    stabilizer: [rotator-cuff, abs-upper, abs-lower, obliques]
 - name: band two legs calf raise - (band under both legs) v. 2
   slug: band-two-legs-calf-raise---band-under-both-legs-v-2
   description: band two legs calf raise - (band under both legs) v. 2 using band.
@@ -1667,7 +1663,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, forearm-flexors, forearm-extensors]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: barbell biceps curl (with arm blaster)
   slug: barbell-biceps-curl-with-arm-blaster
   description: barbell biceps curl (with arm blaster) using barbell.
@@ -1705,9 +1701,8 @@
       back down to the starting position and repeat for the desired number of repetitions.]
   muscles:
     primary: [quads]
-    secondary: [hamstrings-medial, hamstrings-lateral, gluteus-maximus, gluteus-medius,
-      shoulder-front, shoulder-side, deltoid-rear, triceps-long, triceps-lateral]
-    stabilizer: []
+    secondary: [hamstrings-medial, hamstrings-lateral, gluteus-maximus, gluteus-medius, shoulder-front, shoulder-side, deltoid-rear, triceps-long, triceps-lateral]
+    stabilizer: [rotator-cuff, lower-back-erectors, abs-upper, abs-lower]
 - name: barbell clean-grip front squat
   slug: barbell-clean-grip-front-squat
   description: barbell clean-grip front squat using barbell.
@@ -1724,9 +1719,8 @@
       back up, extending your hips and knees.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower, obliques]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower, obliques]
+    stabilizer: [lower-back-erectors]
 - name: barbell close-grip bench press
   slug: barbell-close-grip-bench-press
   description: barbell close-grip bench press using barbell.
@@ -1777,7 +1771,7 @@
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
     secondary: [hamstrings-medial, hamstrings-lateral, lower-back-erectors, lower-back-ql]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: barbell decline bench press
   slug: barbell-decline-bench-press
   description: barbell decline bench press using barbell.
@@ -1920,9 +1914,8 @@
       of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower, obliques]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower, obliques]
+    stabilizer: [lower-back-erectors]
 - name: barbell front raise
   slug: barbell-front-raise
   description: barbell front raise using barbell.
@@ -1971,9 +1964,8 @@
       of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower, obliques]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower, obliques]
+    stabilizer: [lower-back-erectors]
 - name: barbell full squat
   slug: barbell-full-squat
   description: barbell full squat using barbell.
@@ -1990,9 +1982,8 @@
       your hips and knees.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower, obliques]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower, obliques]
+    stabilizer: [lower-back-erectors]
 - name: barbell full squat (back pov)
   slug: barbell-full-squat-back-pov
   description: barbell full squat (back pov) using barbell.
@@ -2009,9 +2000,8 @@
       your hips and knees.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower, obliques]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower, obliques]
+    stabilizer: [lower-back-erectors]
 - name: barbell full squat (side pov)
   slug: barbell-full-squat-side-pov
   description: barbell full squat (side pov) using barbell.
@@ -2028,9 +2018,8 @@
       your hips and knees.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower, obliques]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower, obliques]
+    stabilizer: [lower-back-erectors]
 - name: barbell full zercher squat
   slug: barbell-full-zercher-squat
   description: barbell full zercher squat using barbell.
@@ -2047,9 +2036,8 @@
     Repeat for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower, obliques]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower, obliques]
+    stabilizer: [lower-back-erectors]
 - name: barbell glute bridge
   slug: barbell-glute-bridge
   description: barbell glute bridge using barbell.
@@ -2132,9 +2120,8 @@
       for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: barbell high bar squat
   slug: barbell-high-bar-squat
   description: barbell high bar squat using barbell.
@@ -2150,9 +2137,8 @@
       of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower, obliques]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower, obliques]
+    stabilizer: [lower-back-erectors]
 - name: barbell incline bench press
   slug: barbell-incline-bench-press
   description: barbell incline bench press using barbell.
@@ -2250,9 +2236,8 @@
       movement, alternating your forward and back foot with each repetition.']
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: barbell jm bench press
   slug: barbell-jm-bench-press
   description: barbell jm bench press using barbell.
@@ -2283,9 +2268,8 @@
       position and immediately repeat the movement for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: barbell lateral lunge
   slug: barbell-lateral-lunge
   description: barbell lateral lunge using barbell.
@@ -2300,9 +2284,8 @@
       with your left foot.']
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [abs-upper, abs-lower]
 - name: barbell low bar squat
   slug: barbell-low-bar-squat
   description: barbell low bar squat using barbell.
@@ -2317,9 +2300,8 @@
       the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: barbell lunge
   slug: barbell-lunge
   description: barbell lunge using barbell.
@@ -2334,9 +2316,8 @@
       desired number of repetitions.']
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [abs-upper, abs-lower]
 - name: barbell lying back of the head tricep extension
   slug: barbell-lying-back-of-the-head-tricep-extension
   description: barbell lying back of the head tricep extension using barbell.
@@ -2484,9 +2465,8 @@
     Repeat for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: barbell one arm bent over row
   slug: barbell-one-arm-bent-over-row
   description: barbell one arm bent over row using barbell.
@@ -2503,7 +2483,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, forearm-flexors, forearm-extensors]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower, obliques]
 - name: barbell one arm floor press
   slug: barbell-one-arm-floor-press
   description: barbell one arm floor press using barbell.
@@ -2534,9 +2514,8 @@
       position.', 'Repeat for the desired number of repetitions, then switch sides.']
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [hamstrings-medial, hamstrings-lateral, quads, lower-back-erectors,
-      lower-back-ql]
-    stabilizer: []
+    secondary: [hamstrings-medial, hamstrings-lateral, quads, lower-back-erectors, lower-back-ql]
+    stabilizer: [abs-upper, abs-lower]
 - name: barbell one arm snatch
   slug: barbell-one-arm-snatch
   description: barbell one arm snatch using barbell.
@@ -2554,9 +2533,8 @@
       manner., 'Repeat for the desired number of repetitions, then switch arms.']
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
-    secondary: [traps-upper, traps-mid, traps-lower, forearm-flexors, forearm-extensors,
-      abs-upper, abs-lower, obliques]
-    stabilizer: []
+    secondary: [traps-upper, traps-mid, traps-lower, forearm-flexors, forearm-extensors, abs-upper, abs-lower, obliques]
+    stabilizer: [rotator-cuff]
 - name: barbell one leg squat
   slug: barbell-one-leg-squat
   description: barbell one leg squat using barbell.
@@ -2572,9 +2550,8 @@
       of repetitions, then switch legs and repeat.']
   muscles:
     primary: [quads]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral,
-      calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: barbell overhead squat
   slug: barbell-overhead-squat
   description: barbell overhead squat using barbell.
@@ -2589,10 +2566,8 @@
       position.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [quads]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral,
-      calves-gastroc-medial, calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower,
-      obliques]
-    stabilizer: []
+    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower, obliques]
+    stabilizer: [rotator-cuff, lower-back-erectors]
 - name: barbell palms down wrist curl over a bench
   slug: barbell-palms-down-wrist-curl-over-a-bench
   description: barbell palms down wrist curl over a bench using barbell.
@@ -2640,7 +2615,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, forearm-flexors, forearm-extensors]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: barbell pin presses
   slug: barbell-pin-presses
   description: barbell pin presses using barbell.
@@ -2760,7 +2735,7 @@
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
     secondary: [hamstrings-medial, hamstrings-lateral, lower-back-erectors, lower-back-ql]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: barbell rear delt raise
   slug: barbell-rear-delt-raise
   description: barbell rear delt raise using barbell.
@@ -2806,9 +2781,8 @@
       starting position., Repeat with the other leg.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [abs-upper, abs-lower]
 - name: barbell rear lunge v. 2
   slug: barbell-rear-lunge-v-2
   description: barbell rear lunge v. 2 using barbell.
@@ -2822,9 +2796,8 @@
       position., Repeat with the other leg.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [abs-upper, abs-lower]
 - name: barbell revers wrist curl v. 2
   slug: barbell-revers-wrist-curl-v-2
   description: barbell revers wrist curl v. 2 using barbell.
@@ -2893,7 +2866,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, forearm-flexors, forearm-extensors]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: barbell reverse grip decline bench press
   slug: barbell-reverse-grip-decline-bench-press
   description: barbell reverse grip decline bench press using barbell.
@@ -3044,7 +3017,7 @@
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
     secondary: [hamstrings-medial, hamstrings-lateral, lower-back-erectors, lower-back-ql]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: barbell seated behind head military press
   slug: barbell-seated-behind-head-military-press
   description: barbell seated behind head military press using barbell.
@@ -3235,9 +3208,8 @@
       to the starting position.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [quads]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral,
-      calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: barbell side split squat v. 2
   slug: barbell-side-split-squat-v-2
   description: barbell side split squat v. 2 using barbell.
@@ -3254,9 +3226,8 @@
       of repetitions.]
   muscles:
     primary: [quads]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral,
-      calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: barbell single leg deadlift
   slug: barbell-single-leg-deadlift
   description: barbell single leg deadlift using barbell.
@@ -3274,7 +3245,7 @@
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
     secondary: [hamstrings-medial, hamstrings-lateral, lower-back-erectors, lower-back-ql]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: barbell single leg split squat
   slug: barbell-single-leg-split-squat
   description: barbell single leg split squat using barbell.
@@ -3290,9 +3261,8 @@
       switch legs.']
   muscles:
     primary: [quads]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral,
-      calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: barbell sitted alternate leg raise
   slug: barbell-sitted-alternate-leg-raise
   description: barbell sitted alternate leg raise using barbell.
@@ -3355,9 +3325,8 @@
       number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: barbell split squat v. 2
   slug: barbell-split-squat-v-2
   description: barbell split squat v. 2 using barbell.
@@ -3372,9 +3341,8 @@
       with your left leg forward for the desired number of repetitions.]
   muscles:
     primary: [quads]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral,
-      calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: barbell squat (on knees)
   slug: barbell-squat-on-knees
   description: barbell squat (on knees) using barbell.
@@ -3391,9 +3359,8 @@
       starting position.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [quads]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral,
-      calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: barbell squat jump step rear lunge
   slug: barbell-squat-jump-step-rear-lunge
   description: barbell squat jump step rear lunge using barbell.
@@ -3410,9 +3377,8 @@
       on the other leg., Continue alternating legs for the desired number of repetitions.]
   muscles:
     primary: [quads]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral,
-      calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: barbell standing ab rollerout
   slug: barbell-standing-ab-rollerout
   description: barbell standing ab rollerout using barbell.
@@ -3461,7 +3427,7 @@
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
     secondary: [triceps-long, triceps-lateral, traps-upper, traps-mid]
-    stabilizer: []
+    stabilizer: [rotator-cuff]
 - name: barbell standing calf raise
   slug: barbell-standing-calf-raise
   description: barbell standing calf raise using barbell.
@@ -3508,7 +3474,7 @@
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
     secondary: [triceps-long, triceps-lateral, traps-upper, traps-mid]
-    stabilizer: []
+    stabilizer: [rotator-cuff]
 - name: barbell standing concentration curl
   slug: barbell-standing-concentration-curl
   description: barbell standing concentration curl using barbell.
@@ -3651,7 +3617,7 @@
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
     secondary: [triceps-long, triceps-lateral, traps-upper, traps-mid]
-    stabilizer: []
+    stabilizer: [rotator-cuff]
 - name: barbell standing wide-grip curl
   slug: barbell-standing-wide-grip-curl
   description: barbell standing wide-grip curl using barbell.
@@ -3686,9 +3652,8 @@
       leg., Continue alternating legs for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [abs-upper, abs-lower]
 - name: barbell stiff leg good morning
   slug: barbell-stiff-leg-good-morning
   description: barbell stiff leg good morning using barbell.
@@ -3721,7 +3686,7 @@
   muscles:
     primary: [hamstrings-medial, hamstrings-lateral]
     secondary: [gluteus-maximus, gluteus-medius, lower-back-erectors, lower-back-ql]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: barbell sumo deadlift
   slug: barbell-sumo-deadlift
   description: barbell sumo deadlift using barbell.
@@ -3740,9 +3705,8 @@
       of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [hamstrings-medial, hamstrings-lateral, quads, lower-back-erectors,
-      lower-back-ql]
-    stabilizer: []
+    secondary: [hamstrings-medial, hamstrings-lateral, quads, lower-back-erectors, lower-back-ql]
+    stabilizer: [abs-upper, abs-lower]
 - name: barbell thruster
   slug: barbell-thruster
   description: barbell thruster using barbell.
@@ -3757,9 +3721,8 @@
       you lower back into the squat position., Repeat for the desired number of repetitions.]
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
-    secondary: [quads, gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral,
-      abs-upper, abs-lower, obliques]
-    stabilizer: []
+    secondary: [quads, gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral, abs-upper, abs-lower, obliques]
+    stabilizer: [rotator-cuff, lower-back-erectors]
 - name: barbell upright row
   slug: barbell-upright-row
   description: barbell upright row using barbell.
@@ -3860,9 +3823,8 @@
       to the starting position.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [quads]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral,
-      calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: barbell wide-grip upright row
   slug: barbell-wide-grip-upright-row
   description: barbell wide-grip upright row using barbell.
@@ -3926,9 +3888,8 @@
     Repeat for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower, obliques]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower, obliques]
+    stabilizer: [lower-back-erectors]
 - name: basic toe touch (male)
   slug: basic-toe-touch-male
   description: basic toe touch (male) using body weight.
@@ -3948,7 +3909,7 @@
 - name: battling ropes
   slug: battling-ropes
   description: battling ropes using rope.
-  category: STRENGTH
+  category: CARDIO
   difficulty: INTERMEDIATE
   media_object_key: exercises/RJa4tCo.gif
   instructions: [Stand with your feet shoulder-width apart and knees slightly bent.,
@@ -3981,7 +3942,7 @@
 - name: behind head chest stretch
   slug: behind-head-chest-stretch
   description: behind head chest stretch using assisted.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/QoHIhPl.gif
   instructions: [Stand tall with your feet shoulder-width apart., Interlace your fingers
@@ -4059,7 +4020,7 @@
 - name: bent knee lying twist (male)
   slug: bent-knee-lying-twist-male
   description: bent knee lying twist (male) using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/6sYyrRX.gif
   instructions: [Lie flat on your back with your knees bent and feet flat on the ground.,
@@ -4102,9 +4063,8 @@
     Repeat for the desired number of repetitions.]
   muscles:
     primary: [biceps]
-    secondary: [forearm-flexors, forearm-extensors, shoulder-front, shoulder-side,
-      deltoid-rear]
-    stabilizer: []
+    secondary: [forearm-flexors, forearm-extensors, shoulder-front, shoulder-side, deltoid-rear]
+    stabilizer: [abs-upper, abs-lower]
 - name: biceps pull-up
   slug: biceps-pull-up
   description: biceps pull-up using body weight.
@@ -4118,9 +4078,8 @@
     Repeat for the desired number of repetitions.]
   muscles:
     primary: [biceps]
-    secondary: [forearm-flexors, forearm-extensors, shoulder-front, shoulder-side,
-      deltoid-rear]
-    stabilizer: []
+    secondary: [forearm-flexors, forearm-extensors, shoulder-front, shoulder-side, deltoid-rear]
+    stabilizer: [abs-upper, abs-lower]
 - name: body-up
   slug: body-up
   description: body-up using body weight.
@@ -4151,9 +4110,8 @@
       drop back into a squat position., Repeat for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: bodyweight incline side plank
   slug: bodyweight-incline-side-plank
   description: bodyweight incline side plank using body weight.
@@ -4219,7 +4177,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, shoulder-front, shoulder-side, deltoid-rear]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: bodyweight squatting row (with towel)
   slug: bodyweight-squatting-row-with-towel
   description: bodyweight squatting row (with towel) using body weight.
@@ -4236,7 +4194,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, shoulder-front, shoulder-side, deltoid-rear]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: bodyweight standing calf raise
   slug: bodyweight-standing-calf-raise
   description: bodyweight standing calf raise using body weight.
@@ -4268,7 +4226,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, forearm-flexors, forearm-extensors]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower, obliques]
 - name: bodyweight standing close-grip row
   slug: bodyweight-standing-close-grip-row
   description: bodyweight standing close-grip row using body weight.
@@ -4285,7 +4243,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, forearm-flexors, forearm-extensors]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: bodyweight standing one arm row
   slug: bodyweight-standing-one-arm-row
   description: bodyweight standing one arm row using body weight.
@@ -4302,7 +4260,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, forearm-flexors, forearm-extensors]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower, obliques]
 - name: bodyweight standing one arm row (with towel)
   slug: bodyweight-standing-one-arm-row-with-towel
   description: bodyweight standing one arm row (with towel) using body weight.
@@ -4318,7 +4276,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, forearm-flexors, forearm-extensors]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower, obliques]
 - name: bodyweight standing row
   slug: bodyweight-standing-row
   description: bodyweight standing row using body weight.
@@ -4334,7 +4292,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, shoulder-front, shoulder-side, deltoid-rear]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: bodyweight standing row (with towel)
   slug: bodyweight-standing-row-with-towel
   description: bodyweight standing row (with towel) using body weight.
@@ -4350,7 +4308,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, shoulder-front, shoulder-side, deltoid-rear]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: bottoms-up
   slug: bottoms-up
   description: bottoms-up using body weight.
@@ -4425,7 +4383,7 @@
 - name: butterfly yoga pose
   slug: butterfly-yoga-pose
   description: butterfly yoga pose using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/bWlZvXh.gif
   instructions: [Sit on the floor with your legs extended in front of you., 'Bend
@@ -4436,7 +4394,7 @@
       breaths., 'To release, slowly bring your knees back up and extend your legs.']
   muscles:
     primary: [adductors]
-    secondary: [hamstrings-medial, hamstrings-lateral, adductors]
+    secondary: [hamstrings-medial, hamstrings-lateral]
     stabilizer: []
 - name: butt-ups
   slug: butt-ups
@@ -4469,7 +4427,7 @@
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
     secondary: [triceps-long, triceps-lateral, traps-upper, traps-mid]
-    stabilizer: []
+    stabilizer: [rotator-cuff, abs-upper, abs-lower, obliques]
 - name: cable alternate triceps extension
   slug: cable-alternate-triceps-extension
   description: cable alternate triceps extension using cable.
@@ -4678,9 +4636,8 @@
       position.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [hamstrings-medial, hamstrings-lateral, quads, lower-back-erectors,
-      lower-back-ql]
-    stabilizer: []
+    secondary: [hamstrings-medial, hamstrings-lateral, quads, lower-back-erectors, lower-back-ql]
+    stabilizer: [abs-upper, abs-lower]
 - name: cable decline fly
   slug: cable-decline-fly
   description: cable decline fly using cable.
@@ -4713,7 +4670,7 @@
   muscles:
     primary: [chest-upper, chest-lower]
     secondary: [triceps-long, triceps-lateral, shoulder-front, shoulder-side, deltoid-rear]
-    stabilizer: []
+    stabilizer: [obliques]
 - name: cable decline press
   slug: cable-decline-press
   description: cable decline press using cable.
@@ -4880,7 +4837,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, shoulder-front, shoulder-side, deltoid-rear]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: cable hip adduction
   slug: cable-hip-adduction
   description: cable hip adduction using cable.
@@ -4967,7 +4924,7 @@
   muscles:
     primary: [chest-upper, chest-lower]
     secondary: [shoulder-front, shoulder-side, deltoid-rear, triceps-long, triceps-lateral]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: cable incline pushdown
   slug: cable-incline-pushdown
   description: cable incline pushdown using cable.
@@ -5304,7 +5261,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, forearm-flexors, forearm-extensors]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower, obliques]
 - name: cable one arm curl
   slug: cable-one-arm-curl
   description: cable one arm curl using cable.
@@ -5337,7 +5294,7 @@
   muscles:
     primary: [chest-upper, chest-lower]
     secondary: [shoulder-front, shoulder-side, deltoid-rear, triceps-long, triceps-lateral]
-    stabilizer: []
+    stabilizer: [obliques]
 - name: cable one arm fly on exercise ball
   slug: cable-one-arm-fly-on-exercise-ball
   description: cable one arm fly on exercise ball using cable.
@@ -5371,7 +5328,7 @@
   muscles:
     primary: [chest-upper, chest-lower]
     secondary: [shoulder-front, shoulder-side, deltoid-rear, triceps-long, triceps-lateral]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower, obliques]
 - name: cable one arm incline press
   slug: cable-one-arm-incline-press
   description: cable one arm incline press using cable.
@@ -5388,7 +5345,7 @@
   muscles:
     primary: [chest-upper, chest-lower]
     secondary: [shoulder-front, shoulder-side, deltoid-rear, triceps-long, triceps-lateral]
-    stabilizer: []
+    stabilizer: [obliques]
 - name: cable one arm incline press on exercise ball
   slug: cable-one-arm-incline-press-on-exercise-ball
   description: cable one arm incline press on exercise ball using cable.
@@ -5404,7 +5361,7 @@
   muscles:
     primary: [chest-upper, chest-lower]
     secondary: [shoulder-front, shoulder-side, deltoid-rear, triceps-long, triceps-lateral]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower, obliques]
 - name: cable one arm lateral bent-over
   slug: cable-one-arm-lateral-bent-over
   description: cable one arm lateral bent-over using cable.
@@ -5525,7 +5482,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, shoulder-front, shoulder-side, deltoid-rear]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower, obliques]
 - name: cable one arm tricep pushdown
   slug: cable-one-arm-tricep-pushdown
   description: cable one arm tricep pushdown using cable.
@@ -5612,7 +5569,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, forearm-flexors, forearm-extensors]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: cable preacher curl
   slug: cable-preacher-curl
   description: cable preacher curl using cable.
@@ -5938,7 +5895,7 @@
       down to the starting position.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [forearm-flexors, forearm-extensors]
-    secondary: [forearm-flexors, forearm-extensors]
+    secondary: []
     stabilizer: []
 - name: cable reverse-grip pushdown
   slug: cable-reverse-grip-pushdown
@@ -6364,7 +6321,7 @@
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
     secondary: [triceps-long, triceps-lateral, traps-upper, traps-mid]
-    stabilizer: []
+    stabilizer: [rotator-cuff]
 - name: cable shrug
   slug: cable-shrug
   description: cable shrug using cable.
@@ -6445,7 +6402,7 @@
   muscles:
     primary: [lats-upper, lats-mid, lats-lower]
     secondary: [biceps, rhomboids, deltoid-rear]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: cable squatting curl
   slug: cable-squatting-curl
   description: cable squatting curl using cable.
@@ -6464,7 +6421,7 @@
   muscles:
     primary: [biceps]
     secondary: [forearm-flexors, forearm-extensors]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: cable standing back wrist curl
   slug: cable-standing-back-wrist-curl
   description: cable standing back wrist curl using cable.
@@ -6512,7 +6469,7 @@
       position.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
-    secondary: [traps-upper, traps-mid, traps-lower, rhomboids, deltoid-rear]
+    secondary: [traps-upper, traps-mid, traps-lower, rhomboids]
     stabilizer: []
 - name: cable standing crunch
   slug: cable-standing-crunch
@@ -6715,7 +6672,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, shoulder-front, shoulder-side, deltoid-rear]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: cable standing shoulder external rotation
   slug: cable-standing-shoulder-external-rotation
   description: cable standing shoulder external rotation using cable.
@@ -6753,7 +6710,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, shoulder-front, shoulder-side, deltoid-rear]
-    stabilizer: []
+    stabilizer: [obliques]
 - name: cable standing up straight crossovers
   slug: cable-standing-up-straight-crossovers
   description: cable standing up straight crossovers using cable.
@@ -6855,7 +6812,7 @@
   muscles:
     primary: [lats-upper, lats-mid, lats-lower]
     secondary: [biceps, rhomboids, deltoid-rear]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: cable triceps pushdown (v-bar)
   slug: cable-triceps-pushdown-v-bar
   description: cable triceps pushdown (v-bar) using cable.
@@ -7046,7 +7003,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, shoulder-front, shoulder-side, deltoid-rear]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: cable upright row
   slug: cable-upright-row
   description: cable upright row using cable.
@@ -7099,7 +7056,7 @@
 - name: calf push stretch with hands against wall
   slug: calf-push-stretch-with-hands-against-wall
   description: calf push stretch with hands against wall using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/PzNxakt.gif
   instructions: [Stand facing a wall with your feet hip-width apart., Place your hands
@@ -7114,7 +7071,7 @@
 - name: calf stretch with hands against wall
   slug: calf-stretch-with-hands-against-wall
   description: calf stretch with hands against wall using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/m0tCHqc.gif
   instructions: [Stand facing a wall with your feet hip-width apart., Place your hands
@@ -7129,7 +7086,7 @@
 - name: calf stretch with rope
   slug: calf-stretch-with-rope
   description: calf stretch with rope using rope.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/1LVFcEn.gif
   instructions: [Stand facing a wall or sturdy object with your feet hip-width apart.,
@@ -7179,7 +7136,7 @@
 - name: chair leg extended stretch
   slug: chair-leg-extended-stretch
   description: chair leg extended stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/xGgAGPm.gif
   instructions: [Sit on the edge of a chair with your back straight and feet flat
@@ -7194,7 +7151,7 @@
 - name: chest and front of shoulder stretch
   slug: chest-and-front-of-shoulder-stretch
   description: chest and front of shoulder stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/Uto7l43.gif
   instructions: [Stand tall with your feet shoulder-width apart., Extend your arms
@@ -7259,7 +7216,7 @@
 - name: chest stretch with exercise ball
   slug: chest-stretch-with-exercise-ball
   description: chest stretch with exercise ball using stability ball.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/ykA5tU7.gif
   instructions: [Sit on the stability ball with your feet flat on the ground and your
@@ -7318,11 +7275,11 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, forearm-flexors, forearm-extensors]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: circles knee stretch
   slug: circles-knee-stretch
   description: circles knee stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/X7jbxra.gif
   instructions: [Stand with your feet shoulder-width apart and your hands on your
@@ -7558,9 +7515,8 @@
       other side, stepping diagonally behind and across your body with your left foot.']
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: cycle cross trainer
   slug: cycle-cross-trainer
   description: cycle cross trainer using leverage machine.
@@ -7803,7 +7759,7 @@
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
     secondary: [triceps-long, triceps-lateral, abs-upper, abs-lower, obliques]
-    stabilizer: []
+    stabilizer: [rotator-cuff]
 - name: dumbbell alternating bicep curl with leg raised on exercise ball
   slug: dumbbell-alternating-bicep-curl-with-leg-raised-on-exercise-ball
   description: dumbbell alternating bicep curl with leg raised on exercise ball using
@@ -7856,7 +7812,7 @@
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
     secondary: [triceps-long, triceps-lateral, chest-upper]
-    stabilizer: []
+    stabilizer: [rotator-cuff]
 - name: dumbbell arnold press v. 2
   slug: dumbbell-arnold-press-v-2
   description: dumbbell arnold press v. 2 using dumbbell.
@@ -7873,7 +7829,7 @@
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
     secondary: [triceps-long, triceps-lateral, chest-upper]
-    stabilizer: []
+    stabilizer: [rotator-cuff]
 - name: dumbbell around pullover
   slug: dumbbell-around-pullover
   description: dumbbell around pullover using dumbbell.
@@ -7954,7 +7910,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, forearm-flexors, forearm-extensors]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: dumbbell bicep curl lunge with bowling motion
   slug: dumbbell-bicep-curl-lunge-with-bowling-motion
   description: dumbbell bicep curl lunge with bowling motion using dumbbell.
@@ -7973,9 +7929,8 @@
       of repetitions.]
   muscles:
     primary: [biceps]
-    secondary: [forearm-flexors, forearm-extensors, shoulder-front, shoulder-side,
-      deltoid-rear]
-    stabilizer: []
+    secondary: [forearm-flexors, forearm-extensors, shoulder-front, shoulder-side, deltoid-rear]
+    stabilizer: [abs-upper, abs-lower]
 - name: dumbbell bicep curl on exercise ball with leg raised
   slug: dumbbell-bicep-curl-on-exercise-ball-with-leg-raised
   description: dumbbell bicep curl on exercise ball with leg raised using dumbbell.
@@ -8137,9 +8092,8 @@
       desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [hamstrings-medial, hamstrings-lateral, quads, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [hamstrings-medial, hamstrings-lateral, quads, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: dumbbell close grip press
   slug: dumbbell-close-grip-press
   description: dumbbell close grip press using dumbbell.
@@ -8162,7 +8116,7 @@
     secondary: [chest-upper, chest-lower, shoulder-front, shoulder-side, deltoid-rear]
     stabilizer: []
 - name: dumbbell close-grip press
-  slug: dumbbell-close-grip-press
+  slug: dumbbell-close-grip-press-v2
   description: dumbbell close-grip press using dumbbell.
   category: STRENGTH
   difficulty: INTERMEDIATE
@@ -8212,9 +8166,8 @@
       of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [abs-upper, abs-lower]
 - name: dumbbell cross body hammer curl
   slug: dumbbell-cross-body-hammer-curl
   description: dumbbell cross body hammer curl using dumbbell.
@@ -8266,7 +8219,7 @@
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
     secondary: [triceps-long, triceps-lateral, traps-upper, traps-mid]
-    stabilizer: []
+    stabilizer: [rotator-cuff]
 - name: dumbbell cuban press v. 2
   slug: dumbbell-cuban-press-v-2
   description: dumbbell cuban press v. 2 using dumbbell.
@@ -8282,7 +8235,7 @@
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
     secondary: [triceps-long, triceps-lateral, traps-upper, traps-mid]
-    stabilizer: []
+    stabilizer: [rotator-cuff]
 - name: dumbbell deadlift
   slug: dumbbell-deadlift
   description: dumbbell deadlift using dumbbell.
@@ -8298,7 +8251,7 @@
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
     secondary: [hamstrings-medial, hamstrings-lateral, lower-back-erectors, lower-back-ql]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: dumbbell decline bench press
   slug: dumbbell-decline-bench-press
   description: dumbbell decline bench press using dumbbell.
@@ -8363,7 +8316,7 @@
   muscles:
     primary: [chest-upper, chest-lower]
     secondary: [shoulder-front, shoulder-side, deltoid-rear]
-    stabilizer: []
+    stabilizer: [obliques]
 - name: dumbbell decline one arm hammer press
   slug: dumbbell-decline-one-arm-hammer-press
   description: dumbbell decline one arm hammer press using dumbbell.
@@ -8378,7 +8331,7 @@
   muscles:
     primary: [triceps-long, triceps-lateral]
     secondary: [chest-upper, chest-lower, shoulder-front, shoulder-side, deltoid-rear]
-    stabilizer: []
+    stabilizer: [obliques]
 - name: dumbbell decline shrug
   slug: dumbbell-decline-shrug
   description: dumbbell decline shrug using dumbbell.
@@ -8458,7 +8411,7 @@
       for the desired number of repetitions, then switch to the other hand.']
   muscles:
     primary: [forearm-flexors, forearm-extensors]
-    secondary: [forearm-flexors, forearm-extensors]
+    secondary: []
     stabilizer: []
 - name: dumbbell fly
   slug: dumbbell-fly
@@ -8574,9 +8527,8 @@
       desired number of repetitions.]
   muscles:
     primary: [quads]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral,
-      calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: dumbbell hammer curl
   slug: dumbbell-hammer-curl
   description: dumbbell hammer curl using dumbbell.
@@ -8683,7 +8635,7 @@
   muscles:
     primary: [chest-upper, chest-lower]
     secondary: [shoulder-front, shoulder-side, deltoid-rear, triceps-long, triceps-lateral]
-    stabilizer: []
+    stabilizer: [obliques]
 - name: dumbbell incline bench press
   slug: dumbbell-incline-bench-press
   description: dumbbell incline bench press using dumbbell.
@@ -8802,7 +8754,7 @@
   muscles:
     primary: [chest-upper, chest-lower]
     secondary: [shoulder-front, shoulder-side, deltoid-rear]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: dumbbell incline hammer curl
   slug: dumbbell-incline-hammer-curl
   description: dumbbell incline hammer curl using dumbbell.
@@ -8854,7 +8806,7 @@
   muscles:
     primary: [triceps-long, triceps-lateral]
     secondary: [chest-upper, chest-lower, shoulder-front, shoulder-side, deltoid-rear]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: dumbbell incline inner biceps curl
   slug: dumbbell-incline-inner-biceps-curl
   description: dumbbell incline inner biceps curl using dumbbell.
@@ -8889,7 +8841,7 @@
   muscles:
     primary: [chest-upper, chest-lower]
     secondary: [shoulder-front, shoulder-side, deltoid-rear, triceps-long, triceps-lateral]
-    stabilizer: []
+    stabilizer: [obliques]
 - name: dumbbell incline one arm fly on exercise ball
   slug: dumbbell-incline-one-arm-fly-on-exercise-ball
   description: dumbbell incline one arm fly on exercise ball using dumbbell.
@@ -8907,7 +8859,7 @@
   muscles:
     primary: [chest-upper, chest-lower]
     secondary: [shoulder-front, shoulder-side, deltoid-rear]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower, obliques]
 - name: dumbbell incline one arm hammer press
   slug: dumbbell-incline-one-arm-hammer-press
   description: dumbbell incline one arm hammer press using dumbbell.
@@ -8924,7 +8876,7 @@
   muscles:
     primary: [triceps-long, triceps-lateral]
     secondary: [shoulder-front, shoulder-side, deltoid-rear, chest-upper, chest-lower]
-    stabilizer: []
+    stabilizer: [obliques]
 - name: dumbbell incline one arm hammer press on exercise ball
   slug: dumbbell-incline-one-arm-hammer-press-on-exercise-ball
   description: dumbbell incline one arm hammer press on exercise ball using dumbbell.
@@ -8940,7 +8892,7 @@
   muscles:
     primary: [triceps-long, triceps-lateral]
     secondary: [shoulder-front, shoulder-side, deltoid-rear, chest-upper, chest-lower]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower, obliques]
 - name: dumbbell incline one arm lateral raise
   slug: dumbbell-incline-one-arm-lateral-raise
   description: dumbbell incline one arm lateral raise using dumbbell.
@@ -8973,7 +8925,7 @@
   muscles:
     primary: [chest-upper, chest-lower]
     secondary: [shoulder-front, shoulder-side, deltoid-rear, triceps-long, triceps-lateral]
-    stabilizer: []
+    stabilizer: [obliques]
 - name: dumbbell incline one arm press on exercise ball
   slug: dumbbell-incline-one-arm-press-on-exercise-ball
   description: dumbbell incline one arm press on exercise ball using dumbbell.
@@ -8990,7 +8942,7 @@
   muscles:
     primary: [chest-upper, chest-lower]
     secondary: [shoulder-front, shoulder-side, deltoid-rear, triceps-long, triceps-lateral]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower, obliques]
 - name: dumbbell incline palm-in press
   slug: dumbbell-incline-palm-in-press
   description: dumbbell incline palm-in press using dumbbell.
@@ -9024,7 +8976,7 @@
   muscles:
     primary: [chest-upper, chest-lower]
     secondary: [shoulder-front, shoulder-side, deltoid-rear, triceps-long, triceps-lateral]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: dumbbell incline raise
   slug: dumbbell-incline-raise
   description: dumbbell incline raise using dumbbell.
@@ -9304,9 +9256,8 @@
       with your left leg., Alternate legs for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [abs-upper, abs-lower]
 - name: dumbbell lunge with bicep curl
   slug: dumbbell-lunge-with-bicep-curl
   description: dumbbell lunge with bicep curl using dumbbell.
@@ -9326,7 +9277,7 @@
   muscles:
     primary: [biceps]
     secondary: [quads, hamstrings-medial, hamstrings-lateral]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: dumbbell lying alternate extension
   slug: dumbbell-lying-alternate-extension
   description: dumbbell lying alternate extension using dumbbell.
@@ -9577,9 +9528,8 @@
       starting position.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [chest-upper, chest-lower]
-    secondary: [triceps-long, triceps-lateral, shoulder-front, shoulder-side, deltoid-rear,
-      lats-upper, lats-mid, lats-lower]
-    stabilizer: []
+    secondary: [triceps-long, triceps-lateral, shoulder-front, shoulder-side, deltoid-rear, lats-upper, lats-mid, lats-lower]
+    stabilizer: [abs-upper, abs-lower]
 - name: dumbbell lying rear delt row
   slug: dumbbell-lying-rear-delt-row
   description: dumbbell lying rear delt row using dumbbell.
@@ -9778,7 +9728,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, forearm-flexors, forearm-extensors]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower, obliques]
 - name: dumbbell one arm chest fly on exercise ball
   slug: dumbbell-one-arm-chest-fly-on-exercise-ball
   description: dumbbell one arm chest fly on exercise ball using dumbbell.
@@ -9830,7 +9780,7 @@
   muscles:
     primary: [chest-upper, chest-lower]
     secondary: [triceps-long, triceps-lateral, shoulder-front, shoulder-side, deltoid-rear]
-    stabilizer: []
+    stabilizer: [obliques]
 - name: dumbbell one arm fly on exercise ball
   slug: dumbbell-one-arm-fly-on-exercise-ball
   description: dumbbell one arm fly on exercise ball using dumbbell.
@@ -9912,7 +9862,7 @@
   muscles:
     primary: [chest-upper, chest-lower]
     secondary: [shoulder-front, shoulder-side, deltoid-rear, triceps-long, triceps-lateral]
-    stabilizer: []
+    stabilizer: [obliques]
 - name: dumbbell one arm kickback
   slug: dumbbell-one-arm-kickback
   description: dumbbell one arm kickback using dumbbell.
@@ -10029,7 +9979,7 @@
   muscles:
     primary: [chest-upper, chest-lower]
     secondary: [triceps-long, triceps-lateral, lats-upper, lats-mid, lats-lower, rhomboids]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: dumbbell one arm reverse fly (with support)
   slug: dumbbell-one-arm-reverse-fly-with-support
   description: dumbbell one arm reverse fly (with support) using dumbbell.
@@ -10108,7 +10058,7 @@
       for the desired number of repetitions, then switch to the other arm.']
   muscles:
     primary: [forearm-flexors, forearm-extensors]
-    secondary: [forearm-extensors]
+    secondary: []
     stabilizer: []
 - name: dumbbell one arm seated bicep curl on exercise ball
   slug: dumbbell-one-arm-seated-bicep-curl-on-exercise-ball
@@ -10173,7 +10123,7 @@
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
     secondary: [triceps-long, triceps-lateral, traps-upper, traps-mid]
-    stabilizer: []
+    stabilizer: [rotator-cuff, abs-upper, abs-lower, obliques]
 - name: dumbbell one arm shoulder press v. 2
   slug: dumbbell-one-arm-shoulder-press-v-2
   description: dumbbell one arm shoulder press v. 2 using dumbbell.
@@ -10188,7 +10138,7 @@
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
     secondary: [triceps-long, triceps-lateral, traps-upper, traps-mid]
-    stabilizer: []
+    stabilizer: [rotator-cuff, abs-upper, abs-lower, obliques]
 - name: dumbbell one arm snatch
   slug: dumbbell-one-arm-snatch
   description: dumbbell one arm snatch using dumbbell.
@@ -10207,9 +10157,8 @@
       switch to the other arm.']
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [hamstrings-medial, hamstrings-lateral, quads, abs-upper, abs-lower,
-      obliques]
-    stabilizer: []
+    secondary: [hamstrings-medial, hamstrings-lateral, quads, abs-upper, abs-lower, obliques]
+    stabilizer: [rotator-cuff]
 - name: dumbbell one arm standing curl
   slug: dumbbell-one-arm-standing-curl
   description: dumbbell one arm standing curl using dumbbell.
@@ -10442,7 +10391,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, forearm-flexors, forearm-extensors]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: dumbbell palms in incline bench press
   slug: dumbbell-palms-in-incline-bench-press
   description: dumbbell palms in incline bench press using dumbbell.
@@ -10495,9 +10444,8 @@
       for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: dumbbell preacher curl
   slug: dumbbell-preacher-curl
   description: dumbbell preacher curl using dumbbell.
@@ -10651,7 +10599,7 @@
   muscles:
     primary: [chest-upper, chest-lower]
     secondary: [triceps-long, triceps-lateral, lats-upper, lats-mid, lats-lower]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: dumbbell push press
   slug: dumbbell-push-press
   description: dumbbell push press using dumbbell.
@@ -10666,7 +10614,7 @@
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
     secondary: [triceps-long, triceps-lateral, abs-upper, abs-lower, obliques]
-    stabilizer: []
+    stabilizer: [rotator-cuff, lower-back-erectors]
 - name: dumbbell raise
   slug: dumbbell-raise
   description: dumbbell raise using dumbbell.
@@ -10779,9 +10727,8 @@
       stepping back with your left foot.']
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [abs-upper, abs-lower]
 - name: dumbbell revers grip biceps curl
   slug: dumbbell-revers-grip-biceps-curl
   description: dumbbell revers grip biceps curl using dumbbell.
@@ -10885,7 +10832,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, forearm-flexors, forearm-extensors]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: dumbbell reverse preacher curl
   slug: dumbbell-reverse-preacher-curl
   description: dumbbell reverse preacher curl using dumbbell.
@@ -10952,7 +10899,7 @@
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
     secondary: [hamstrings-medial, hamstrings-lateral, lower-back-erectors, lower-back-ql]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: dumbbell rotation reverse fly
   slug: dumbbell-rotation-reverse-fly
   description: dumbbell rotation reverse fly using dumbbell.
@@ -11590,9 +11537,8 @@
       of repetitions, then switch sides.']
   muscles:
     primary: [traps-upper, traps-mid]
-    secondary: [shoulder-front, shoulder-side, deltoid-rear, abs-upper, abs-lower,
-      obliques]
-    stabilizer: []
+    secondary: [shoulder-front, shoulder-side, deltoid-rear, abs-upper, abs-lower, obliques]
+    stabilizer: [gluteus-medius]
 - name: dumbbell single arm overhead carry
   slug: dumbbell-single-arm-overhead-carry
   description: dumbbell single arm overhead carry using dumbbell.
@@ -11607,7 +11553,7 @@
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
     secondary: [traps-upper, traps-mid, traps-lower, abs-upper, abs-lower, obliques]
-    stabilizer: []
+    stabilizer: [rotator-cuff, gluteus-medius]
 - name: dumbbell single leg calf raise
   slug: dumbbell-single-leg-calf-raise
   description: dumbbell single leg calf raise using dumbbell.
@@ -11641,7 +11587,7 @@
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
     secondary: [hamstrings-medial, hamstrings-lateral, lower-back-erectors, lower-back-ql]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: dumbbell single leg deadlift with stepbox support
   slug: dumbbell-single-leg-deadlift-with-stepbox-support
   description: dumbbell single leg deadlift with stepbox support using dumbbell.
@@ -11659,7 +11605,7 @@
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
     secondary: [hamstrings-medial, hamstrings-lateral, lower-back-erectors, lower-back-ql]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: dumbbell single leg split squat
   slug: dumbbell-single-leg-split-squat
   description: dumbbell single leg split squat using dumbbell.
@@ -11676,9 +11622,8 @@
       repetitions, then switch legs and repeat.']
   muscles:
     primary: [quads]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral,
-      calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: dumbbell single leg squat
   slug: dumbbell-single-leg-squat
   description: dumbbell single leg squat using dumbbell.
@@ -11693,9 +11638,8 @@
     'Repeat for the desired number of repetitions, then switch legs.']
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: dumbbell squat
   slug: dumbbell-squat
   description: dumbbell squat using dumbbell.
@@ -11711,9 +11655,8 @@
       of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: dumbbell standing alternate hammer curl and press
   slug: dumbbell-standing-alternate-hammer-curl-and-press
   description: dumbbell standing alternate hammer curl and press using dumbbell.
@@ -11750,7 +11693,7 @@
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
     secondary: [triceps-long, triceps-lateral, abs-upper, abs-lower, obliques]
-    stabilizer: []
+    stabilizer: [rotator-cuff]
 - name: dumbbell standing alternate raise
   slug: dumbbell-standing-alternate-raise
   description: dumbbell standing alternate raise using dumbbell.
@@ -11965,7 +11908,7 @@
     secondary: [forearm-flexors, forearm-extensors]
     stabilizer: []
 - name: dumbbell standing one arm curl over incline bench
-  slug: dumbbell-standing-one-arm-curl-over-incline-bench
+  slug: dumbbell-standing-one-arm-curl-over-incline-bench-v2
   description: dumbbell standing one arm curl over incline bench using dumbbell.
   category: STRENGTH
   difficulty: INTERMEDIATE
@@ -12011,7 +11954,7 @@
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
     secondary: [triceps-long, triceps-lateral, abs-upper, abs-lower, obliques]
-    stabilizer: []
+    stabilizer: [rotator-cuff]
 - name: dumbbell standing one arm reverse curl
   slug: dumbbell-standing-one-arm-reverse-curl
   description: dumbbell standing one arm reverse curl using dumbbell.
@@ -12043,7 +11986,7 @@
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
     secondary: [triceps-long, triceps-lateral, traps-upper, traps-mid]
-    stabilizer: []
+    stabilizer: [rotator-cuff]
 - name: dumbbell standing palms in press
   slug: dumbbell-standing-palms-in-press
   description: dumbbell standing palms in press using dumbbell.
@@ -12059,7 +12002,7 @@
   muscles:
     primary: [shoulder-front, shoulder-side, deltoid-rear]
     secondary: [triceps-long, triceps-lateral, chest-upper, chest-lower]
-    stabilizer: []
+    stabilizer: [rotator-cuff, abs-upper, abs-lower]
 - name: dumbbell standing preacher curl
   slug: dumbbell-standing-preacher-curl
   description: dumbbell standing preacher curl using dumbbell.
@@ -12146,7 +12089,7 @@
   muscles:
     primary: [biceps]
     secondary: [quads, gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: dumbbell step-up
   slug: dumbbell-step-up
   description: dumbbell step-up using dumbbell.
@@ -12163,9 +12106,8 @@
       switch legs.']
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [abs-upper, abs-lower]
 - name: dumbbell step-up lunge
   slug: dumbbell-step-up-lunge
   description: dumbbell step-up lunge using dumbbell.
@@ -12181,9 +12123,8 @@
       you step up with each time.', Continue for the desired number of repetitions.]
   muscles:
     primary: [quads]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral,
-      calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [abs-upper, abs-lower]
 - name: dumbbell step-up split squat
   slug: dumbbell-step-up-split-squat
   description: dumbbell step-up split squat using dumbbell.
@@ -12201,9 +12142,8 @@
       and left foot for the desired number of repetitions.]
   muscles:
     primary: [quads]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral,
-      calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: dumbbell stiff leg deadlift
   slug: dumbbell-stiff-leg-deadlift
   description: dumbbell stiff leg deadlift using dumbbell.
@@ -12219,7 +12159,7 @@
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
     secondary: [hamstrings-medial, hamstrings-lateral, lower-back-erectors, lower-back-ql]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: dumbbell straight arm pullover
   slug: dumbbell-straight-arm-pullover
   description: dumbbell straight arm pullover using dumbbell.
@@ -12251,7 +12191,7 @@
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
     secondary: [hamstrings-medial, hamstrings-lateral, lower-back-erectors, lower-back-ql]
-    stabilizer: []
+    stabilizer: [abs-upper, abs-lower]
 - name: dumbbell sumo pull through
   slug: dumbbell-sumo-pull-through
   description: dumbbell sumo pull through using dumbbell.
@@ -12474,7 +12414,7 @@
 - name: dynamic chest stretch (male)
   slug: dynamic-chest-stretch-male
   description: dynamic chest stretch (male) using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/3uj0Ozg.gif
   instructions: [Stand tall with your feet shoulder-width apart., 'Extend your arms
@@ -12552,8 +12492,7 @@
       of repetitions.]
   muscles:
     primary: [traps-upper, traps-mid]
-    secondary: [shoulder-front, shoulder-side, deltoid-rear, traps-upper, traps-mid,
-      traps-lower]
+    secondary: [shoulder-front, shoulder-side, deltoid-rear, traps-lower]
     stabilizer: []
 - name: exercise ball alternating arm ups
   slug: exercise-ball-alternating-arm-ups
@@ -12664,7 +12603,7 @@
 - name: exercise ball hip flexor stretch
   slug: exercise-ball-hip-flexor-stretch
   description: exercise ball hip flexor stretch using stability ball.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/2LQkNPW.gif
   instructions: [Place the stability ball on the ground and kneel in front of it.,
@@ -12697,7 +12636,7 @@
 - name: exercise ball lat stretch
   slug: exercise-ball-lat-stretch
   description: exercise ball lat stretch using stability ball.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/sM84pE4.gif
   instructions: [Sit on a stability ball with your feet flat on the ground and your
@@ -12712,7 +12651,7 @@
 - name: exercise ball lower back stretch (pyramid)
   slug: exercise-ball-lower-back-stretch-pyramid
   description: exercise ball lower back stretch (pyramid) using stability ball.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/yU7w7CA.gif
   instructions: [Sit on the stability ball with your feet flat on the ground and your
@@ -12729,7 +12668,7 @@
 - name: exercise ball lying side lat stretch
   slug: exercise-ball-lying-side-lat-stretch
   description: exercise ball lying side lat stretch using stability ball.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/rTbyBYV.gif
   instructions: [Lie on your side with your legs extended and your head supported
@@ -12870,7 +12809,7 @@
 - name: exercise ball seated hamstring stretch
   slug: exercise-ball-seated-hamstring-stretch
   description: exercise ball seated hamstring stretch using stability ball.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/yRYyfdA.gif
   instructions: [Sit on the stability ball with your feet flat on the ground and your
@@ -12889,7 +12828,7 @@
 - name: exercise ball seated triceps stretch
   slug: exercise-ball-seated-triceps-stretch
   description: exercise ball seated triceps stretch using stability ball.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/7ePTw4B.gif
   instructions: [Sit on a stability ball with your feet flat on the ground and your
@@ -12981,7 +12920,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, forearm-flexors, forearm-extensors]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: ez bar seated close grip concentration curl
   slug: ez-bar-seated-close-grip-concentration-curl
   description: ez bar seated close grip concentration curl using ez barbell.
@@ -13146,7 +13085,7 @@
     Repeat for the desired number of repetitions.]
   muscles:
     primary: [calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
-    secondary: [calves-soleus, tibialis-anterior]
+    secondary: [tibialis-anterior]
     stabilizer: []
 - name: lever standing chest press
   slug: lever-standing-chest-press
@@ -13244,9 +13183,8 @@
       number of repetitions.]
   muscles:
     primary: [traps-upper, traps-mid]
-    secondary: [shoulder-front, shoulder-side, deltoid-rear, biceps, forearm-flexors,
-      forearm-extensors]
-    stabilizer: []
+    secondary: [shoulder-front, shoulder-side, deltoid-rear, biceps, forearm-flexors, forearm-extensors]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: low glute bridge on floor
   slug: low-glute-bridge-on-floor
   description: low glute bridge on floor using body weight.
@@ -13292,9 +13230,8 @@
       for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [abs-upper, abs-lower]
 - name: lunge with twist
   slug: lunge-with-twist
   description: lunge with twist using body weight.
@@ -13314,7 +13251,7 @@
 - name: lying (side) quads stretch
   slug: lying-side-quads-stretch
   description: lying (side) quads stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/BWnJR72.gif
   instructions: [Lie on your side with your legs straight., Bend your top leg and
@@ -13599,9 +13536,8 @@
       desired number of repetitions.]
   muscles:
     primary: [forearm-flexors, forearm-extensors]
-    secondary: [triceps-long, triceps-lateral, chest-upper, chest-lower, shoulder-front,
-      shoulder-side, deltoid-rear]
-    stabilizer: []
+    secondary: [triceps-long, triceps-lateral, chest-upper, chest-lower, shoulder-front, shoulder-side, deltoid-rear]
+    stabilizer: [abs-upper, abs-lower]
 - name: monster walk
   slug: monster-walk
   description: monster walk using body weight.
@@ -13689,7 +13625,7 @@
 - name: neck side stretch
   slug: neck-side-stretch
   description: neck side stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/x2chWLO.gif
   instructions: [Stand or sit up straight with your shoulders relaxed., 'Tilt your
@@ -13697,7 +13633,7 @@
       for 15-30 seconds., Repeat on the other side., Perform 2-4 sets on each side.]
   muscles:
     primary: [traps-upper]
-    secondary: [traps-upper, traps-mid, traps-lower, neck]
+    secondary: [traps-mid, traps-lower, neck]
     stabilizer: []
 - name: negative crunch
   slug: negative-crunch
@@ -13783,7 +13719,7 @@
 - name: one arm against wall
   slug: one-arm-against-wall
   description: one arm against wall using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/ZZTGMKh.gif
   instructions: [Stand facing a wall with your feet shoulder-width apart., Extend
@@ -13865,7 +13801,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, forearm-flexors, forearm-extensors]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower, obliques]
 - name: one leg donkey calf raise
   slug: one-leg-donkey-calf-raise
   description: one leg donkey calf raise using body weight.
@@ -13911,9 +13847,8 @@
       leg.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: otis up
   slug: otis-up
   description: otis up using weighted.
@@ -13945,13 +13880,12 @@
       the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [abs-upper, abs-lower, obliques]
 - name: overhead triceps stretch
   slug: overhead-triceps-stretch
   description: overhead triceps stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/Z5YStHW.gif
   instructions: [Stand or sit upright with your feet shoulder-width apart., 'Extend
@@ -13997,7 +13931,7 @@
 - name: peroneals stretch
   slug: peroneals-stretch
   description: peroneals stretch using rope.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/XhfS1DZ.gif
   instructions: [Sit on the ground with your legs extended in front of you., Loop
@@ -14028,9 +13962,8 @@
       push-up position.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [abs-upper, abs-lower, obliques, shoulder-front, shoulder-side, deltoid-rear,
-      triceps-long, triceps-lateral]
-    stabilizer: []
+    secondary: [abs-upper, abs-lower, obliques, shoulder-front, shoulder-side, deltoid-rear, triceps-long, triceps-lateral]
+    stabilizer: [lower-back-erectors]
 - name: plyo push up
   slug: plyo-push-up
   description: plyo push up using body weight.
@@ -14070,7 +14003,7 @@
 - name: posterior tibialis stretch
   slug: posterior-tibialis-stretch
   description: posterior tibialis stretch using rope.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/DEEqoI2.gif
   instructions: [Sit on the ground with your legs extended in front of you., Loop
@@ -14113,9 +14046,8 @@
       starting position.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: power clean
   slug: power-clean
   description: power clean using barbell.
@@ -14135,9 +14067,8 @@
       the movement.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [hamstrings-medial, hamstrings-lateral]
-    secondary: [gluteus-maximus, gluteus-medius, quads, calves-gastroc-medial, calves-gastroc-lateral,
-      calves-soleus]
-    stabilizer: []
+    secondary: [gluteus-maximus, gluteus-medius, quads, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: power point plank
   slug: power-point-plank
   description: power point plank using body weight.
@@ -14473,9 +14404,8 @@
       of repetitions.]
   muscles:
     primary: [abs-upper, abs-lower]
-    secondary: [shoulder-front, shoulder-side, deltoid-rear, chest-upper, chest-lower,
-      triceps-long, triceps-lateral]
-    stabilizer: []
+    secondary: [shoulder-front, shoulder-side, deltoid-rear, chest-upper, chest-lower, triceps-long, triceps-lateral]
+    stabilizer: [gluteus-medius]
 - name: quads
   slug: quads
   description: quads using body weight.
@@ -14510,7 +14440,7 @@
 - name: quick feet v. 2
   slug: quick-feet-v-2
   description: quick feet v. 2 using body weight.
-  category: STRENGTH
+  category: CARDIO
   difficulty: INTERMEDIATE
   media_object_key: exercises/mweqJin.gif
   instructions: [Stand with your feet shoulder-width apart and your arms by your sides.,
@@ -14558,7 +14488,7 @@
 - name: rear deltoid stretch
   slug: rear-deltoid-stretch
   description: rear deltoid stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/xifhB5W.gif
   instructions: [Stand tall with your feet shoulder-width apart., 'Extend your right
@@ -14590,7 +14520,7 @@
 - name: reclining big toe pose with rope
   slug: reclining-big-toe-pose-with-rope
   description: reclining big toe pose with rope using rope.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/K5xgdvI.gif
   instructions: [Lie on your back with your legs extended and your arms by your sides.,
@@ -14684,7 +14614,7 @@
       slowly bring your knees back together.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [gluteus-medius]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral]
+    secondary: [gluteus-maximus, hamstrings-medial, hamstrings-lateral]
     stabilizer: []
 - name: resistance band seated shoulder press
   slug: resistance-band-seated-shoulder-press
@@ -14849,7 +14779,7 @@
 - name: rocking frog stretch
   slug: rocking-frog-stretch
   description: rocking frog stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/2Dk4xQV.gif
   instructions: [Start by kneeling on the ground with your knees hip-width apart.,
@@ -14882,7 +14812,7 @@
 - name: roller back stretch
   slug: roller-back-stretch
   description: roller back stretch using roller.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/isofgzg.gif
   instructions: [Start by sitting on the ground with your legs extended in front of
@@ -14908,13 +14838,12 @@
       starting position.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [abs-upper, abs-lower]
-    secondary: [shoulder-front, shoulder-side, deltoid-rear, triceps-long, triceps-lateral,
-      abs-upper, abs-lower, obliques]
+    secondary: [shoulder-front, shoulder-side, deltoid-rear, triceps-long, triceps-lateral, obliques]
     stabilizer: []
 - name: roller hip lat stretch
   slug: roller-hip-lat-stretch
   description: roller hip lat stretch using roller.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/0L2KwtI.gif
   instructions: [Start by kneeling on the ground with the roller positioned under
@@ -14929,7 +14858,7 @@
 - name: roller hip stretch
   slug: roller-hip-stretch
   description: roller hip stretch using roller.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/oMypNrz.gif
   instructions: [Start by sitting on the ground with your legs extended in front of
@@ -14994,7 +14923,7 @@
 - name: roller side lat stretch
   slug: roller-side-lat-stretch
   description: roller side lat stretch using roller.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/c3Pfhti.gif
   instructions: [Stand with your feet shoulder-width apart and hold the roller with
@@ -15022,9 +14951,8 @@
       desired number of repetitions.]
   muscles:
     primary: [traps-upper, traps-mid]
-    secondary: [forearm-flexors, forearm-extensors, biceps, shoulder-front, shoulder-side,
-      deltoid-rear]
-    stabilizer: []
+    secondary: [forearm-flexors, forearm-extensors, biceps, shoulder-front, shoulder-side, deltoid-rear]
+    stabilizer: [abs-upper, abs-lower]
 - name: run
   slug: run
   description: run using body weight.
@@ -15060,7 +14988,7 @@
 - name: runners stretch
   slug: runners-stretch
   description: runners stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/0mB6wHO.gif
   instructions: [Stand with your feet hip-width apart., 'Take a step forward with
@@ -15158,7 +15086,7 @@
 - name: seated calf stretch (male)
   slug: seated-calf-stretch-male
   description: seated calf stretch (male) using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/17bqEXD.gif
   instructions: [Sit on the edge of a chair or bench with your feet flat on the ground.,
@@ -15172,7 +15100,7 @@
 - name: seated glute stretch
   slug: seated-glute-stretch
   description: seated glute stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/DeDThfG.gif
   instructions: [Sit on the ground with your legs extended in front of you., Bend
@@ -15202,7 +15130,7 @@
 - name: seated lower back stretch
   slug: seated-lower-back-stretch
   description: seated lower back stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/QFmz6ch.gif
   instructions: [Sit on the edge of a chair with your feet flat on the ground., Place
@@ -15217,7 +15145,7 @@
 - name: seated piriformis stretch
   slug: seated-piriformis-stretch
   description: seated piriformis stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/QY39eBr.gif
   instructions: [Sit on the ground with your legs extended in front of you., Bend
@@ -15248,7 +15176,7 @@
 - name: seated wide angle pose sequence
   slug: seated-wide-angle-pose-sequence
   description: seated wide angle pose sequence using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/HIgYKAB.gif
   instructions: [Sit on the ground with your legs extended in a wide angle., Flex
@@ -15307,9 +15235,8 @@
       of repetitions.]
   muscles:
     primary: []
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: short stride run
   slug: short-stride-run
   description: short stride run using body weight.
@@ -15391,8 +15318,8 @@
       number of repetitions, then switch sides.']
   muscles:
     primary: [gluteus-medius]
-    secondary: [gluteus-maximus, gluteus-medius, obliques]
-    stabilizer: []
+    secondary: [gluteus-maximus, obliques]
+    stabilizer: [abs-upper, abs-lower]
 - name: side bridge v. 2
   slug: side-bridge-v-2
   description: side bridge v. 2 using body weight.
@@ -15438,12 +15365,12 @@
       alternating sides for the desired number of repetitions.]
   muscles:
     primary: [gluteus-medius]
-    secondary: [gluteus-maximus, gluteus-medius, quads]
-    stabilizer: []
+    secondary: [gluteus-maximus, quads]
+    stabilizer: [abs-upper, abs-lower]
 - name: side lying floor stretch
   slug: side-lying-floor-stretch
   description: side lying floor stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/jDOKRM5.gif
   instructions: [Lie on your side with your legs straight and your bottom arm extended
@@ -15493,7 +15420,7 @@
 - name: side push neck stretch
   slug: side-push-neck-stretch
   description: side push neck stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/oQRJYkC.gif
   instructions: [Stand or sit up straight with your shoulders relaxed., 'Tilt your
@@ -15504,7 +15431,7 @@
       the stretch 2-3 times on each side.]
   muscles:
     primary: [traps-upper]
-    secondary: [traps-upper, traps-mid, traps-lower, neck]
+    secondary: [traps-mid, traps-lower, neck]
     stabilizer: []
 - name: side push-up
   slug: side-push-up
@@ -15521,13 +15448,12 @@
       with control., 'Repeat for the desired number of repetitions, then switch sides.']
   muscles:
     primary: [triceps-long, triceps-lateral]
-    secondary: [shoulder-front, shoulder-side, deltoid-rear, chest-upper, chest-lower,
-      abs-upper, abs-lower, obliques]
-    stabilizer: []
+    secondary: [shoulder-front, shoulder-side, deltoid-rear, chest-upper, chest-lower, abs-upper, abs-lower, obliques]
+    stabilizer: [gluteus-medius]
 - name: side wrist pull stretch
   slug: side-wrist-pull-stretch
   description: side wrist pull stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/UtmIqcI.gif
   instructions: [Stand with your feet shoulder-width apart and your arms extended
@@ -15537,7 +15463,7 @@
     'Hold the stretch for 15-30 seconds, then release.', Repeat on the other side.]
   muscles:
     primary: [forearm-flexors, forearm-extensors]
-    secondary: [forearm-flexors, forearm-extensors]
+    secondary: []
     stabilizer: []
 - name: side-to-side chin
   slug: side-to-side-chin
@@ -15653,9 +15579,8 @@
       then switch legs.']
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: sissy squat
   slug: sissy-squat
   description: sissy squat using body weight.
@@ -15670,9 +15595,8 @@
       to the starting position.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [quads]
-    secondary: [calves-gastroc-medial, calves-gastroc-lateral, calves-soleus, gluteus-maximus,
-      gluteus-medius]
-    stabilizer: []
+    secondary: [calves-gastroc-medial, calves-gastroc-lateral, calves-soleus, gluteus-maximus, gluteus-medius]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: sit-up v. 2
   slug: sit-up-v-2
   description: sit-up v. 2 using body weight.
@@ -15771,9 +15695,8 @@
       of repetitions.]
   muscles:
     primary: [traps-upper, traps-mid]
-    secondary: [shoulder-front, shoulder-side, deltoid-rear, abs-upper, abs-lower,
-      obliques]
-    stabilizer: []
+    secondary: [shoulder-front, shoulder-side, deltoid-rear, abs-upper, abs-lower, obliques]
+    stabilizer: [rotator-cuff]
 - name: sled 45 degrees one leg press
   slug: sled-45-degrees-one-leg-press
   description: sled 45 degrees one leg press using sled machine.
@@ -15910,9 +15833,8 @@
       return to the starting position.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: sled forward angled calf raise
   slug: sled-forward-angled-calf-raise
   description: sled forward angled calf raise using sled machine.
@@ -15945,9 +15867,8 @@
       starting position.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: sled lying calf press
   slug: sled-lying-calf-press
   description: sled lying calf press using sled machine.
@@ -16643,7 +16564,7 @@
   muscles:
     primary: [quads]
     secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: smith sprint lunge
   slug: smith-sprint-lunge
   description: smith sprint lunge using smith machine.
@@ -16659,9 +16580,8 @@
       alternating sides for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [abs-upper, abs-lower]
 - name: smith squat
   slug: smith-squat
   description: smith squat using smith machine.
@@ -16861,9 +16781,8 @@
       for the desired number of repetitions.]
   muscles:
     primary: [quads]
-    secondary: [hamstrings-medial, hamstrings-lateral, gluteus-maximus, gluteus-medius,
-      calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [hamstrings-medial, hamstrings-lateral, gluteus-maximus, gluteus-medius, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [rotator-cuff, lower-back-erectors, abs-upper, abs-lower]
 - name: spell caster
   slug: spell-caster
   description: spell caster using dumbbell.
@@ -16883,7 +16802,7 @@
 - name: sphinx
   slug: sphinx
   description: sphinx using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/DIVyqrU.gif
   instructions: ['Lie face down on the ground with your forearms flat on the floor,
@@ -16916,7 +16835,7 @@
 - name: spine stretch
   slug: spine-stretch
   description: spine stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/JbC2iaV.gif
   instructions: [Sit on the ground with your legs extended in front of you., 'Place
@@ -16932,7 +16851,7 @@
 - name: spine twist
   slug: spine-twist
   description: spine twist using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/2jl9K55.gif
   instructions: [Sit on the ground with your legs extended in front of you., 'Bend
@@ -16962,9 +16881,8 @@
       number of repetitions, then switch legs and repeat.']
   muscles:
     primary: [quads]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral,
-      calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: squat jerk
   slug: squat-jerk
   description: squat jerk using barbell.
@@ -16982,10 +16900,8 @@
       to your shoulders and repeat for the desired number of repetitions.]
   muscles:
     primary: [quads]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral,
-      calves-gastroc-medial, calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower,
-      obliques]
-    stabilizer: []
+    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus, abs-upper, abs-lower, obliques]
+    stabilizer: [rotator-cuff, lower-back-erectors]
 - name: squat on bosu ball
   slug: squat-on-bosu-ball
   description: squat on bosu ball using bosu ball.
@@ -17001,9 +16917,8 @@
       number of repetitions.]
   muscles:
     primary: [quads]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral,
-      calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: squat to overhead reach
   slug: squat-to-overhead-reach
   description: squat to overhead reach using body weight.
@@ -17018,9 +16933,8 @@
       number of repetitions.]
   muscles:
     primary: [quads]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral,
-      abs-upper, abs-lower, obliques]
-    stabilizer: []
+    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral, abs-upper, abs-lower, obliques]
+    stabilizer: [lower-back-erectors]
 - name: squat to overhead reach with twist
   slug: squat-to-overhead-reach-with-twist
   description: squat to overhead reach with twist using body weight.
@@ -17076,7 +16990,7 @@
 - name: standing archer
   slug: standing-archer
   description: standing archer using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/JF8AkMX.gif
   instructions: [Stand with your feet shoulder-width apart and your knees slightly
@@ -17141,7 +17055,7 @@
 - name: standing calves calf stretch
   slug: standing-calves-calf-stretch
   description: standing calves calf stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/qOKcgVP.gif
   instructions: ['Stand facing a wall or sturdy object, about an arm''s length away.',
@@ -17157,7 +17071,7 @@
 - name: standing hamstring and calf stretch with strap
   slug: standing-hamstring-and-calf-stretch-with-strap
   description: standing hamstring and calf stretch with strap using rope.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/xTjr103.gif
   instructions: [Stand upright with your feet shoulder-width apart., Hold the strap
@@ -17173,7 +17087,7 @@
 - name: standing lateral stretch
   slug: standing-lateral-stretch
   description: standing lateral stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/1jXLYEw.gif
   instructions: [Stand with your feet shoulder-width apart and your knees slightly
@@ -17333,7 +17247,7 @@
       switch sides.']
   muscles:
     primary: [gluteus-medius]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral]
+    secondary: [gluteus-maximus, hamstrings-medial, hamstrings-lateral]
     stabilizer: []
 - name: superman push-up
   slug: superman-push-up
@@ -17402,7 +17316,7 @@
   muscles:
     primary: [abs-upper, abs-lower]
     secondary: [hip-flexor]
-    stabilizer: []
+    stabilizer: [forearm-flexors]
 - name: suspended row
   slug: suspended-row
   description: suspended row using body weight.
@@ -17419,7 +17333,7 @@
   muscles:
     primary: [traps-upper, traps-mid]
     secondary: [biceps, shoulder-front, shoulder-side, deltoid-rear]
-    stabilizer: []
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: suspended split squat
   slug: suspended-split-squat
   description: suspended split squat using body weight.
@@ -17434,9 +17348,8 @@
       for the desired number of repetitions, then switch legs.']
   muscles:
     primary: [quads]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral,
-      calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: swimmer kicks v. 2 (male)
   slug: swimmer-kicks-v-2-male
   description: swimmer kicks v. 2 (male) using body weight.
@@ -17456,7 +17369,7 @@
 - name: swing 360
   slug: swing-360
   description: swing 360 using body weight.
-  category: CARDIO
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/tnaj0mT.gif
   instructions: [Stand with your feet shoulder-width apart and knees slightly bent.,
@@ -17520,9 +17433,8 @@
       the movement.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [hamstrings-medial, hamstrings-lateral, quads, lower-back-erectors,
-      lower-back-ql]
-    stabilizer: []
+    secondary: [hamstrings-medial, hamstrings-lateral, quads, lower-back-erectors, lower-back-ql]
+    stabilizer: [abs-upper, abs-lower]
 - name: triceps dip
   slug: triceps-dip
   description: triceps dip using body weight.
@@ -17607,7 +17519,7 @@
 - name: triceps stretch
   slug: triceps-stretch
   description: triceps stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/uOV3Itw.gif
   instructions: [Stand or sit upright with your back straight., 'Extend one arm overhead,
@@ -17721,7 +17633,7 @@
 - name: upper back stretch
   slug: upper-back-stretch
   description: upper back stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/GSDioYu.gif
   instructions: [Stand up straight with your feet shoulder-width apart., 'Extend your
@@ -17737,7 +17649,7 @@
 - name: upward facing dog
   slug: upward-facing-dog
   description: upward facing dog using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/01qpYSe.gif
   instructions: [Lie face down on the floor with your legs extended behind you., 'Place
@@ -17766,7 +17678,7 @@
   muscles:
     primary: [abs-upper, abs-lower]
     secondary: [hip-flexor]
-    stabilizer: []
+    stabilizer: [forearm-flexors]
 - name: v-sit on floor
   slug: v-sit-on-floor
   description: v-sit on floor using body weight.
@@ -17817,9 +17729,8 @@
       number of repetitions.]
   muscles:
     primary: []
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, gluteus-maximus, gluteus-medius,
-      calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, gluteus-maximus, gluteus-medius, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [abs-upper, abs-lower]
 - name: walking lunge
   slug: walking-lunge
   description: walking lunge using body weight.
@@ -17834,9 +17745,8 @@
       and steady pace.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [abs-upper, abs-lower]
 - name: walking on incline treadmill
   slug: walking-on-incline-treadmill
   description: walking on incline treadmill using leverage machine.
@@ -17919,9 +17829,8 @@
       alternating between legs.']
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: weighted crunch
   slug: weighted-crunch
   description: weighted crunch using weighted.
@@ -18036,7 +17945,7 @@
   muscles:
     primary: [abs-upper, abs-lower]
     secondary: [hip-flexor, lower-back-erectors, lower-back-ql]
-    stabilizer: []
+    stabilizer: [forearm-flexors]
 - name: weighted hyperextension (on stability ball)
   slug: weighted-hyperextension-on-stability-ball
   description: weighted hyperextension (on stability ball) using weighted.
@@ -18082,9 +17991,8 @@
       and continue alternating legs for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [abs-upper, abs-lower]
 - name: weighted muscle up
   slug: weighted-muscle-up
   description: weighted muscle up using weighted.
@@ -18300,9 +18208,8 @@
       to the starting position.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [quads]
-    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral,
-      calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [gluteus-maximus, gluteus-medius, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: weighted squat
   slug: weighted-squat
   description: weighted squat using weighted.
@@ -18317,9 +18224,8 @@
       up, squeezing your glutes at the top.', Repeat for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [lower-back-erectors, abs-upper, abs-lower]
 - name: weighted standing curl
   slug: weighted-standing-curl
   description: weighted standing curl using weighted.
@@ -18378,9 +18284,8 @@
     Continue alternating legs for the desired number of repetitions.]
   muscles:
     primary: [gluteus-maximus, gluteus-medius]
-    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial,
-      calves-gastroc-lateral, calves-soleus]
-    stabilizer: []
+    secondary: [quads, hamstrings-medial, hamstrings-lateral, calves-gastroc-medial, calves-gastroc-lateral, calves-soleus]
+    stabilizer: [abs-upper, abs-lower]
 - name: weighted svend press
   slug: weighted-svend-press
   description: weighted svend press using weighted.
@@ -18464,7 +18369,7 @@
 - name: wheel run
   slug: wheel-run
   description: wheel run using body weight.
-  category: CARDIO
+  category: STRENGTH
   difficulty: INTERMEDIATE
   media_object_key: exercises/km2Ljzj.gif
   instructions: [Start in a plank position with your hands on the wheel and your body
@@ -18541,7 +18446,7 @@
 - name: wind sprints
   slug: wind-sprints
   description: wind sprints using body weight.
-  category: STRENGTH
+  category: CARDIO
   difficulty: INTERMEDIATE
   media_object_key: exercises/Qoujh3Q.gif
   instructions: [Find an open space or a track to perform the exercise., Start by
@@ -18557,7 +18462,7 @@
 - name: world greatest stretch
   slug: world-greatest-stretch
   description: world greatest stretch using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/DFGXwZr.gif
   instructions: [Start in a lunge position with your right foot forward and your left
@@ -18575,7 +18480,7 @@
 - name: wrist circles
   slug: wrist-circles
   description: wrist circles using body weight.
-  category: STRENGTH
+  category: MOBILITY
   difficulty: INTERMEDIATE
   media_object_key: exercises/2zNKRUB.gif
   instructions: [Extend your arms straight out in front of you., Make a fist with
@@ -18583,7 +18488,7 @@
     Continue the wrist circles for the desired number of repetitions.]
   muscles:
     primary: [forearm-flexors, forearm-extensors]
-    secondary: [forearm-flexors, forearm-extensors]
+    secondary: []
     stabilizer: []
 - name: wrist rollerer
   slug: wrist-rollerer
