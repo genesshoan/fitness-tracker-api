@@ -8,6 +8,7 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,6 +37,9 @@ public class ExerciseControllerIT extends AbstractIntegrationTest {
         mockMvc.perform(get("/api/v1/exercises/{slug}", exercise.getSlug()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.slug").value(exercise.getSlug()))
+                .andExpect(jsonPath("$.instructions").isArray())
+                .andExpect(jsonPath("$.instructions.length()").value(2))
+                .andExpect(jsonPath("$.gifUrl").value(nullValue()))
                 .andExpect(jsonPath("$.exerciseMuscles").isArray())
                 .andExpect(jsonPath("$.exerciseMuscles.length()").value(2));
     }
