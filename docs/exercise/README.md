@@ -14,7 +14,7 @@ Key responsibilities:
 - Maintain a muscle directory organized by body region
 - Expose exercise-to-muscle relationships with impact levels
 
-The module is read-only: no create/update/delete operations are exposed via API.
+The module is read-only for regular users; exercise creation, full update and soft deletion are exposed via API but restricted to the ADMIN role.
 
 ## Resources
 
