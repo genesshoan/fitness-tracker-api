@@ -10,7 +10,22 @@ package dev.genesshoan.fitnesstrackerapi.exercise.domain;
  * </ul>
  */
 public enum ImpactLevel {
-    PRIMARY,
-    SECONDARY,
-    STABILIZER,
+    PRIMARY(1.0),
+    SECONDARY(0.5),
+    STABILIZER(0.25);
+
+    private final double weight;
+
+    ImpactLevel(double weight) {
+        this.weight = weight;
+    }
+
+    /**
+     * Returns the application visualization weight for this impact level.
+     *
+     * <p>The weight is a product heuristic, not a physiological coefficient.
+     */
+    public double weight() {
+        return weight;
+    }
 }
