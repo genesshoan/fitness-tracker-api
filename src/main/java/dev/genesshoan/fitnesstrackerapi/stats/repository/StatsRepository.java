@@ -15,10 +15,15 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
+import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.BodyRegion;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.ExerciseProgressProjection;
+import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MuscleIntensityProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.OneRepMaxProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.RankedSetProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.VolumeSetProjection;
+import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -214,6 +219,154 @@ public class StatsRepository {
                         rs.getDouble("weight_kg"),
                         rs.getInt("reps"),
                         rs.getDouble("estimated_one_rep_max")));
+    }
+
+    /**
+     * Aggregates modality-specific set stimulus for every catalog muscle and
+     * impact level within the half-open {@code [from, toExclusive)} interval.
+     *
+     * <p>This is the first of two required normalization stages: every modality is scaled
+     * against its own per-category maximum so strength volume, cardio
+     * duration/distance, and mobility duration stay comparable across modalities.
+     * {@code StatsService} then applies the second stage, which answers "relative to
+     * my strongest muscle in the window". The resulting intensity is an
+     * application-level visualization heuristic, not a physiological claim.
+     */
+    public List<MuscleIntensityProjection> getMuscleIntensity(UUID userId, Instant from, Instant toExclusive) {
+
+        String sql = """
+                WITH qualifying_sets AS (
+                    SELECT
+                        em.muscle_id,
+                        em.impact_level,
+                        e.category,
+                        ss.reps,
+                        ss.weight_kg,
+                        ss.duration_seconds,
+                        ss.distance_km
+                    FROM session_sets ss
+                    JOIN session_exercises se ON ss.session_exercise_id = se.id
+                    JOIN workout_sessions ws ON se.session_id = ws.id
+                    JOIN exercises e ON se.exercise_id = e.id
+                    JOIN exercise_muscles em ON e.id = em.exercise_id
+                    JOIN muscles m ON em.muscle_id = m.id
+                    WHERE ws.user_id = :userId
+                        AND ws.status = :completedStatus
+                        AND ws.completed_at >= :from
+                        AND ws.completed_at < :to
+                        AND ss.completed = true
+                ),
+                maxima AS (
+                    SELECT
+                        MAX(
+                            CASE
+                                WHEN category = :strengthCategory AND reps > 0 AND weight_kg > 0
+                                THEN reps * weight_kg
+                            END
+                        ) AS max_strength_volume,
+                        MAX(
+                            CASE
+                                WHEN category = :cardioCategory AND duration_seconds > 0
+                                THEN duration_seconds
+                            END
+                        ) AS max_cardio_duration_seconds,
+                        MAX(
+                            CASE
+                                WHEN category = :cardioCategory AND distance_km > 0
+                                THEN distance_km
+                            END
+                        ) AS max_cardio_distance_km,
+                        MAX(
+                            CASE
+                                WHEN category = :mobilityCategory AND duration_seconds > 0
+                                THEN duration_seconds
+                            END
+                        ) AS max_mobility_duration_seconds
+                    FROM qualifying_sets
+                ),
+                calculated_sets AS (
+                    SELECT
+                        qs.muscle_id,
+                        qs.impact_level,
+                        CASE qs.category
+                            WHEN :strengthCategory THEN
+                                1.0 * (1.0 + LN(1.0 + GREATEST(COALESCE(qs.reps, 0), 0))) *
+                                CASE
+                                    WHEN qs.reps > 0 AND qs.weight_kg > 0
+                                    THEN (1.0 + LN(1.0 + (qs.reps * qs.weight_kg))) /
+                                        (1.0 + LN(1.0 + m.max_strength_volume))
+                                    ELSE 1.0
+                                END
+                            WHEN :cardioCategory THEN
+                                CASE
+                                    WHEN qs.duration_seconds > 0 OR qs.distance_km > 0
+                                    THEN GREATEST(
+                                        CASE
+                                            WHEN qs.duration_seconds > 0
+                                            THEN (1.0 + LN(1.0 + qs.duration_seconds)) /
+                                                (1.0 + LN(1.0 + m.max_cardio_duration_seconds))
+                                            ELSE 0.0
+                                        END,
+                                        CASE
+                                            WHEN qs.distance_km > 0
+                                            THEN (1.0 + LN(1.0 + qs.distance_km)) /
+                                                (1.0 + LN(1.0 + m.max_cardio_distance_km))
+                                            ELSE 0.0
+                                        END
+                                    )
+                                    ELSE 1.0
+                                END
+                            WHEN :mobilityCategory THEN
+                                CASE
+                                    WHEN qs.duration_seconds > 0
+                                    THEN (1.0 + LN(1.0 + qs.duration_seconds)) /
+                                        (1.0 + LN(1.0 + m.max_mobility_duration_seconds))
+                                    ELSE 0.0
+                                END
+                            ELSE 0.0
+                        END AS stimulus
+                    FROM qualifying_sets qs
+                    CROSS JOIN maxima m
+                ),
+                aggregated_stimulus AS (
+                    SELECT
+                        muscle_id,
+                        impact_level,
+                        SUM(stimulus) AS raw_stimulus
+                    FROM calculated_sets
+                    GROUP BY muscle_id, impact_level
+                )
+                SELECT
+                    m.id AS muscle_id,
+                    m.name,
+                    m.slug,
+                    m.body_region,
+                    a.impact_level,
+                    COALESCE(a.raw_stimulus, 0.0) AS raw_stimulus
+                FROM muscles m
+                LEFT JOIN aggregated_stimulus a ON m.id = a.muscle_id
+                ORDER BY m.name ASC, m.id ASC
+            """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("userId", userId)
+                .addValue("from", Timestamp.from(from))
+                .addValue("to", Timestamp.from(toExclusive))
+                .addValue("strengthCategory", Category.STRENGTH.name())
+                .addValue("cardioCategory", Category.CARDIO.name())
+                .addValue("mobilityCategory", Category.MOBILITY.name())
+                .addValue("completedStatus", SessionStatus.COMPLETED.name());
+
+        return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
+            String impactLevel = rs.getString("impact_level");
+            return new MuscleIntensityProjection(
+                    (UUID) rs.getObject("muscle_id"),
+                    rs.getString("name"),
+                    rs.getString("slug"),
+                    BodyRegion.valueOf(rs.getString("body_region")),
+                    impactLevel == null ? null : ImpactLevel.valueOf(impactLevel),
+                    rs.getDouble("raw_stimulus"));
+        });
     }
 
     private RankedSetProjection mapRow(ResultSet rs, int rowNum) throws SQLException {

@@ -1,6 +1,7 @@
 package dev.genesshoan.fitnesstrackerapi.stats.controller;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import org.springframework.http.ProblemDetail;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPointsDTO;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.OneRepMaxDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.SessionVolumeDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.StreakDTO;
@@ -220,5 +222,58 @@ public class StatsController {
                     Instant to) {
         return ResponseEntity.ok(statsService.getExerciseProgress(
                 principal.getId(), exerciseId, from, to, principal.getUser().getTimezone()));
+    }
+
+    @Operation(
+            summary = "Get muscle intensity",
+            description = "Get deterministic range-relative application intensity for every muscle. "
+                    + "Scores are a visualization heuristic, not physiological muscle activation.")
+    @ApiResponses({
+        @ApiResponse(
+                responseCode = "200",
+                description = "Muscle intensity calculated successfully",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema = @Schema(implementation = MuscleIntensityResponseDTO.class))),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid date range",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "500",
+                description = "Internal server error",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class)))
+    })
+    @GetMapping("/muscle-intensity")
+    public ResponseEntity<MuscleIntensityResponseDTO> getMuscleIntensity(
+            @AuthenticationPrincipal UserDetailsImpl principal,
+            @Parameter(
+                            description = "Inclusive start of the date range in the user's timezone",
+                            required = true,
+                            example = "2026-09-01")
+                    @RequestParam
+                    LocalDate from,
+            @Parameter(
+                            description = "Inclusive end of the date range in the user's timezone",
+                            required = true,
+                            example = "2026-09-30")
+                    @RequestParam
+                    LocalDate to) {
+        return ResponseEntity.ok(statsService.getMuscleIntensity(
+                principal.getId(), from, to, principal.getUser().getTimezone()));
     }
 }
