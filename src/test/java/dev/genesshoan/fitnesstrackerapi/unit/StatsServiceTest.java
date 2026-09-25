@@ -5,22 +5,29 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import dev.genesshoan.fitnesstrackerapi.common.domain.ExerciseMetrics;
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.mapper.ExerciseMetricsMapper;
 import dev.genesshoan.fitnesstrackerapi.exercise.ExerciseRepository;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
+import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.BodyRegion;
 import dev.genesshoan.fitnesstrackerapi.stats.domain.AchievementType;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.AchievementDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPointsDTO;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityDTO;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.OneRepMaxDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.SessionVolumeDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.StreakDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.mapper.AchievementMapper;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.StatsRepository;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.ExerciseProgressProjection;
+import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MuscleIntensityProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.OneRepMaxProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.RankedSetProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.VolumeSetProjection;
@@ -169,8 +176,8 @@ class StatsServiceTest {
         Instant to = Instant.parse("2026-01-01T00:00:00Z");
 
         assertThatThrownBy(() -> statsService.getExerciseProgress(UUID.randomUUID(), exerciseId, from, to, "UTC"))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Exercise progress not found");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("The start date cannot be after the end date");
 
         verifyNoInteractions(statsRepository, exerciseRepository);
     }
@@ -352,7 +359,7 @@ class StatsServiceTest {
         session.addExerciseAt(sessionExercise, 1);
         AchievementDTO achievement = new AchievementDTO(AchievementType.NEW_MAX_WEIGHT, 50.0, null, null, null);
 
-        when(statsRepository.findRankedSets(userId, java.util.Set.of(exerciseId), session.getStartedAt()))
+        when(statsRepository.findRankedSets(userId, Set.of(exerciseId), session.getStartedAt()))
                 .thenReturn(Map.of());
         when(exerciseMetricsMapper.toExerciseMetrics(completedSet))
                 .thenReturn(new ExerciseMetrics(10, 50.0, null, null));
@@ -396,5 +403,149 @@ class StatsServiceTest {
         when(achievementMapper.toDtos(any())).thenReturn(List.of(achievement));
 
         assertThat(statsService.calculateForSession(session, userId)).containsEntry(set.getId(), List.of(achievement));
+    }
+
+    @Test
+    @DisplayName("Should return zero intensity for every muscle when no stimulus exists")
+    void getMuscleIntensity_shouldReturnZeroForEveryMuscle() {
+        UUID userId = UUID.randomUUID();
+        UUID firstMuscleId = UUID.randomUUID();
+        UUID secondMuscleId = UUID.randomUUID();
+        LocalDate from = LocalDate.of(2026, 9, 1);
+        LocalDate to = LocalDate.of(2026, 9, 7);
+        when(statsRepository.getMuscleIntensity(
+                        userId, Instant.parse("2026-09-01T00:00:00Z"), Instant.parse("2026-09-08T00:00:00Z")))
+                .thenReturn(List.of(
+                        new MuscleIntensityProjection(
+                                firstMuscleId, "First muscle", "first-muscle", BodyRegion.ARMS, null, 0.0),
+                        new MuscleIntensityProjection(
+                                secondMuscleId, "Second muscle", "second-muscle", BodyRegion.LEGS, null, 0.0)));
+
+        MuscleIntensityResponseDTO result = statsService.getMuscleIntensity(userId, from, to, "UTC");
+
+        assertThat(result.from()).isEqualTo(from);
+        assertThat(result.to()).isEqualTo(to);
+        assertThat(result.muscles())
+                .containsExactly(
+                        new MuscleIntensityDTO(firstMuscleId, "First muscle", "first-muscle", BodyRegion.ARMS, 0.0),
+                        new MuscleIntensityDTO(secondMuscleId, "Second muscle", "second-muscle", BodyRegion.LEGS, 0.0));
+    }
+
+    @Test
+    @DisplayName("Should weight impact levels and normalize the highest muscle to ten")
+    void getMuscleIntensity_shouldWeightImpactLevelsAndNormalize() {
+        UUID userId = UUID.randomUUID();
+        UUID weightedMuscleId = UUID.randomUUID();
+        UUID highestMuscleId = UUID.randomUUID();
+        UUID zeroMuscleId = UUID.randomUUID();
+        when(statsRepository.getMuscleIntensity(userId, Instant.EPOCH, Instant.EPOCH.plusSeconds(86400)))
+                .thenReturn(List.of(
+                        new MuscleIntensityProjection(
+                                weightedMuscleId,
+                                "Weighted muscle",
+                                "weighted-muscle",
+                                BodyRegion.BACK,
+                                ImpactLevel.PRIMARY,
+                                8.0),
+                        new MuscleIntensityProjection(
+                                weightedMuscleId,
+                                "Weighted muscle",
+                                "weighted-muscle",
+                                BodyRegion.BACK,
+                                ImpactLevel.SECONDARY,
+                                4.0),
+                        new MuscleIntensityProjection(
+                                weightedMuscleId,
+                                "Weighted muscle",
+                                "weighted-muscle",
+                                BodyRegion.BACK,
+                                ImpactLevel.STABILIZER,
+                                4.0),
+                        new MuscleIntensityProjection(
+                                highestMuscleId,
+                                "Highest muscle",
+                                "highest-muscle",
+                                BodyRegion.LEGS,
+                                ImpactLevel.PRIMARY,
+                                5.0),
+                        new MuscleIntensityProjection(
+                                zeroMuscleId, "Zero muscle", "zero-muscle", BodyRegion.OTHER, null, 0.0)));
+
+        MuscleIntensityResponseDTO result =
+                statsService.getMuscleIntensity(userId, LocalDate.of(1970, 1, 1), LocalDate.of(1970, 1, 1), "UTC");
+
+        assertThat(result.muscles())
+                .containsExactly(
+                        new MuscleIntensityDTO(
+                                weightedMuscleId, "Weighted muscle", "weighted-muscle", BodyRegion.BACK, 10.0),
+                        new MuscleIntensityDTO(
+                                highestMuscleId, "Highest muscle", "highest-muscle", BodyRegion.LEGS, 4.5),
+                        new MuscleIntensityDTO(zeroMuscleId, "Zero muscle", "zero-muscle", BodyRegion.OTHER, 0.0));
+    }
+
+    @Test
+    @DisplayName("Should round muscle intensity half up to one decimal")
+    void getMuscleIntensity_shouldRoundHalfUpToOneDecimal() {
+        UUID userId = UUID.randomUUID();
+        UUID halfUpMuscleId = UUID.randomUUID();
+        UUID lowerMuscleId = UUID.randomUUID();
+        UUID maximumMuscleId = UUID.randomUUID();
+        when(statsRepository.getMuscleIntensity(userId, Instant.EPOCH, Instant.EPOCH.plusSeconds(86400)))
+                .thenReturn(List.of(
+                        new MuscleIntensityProjection(
+                                halfUpMuscleId,
+                                "Half-up muscle",
+                                "half-up-muscle",
+                                BodyRegion.ARMS,
+                                ImpactLevel.PRIMARY,
+                                0.105),
+                        new MuscleIntensityProjection(
+                                lowerMuscleId,
+                                "Lower muscle",
+                                "lower-muscle",
+                                BodyRegion.ARMS,
+                                ImpactLevel.PRIMARY,
+                                0.101),
+                        new MuscleIntensityProjection(
+                                maximumMuscleId,
+                                "Maximum muscle",
+                                "maximum-muscle",
+                                BodyRegion.LEGS,
+                                ImpactLevel.PRIMARY,
+                                1.0)));
+
+        MuscleIntensityResponseDTO result =
+                statsService.getMuscleIntensity(userId, LocalDate.of(1970, 1, 1), LocalDate.of(1970, 1, 1), "UTC");
+
+        assertThat(result.muscles().getFirst().intensity()).isEqualTo(1.1);
+        assertThat(result.muscles().get(1).intensity()).isEqualTo(1.0);
+        assertThat(result.muscles().get(2).intensity()).isEqualTo(10.0);
+    }
+
+    @Test
+    @DisplayName("Should convert inclusive local dates to the user's timezone")
+    void getMuscleIntensity_shouldConvertDatesInUserTimezone() {
+        UUID userId = UUID.randomUUID();
+        when(statsRepository.getMuscleIntensity(
+                        userId, Instant.parse("2026-01-01T03:00:00Z"), Instant.parse("2026-01-02T03:00:00Z")))
+                .thenReturn(List.of());
+
+        statsService.getMuscleIntensity(
+                userId, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 1), "America/Sao_Paulo");
+
+        verify(statsRepository)
+                .getMuscleIntensity(
+                        userId, Instant.parse("2026-01-01T03:00:00Z"), Instant.parse("2026-01-02T03:00:00Z"));
+    }
+
+    @Test
+    @DisplayName("Should reject muscle intensity when start date is after end date")
+    void getMuscleIntensity_shouldThrowWhenFromIsAfterTo() {
+        assertThatThrownBy(() -> statsService.getMuscleIntensity(
+                        UUID.randomUUID(), LocalDate.of(2026, 9, 2), LocalDate.of(2026, 9, 1), "UTC"))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("The start date cannot be after the end date");
+
+        verifyNoInteractions(statsRepository);
     }
 }

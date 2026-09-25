@@ -1,9 +1,12 @@
 package dev.genesshoan.fitnesstrackerapi.stats.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import dev.genesshoan.fitnesstrackerapi.common.domain.ExerciseMetrics;
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.mapper.ExerciseMetricsMapper;
 import dev.genesshoan.fitnesstrackerapi.exercise.ExerciseRepository;
@@ -28,11 +32,14 @@ import dev.genesshoan.fitnesstrackerapi.stats.domain.PersonalRecordHolders;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.AchievementDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPointDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPointsDTO;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityDTO;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.OneRepMaxDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.SessionVolumeDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.StreakDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.mapper.AchievementMapper;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.StatsRepository;
+import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MuscleIntensityProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.OneRepMaxProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.RankedSetProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.VolumeSetProjection;
@@ -40,7 +47,6 @@ import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
 import dev.genesshoan.fitnesstrackerapi.workout.repository.WorkoutSessionRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Provides user-scoped workout statistics and achievement calculations.
@@ -49,7 +55,6 @@ import lombok.extern.slf4j.Slf4j;
  * the underlying query requires historical performance. Date conversion uses
  * the user's configured timezone.
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -142,12 +147,14 @@ public class StatsService {
      * @param to exclusive range end
      * @param userTimezone the user's IANA timezone
      * @return chronological progress points
+     * @throws BadRequestException if {@code from} is after {@code to}
+     * @throws ResourceNotFoundException if the exercise does not exist
      */
     public ExerciseProgressPointsDTO getExerciseProgress(
             UUID userId, UUID exerciseId, Instant from, Instant to, String userTimezone) {
 
         if (from.isAfter(to)) {
-            throw new ResourceNotFoundException("Exercise progress not found");
+            throw new BadRequestException("The start date cannot be after the end date");
         }
 
         if (!exerciseRepository.existsById(exerciseId)) {
@@ -166,6 +173,71 @@ public class StatsService {
                         .toList();
 
         return new ExerciseProgressPointsDTO(exerciseId, progress);
+    }
+
+    /**
+     * Returns range-relative application intensity for every catalog muscle.
+     *
+     * <p>The dates are inclusive in the user's configured timezone. This is the second of
+     * two required normalization stages: the repository first scales each modality against
+     * its own per-category maximum so different modalities stay comparable, and this method
+     * then weights impact levels and scales every muscle to 0-10 against the user's own
+     * strongest muscle in the window, so a score reads as "relative to my strongest muscle
+     * in the window". Both stages are required, and the result is an application-level
+     * visualization heuristic, not a physiological claim.
+     *
+     * @param userId the user whose completed training history is aggregated
+     * @param from inclusive range start
+     * @param to inclusive range end
+     * @param userTimezone the user's IANA timezone
+     * @return every muscle with metadata and a relative intensity score
+     * @throws BadRequestException if {@code from} is after {@code to}
+     */
+    public MuscleIntensityResponseDTO getMuscleIntensity(
+            UUID userId, LocalDate from, LocalDate to, String userTimezone) {
+
+        if (from.isAfter(to)) {
+            throw new BadRequestException("The start date cannot be after the end date");
+        }
+
+        ZoneId userZoneId = ZoneId.of(userTimezone);
+        Instant fromInclusive = from.atStartOfDay(userZoneId).toInstant();
+        Instant toExclusive = to.plusDays(1).atStartOfDay(userZoneId).toInstant();
+
+        Map<UUID, List<MuscleIntensityProjection>> projectionsByMuscle =
+                statsRepository.getMuscleIntensity(userId, fromInclusive, toExclusive).stream()
+                        .collect(Collectors.groupingBy(
+                                MuscleIntensityProjection::muscleId, LinkedHashMap::new, Collectors.toList()));
+
+        Map<UUID, Double> rawStimulusByMuscle = new LinkedHashMap<>();
+        for (Map.Entry<UUID, List<MuscleIntensityProjection>> entry : projectionsByMuscle.entrySet()) {
+            double weightedStimulus = entry.getValue().stream()
+                    .mapToDouble(projection -> projection.impactLevel() == null
+                            ? 0.0
+                            : projection.rawStimulus()
+                                    * projection.impactLevel().weight())
+                    .sum();
+            rawStimulusByMuscle.put(entry.getKey(), weightedStimulus);
+        }
+        double maximumStimulus = rawStimulusByMuscle.values().stream()
+                .mapToDouble(Double::doubleValue)
+                .max()
+                .orElse(0.0);
+
+        List<MuscleIntensityDTO> muscles = projectionsByMuscle.entrySet().stream()
+                .map(entry -> {
+                    MuscleIntensityProjection metadata = entry.getValue().getFirst();
+                    double intensity = maximumStimulus == 0.0
+                            ? 0.0
+                            : BigDecimal.valueOf(rawStimulusByMuscle.get(entry.getKey()) / maximumStimulus * 10.0)
+                                    .setScale(1, RoundingMode.HALF_UP)
+                                    .doubleValue();
+                    return new MuscleIntensityDTO(
+                            metadata.muscleId(), metadata.name(), metadata.slug(), metadata.bodyRegion(), intensity);
+                })
+                .toList();
+
+        return new MuscleIntensityResponseDTO(from, to, muscles);
     }
 
     /**
