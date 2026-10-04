@@ -16,6 +16,7 @@ import dev.genesshoan.fitnesstrackerapi.user.dto.ChangePasswordRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.user.dto.ChangeUsernameRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.user.dto.UserResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.user.mapper.UserMapper;
+import dev.genesshoan.fitnesstrackerapi.user.profilepicture.service.ProfilePictureUseCase;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +45,9 @@ class UserServiceTest {
     @Mock
     private UserMapper userMapper;
 
+    @Mock
+    private ProfilePictureUseCase profilePictureUseCase;
+
     @InjectMocks
     private UserService userService;
 
@@ -56,16 +60,18 @@ class UserServiceTest {
 
     @Test
     void getProfile_ShouldReturnProfile() {
-        UserResponseDTO dto = new UserResponseDTO(user.getEmail(), user.getUsername());
+        UserResponseDTO dto = new UserResponseDTO(user.getEmail(), user.getUsername(), null);
 
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
         when(userMapper.toResponseDTO(user)).thenReturn(dto);
+        when(profilePictureUseCase.getProfilePictureUrl(null)).thenReturn(null);
 
         UserResponseDTO result = userService.getProfile(USER_ID);
 
         assertThat(result).isEqualTo(dto);
         verify(userRepository).findById(USER_ID);
         verify(userMapper).toResponseDTO(user);
+        verify(profilePictureUseCase).getProfilePictureUrl(null);
     }
 
     @Test
