@@ -134,6 +134,43 @@ public class UserController {
     @Operation(
             summary = "Uploads or replaces the user's profile picture",
             description = "The same operation uploads the first picture or replaces the existing one.")
+    @ApiResponses({
+        @ApiResponse(
+                responseCode = "200",
+                description = "Profile picture uploaded or replaced successfully",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema = @Schema(implementation = ProfilePictureResponseDTO.class))),
+        @ApiResponse(
+                responseCode = "400",
+                description = "The uploaded file is invalid or the multipart part is missing",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "401",
+                description = "User is not authenticated",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "User not found",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "500",
+                description = "Profile picture processing or storage failed",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class)))
+    })
     @PutMapping(value = "/me/profile-picture", consumes = "multipart/form-data")
     public ResponseEntity<ProfilePictureResponseDTO> uploadProfilePicture(
             @AuthenticationPrincipal UserDetailsImpl principal,

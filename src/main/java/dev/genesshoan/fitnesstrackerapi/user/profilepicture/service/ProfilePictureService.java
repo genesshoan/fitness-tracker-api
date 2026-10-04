@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidProfilePictureException;
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.FileStorageException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ProfilePictureProcessingException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
@@ -51,7 +52,7 @@ public class ProfilePictureService implements ProfilePictureUseCase {
             user.setProfilePictureKey(key);
 
             return objectStorage.getPresignedUrl(key);
-        } catch (InvalidProfilePictureException | IllegalArgumentException e) {
+        } catch (InvalidProfilePictureException | FileStorageException | IllegalArgumentException e) {
             throw e;
         } catch (IOException e) {
             throw new ProfilePictureProcessingException("Failed to read uploaded profile picture", e);
