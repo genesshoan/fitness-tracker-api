@@ -10,12 +10,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
 import dev.genesshoan.fitnesstrackerapi.user.dto.ChangePasswordRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.user.dto.ChangeUsernameRequestDTO;
+import dev.genesshoan.fitnesstrackerapi.user.dto.ProfilePictureResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.user.dto.UserResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.user.profilepicture.service.ProfilePictureUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -32,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
 
     private final UserService userService;
+    private final ProfilePictureUseCase profilePictureUseCase;
 
     @Operation(
             summary = "Returns the user's profile",
@@ -124,5 +129,17 @@ public class UserController {
         userService.changeUsername(principal.getId(), dto);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Uploads or replaces the user's profile picture",
+            description = "The same operation uploads the first picture or replaces the existing one.")
+    @PutMapping(value = "/me/profile-picture", consumes = "multipart/form-data")
+    public ResponseEntity<ProfilePictureResponseDTO> uploadProfilePicture(
+            @AuthenticationPrincipal UserDetailsImpl principal,
+            @RequestPart("file") MultipartFile file) {
+
+        String url = profilePictureUseCase.uploadProfilePicture(principal.getId(), file);
+        return ResponseEntity.ok(new ProfilePictureResponseDTO(url));
     }
 }
