@@ -18,12 +18,21 @@ public class MuscleControllerIT extends AbstractIntegrationTest {
     @DisplayName("Should return 200 with muscles list")
     @WithMockUser
     void getMuscles_ShouldReturn200WithData() throws Exception {
-        testEntityFactory.createAndPersistMuscle();
+        var muscle = testEntityFactory.createAndPersistMuscle();
 
         mockMvc.perform(get("/api/v1/muscles"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content.length()").value(1));
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].slug").value(muscle.getSlug()))
+                .andExpect(jsonPath("$.content[0].bodyRegion")
+                        .value(muscle.getBodyRegion().name()));
+    }
+
+    @Test
+    @DisplayName("Should return 401 when listing muscles without authentication")
+    void getMuscles_ShouldReturn401WithoutAuthentication() throws Exception {
+        mockMvc.perform(get("/api/v1/muscles")).andExpect(status().isUnauthorized());
     }
 
     @Test
