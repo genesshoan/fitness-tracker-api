@@ -27,6 +27,19 @@ Controllers expose with prefix **`/api/v1`**.
 | ------ | ----------------- | -------- | ------- | ----------------- | ------ |
 | GET    | `/api/v1/user/me` | Required | None    | `UserResponseDTO` | 200    |
 
+`UserResponseDTO` includes `profilePictureUrl`, a temporary URL for the processed
+profile picture, or `null` when the user has not uploaded one.
+
+### Profile picture
+
+| Método | Endpoint                            | Auth     | Request                         | Response                    | Status |
+| ------ | ----------------------------------- | -------- | ------------------------------- | --------------------------- | ------ |
+| PUT    | `/api/v1/user/me/profile-picture`  | Required | `multipart/form-data` (`file`) | `ProfilePictureResponseDTO` | 200    |
+
+The same `PUT` operation handles both the first upload and replacement. Images
+are validated, cropped to the configured output size, stored under a stable
+user-specific key, and returned through a temporary presigned URL.
+
 ### Credentials
 
 | Método | Endpoint                   | Auth     | Request                    | Response | Status |
