@@ -20,7 +20,19 @@ The authenticated principal supplies the user ID. The client cannot select anoth
 
 ## Profile Exposure
 
-The profile response is deliberately minimal: only email and username are exposed. Role, password hash, timezone, IDs, and persistence timestamps remain server-side.
+The profile response exposes email, username, and a temporary profile-picture
+URL when available. Role, password hash, timezone, IDs, persistence timestamps,
+and the object-storage key remain server-side.
+
+## Profile Pictures
+
+- The authenticated principal determines which user owns the picture.
+- Upload and replacement use the same `PUT /api/v1/user/me/profile-picture` operation.
+- The processed picture is stored under a stable user-specific key.
+- The storage key is persisted on the user but is never returned to clients.
+- Access is granted through a temporary presigned URL.
+- Invalid images return a client-safe validation error; storage and processing
+  failures return generic server errors.
 
 ## Timezone
 
