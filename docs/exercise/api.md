@@ -1,5 +1,7 @@
 # API Reference
 
+All endpoints require an authenticated user and a JWT bearer token. Exercise write endpoints additionally require the `ADMIN` role.
+
 ## Endpoints
 
 | Method | Path | Description |
@@ -12,60 +14,24 @@
 | GET | `/api/v1/muscles` | List all muscles (paginated) |
 | GET | `/api/v1/muscles/{slug}` | Get muscle by slug |
 
-All endpoints require authentication via Bearer token.
-
 ## List Exercises (`GET /api/v1/exercises`)
 
-**Description:** Retrieves a paginated list of active exercises with optional filtering.
-
-**Query Parameters:**
+Returns active exercises using cursor pagination and optional filters.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| cursor | UUID | No | Pagination cursor (last ID from previous page) |
-| size | Integer | No | Number of items to return (max 100) |
-| category | Category | No | Filter by exercise category |
-| difficulty | Difficulty | No | Filter by difficulty level |
-| muscleSlugs | List[String] | No | Filter by one or more muscle slugs |
+| cursor | UUID | No | Last ID from the previous page |
+| size | Integer | No | Number of items; positive, maximum 100 |
+| category | Category | No | `STRENGTH`, `CARDIO`, or `MOBILITY` |
+| difficulty | Difficulty | No | `BEGINNER`, `INTERMEDIATE`, or `ADVANCED` |
+| muscleSlugs | List[String] | No | Exercises associated with any supplied muscle slug |
 
-**Validation:**
-- `size` – maximum 100, must be positive
-- `cursor` – must be a valid UUID
-
-**Success Response (200):**
-```json
-{
-  "page": [
-    {
-      "id": "123e4567-e89b-12d3-a456-426614174000",
-      "name": "Bicep Curl",
-      "slug": "bicep-curl",
-      "category": "STRENGTH",
-      "difficulty": "INTERMEDIATE"
-    }
-  ]
-}
-```
-
-**Error Responses:**
-- `400` – Invalid request parameters (e.g., size > 100)
-- `401` – Unauthorized
-- `500` – Internal server error
+`cursor` must be a valid UUID. A successful response is `200 OK` with a cursor page of exercise list items.
 
 ## Get Exercise (`GET /api/v1/exercises/{slug}`)
 
-**Description:** Retrieves a single active exercise by its slug, including muscle relationships.
+Returns an active exercise and its muscle relationships. `slug` is required and must not be blank.
 
-**Path Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| slug | String | Yes | URL-friendly exercise identifier (e.g., "bicep-curl") |
-
-**Validation:**
-- `slug` – required, not blank
-
-**Success Response (200):**
 ```json
 {
   "id": "123e4567-e89b-12d3-a456-426614174000",
@@ -80,7 +46,7 @@ All endpoints require authentication via Bearer token.
   "difficulty": "INTERMEDIATE",
   "exerciseMuscles": [
     {
-      "muscle": { "name": "bicep", "slug": "bicep", "bodyRegion": "ARMS" },
+      "muscle": { "name": "Biceps Brachii", "slug": "biceps", "bodyRegion": "ARMS" },
       "impactLevel": "PRIMARY"
     }
   ],
@@ -88,136 +54,64 @@ All endpoints require authentication via Bearer token.
 }
 ```
 
-**Response fields:**
-- `instructions` – ordered list of step-by-step execution steps; empty array when the exercise has no steps.
-- `gifUrl` – public URL of the exercise demonstration GIF. Currently always `null` (placeholder); URL resolution (signed or public) from the internal storage key will be implemented later in the service layer.
-- `media_object_key` (internal object-storage key, e.g. `exercises/abc123.gif`) is **never exposed** by the API. It is an infrastructure detail, not a client-facing field.
-- `impactLevel` – one of `PRIMARY`, `SECONDARY`, `STABILIZER`. Seed data populates all three levels.
-
-**Error Responses:**
-- `400` – Slug is blank or null
-- `401` – Unauthorized
-- `404` – Exercise not found
-- `500` – Internal server error
+`instructions` is an ordered array and defaults to an empty array. `gifUrl` is currently always `null`. The nullable internal `media_object_key` is never exposed and is assigned later by the media pipeline.
 
 ## Create Exercise (`POST /api/v1/exercises`)
 
-**Description:** Creates a new exercise with optional muscle associations. Requires `ADMIN` role.
-
-**Request Body (`ExerciseRequestDTO`):**
+Creates an exercise with optional muscle associations. Requires `ADMIN`.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| name | String | Yes | Exercise name (not blank) |
-| slug | String | Yes | URL-friendly identifier, unique across active and inactive exercises |
-| description | String | Yes | Human-readable description (not blank) |
-| instructions | List[String] | No | Ordered step-by-step execution steps; omitted or null defaults to an empty list |
-| category | Category | Yes | `STRENGTH`, `CARDIO` or `MOBILITY` |
-| difficulty | Difficulty | Yes | `BEGINNER`, `INTERMEDIATE` or `ADVANCED` |
-| muscles | List | No | Muscle associations (`muscleSlug` + `impactLevel`); each slug must reference an existing muscle, without duplicates |
+| name | String | Yes | Non-blank exercise name |
+| slug | String | Yes | Unique URL-friendly identifier |
+| description | String | Yes | Non-blank description |
+| instructions | List[String] | No | Ordered steps; null defaults to `[]` |
+| category | Category | Yes | `STRENGTH`, `CARDIO`, or `MOBILITY` |
+| difficulty | Difficulty | Yes | `BEGINNER`, `INTERMEDIATE`, or `ADVANCED` |
+| muscles | List | No | `muscleSlug` and `impactLevel`; no duplicate slugs |
 
-**Success Response (201):** `ExerciseDetailDTO` of the created exercise.
-
-**Error Responses:**
-- `400` – Invalid request body (blank name/slug/description, null category/difficulty)
-- `401` – Unauthorized
-- `403` – Forbidden: ADMIN role required
-- `404` – Referenced muscle slug does not exist
-- `409` – Exercise slug already exists
-- `500` – Internal server error
+Returns `201 Created` with `ExerciseDetailDTO`.
 
 ## Update Exercise (`PUT /api/v1/exercises/{slug}`)
 
-**Description:** Fully updates the active exercise identified by slug, replacing its muscle associations with the supplied ones. Requires `ADMIN` role. The slug itself may be changed as long as the new value is not taken.
-
-**Path Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| slug | String | Yes | URL-friendly exercise identifier of the exercise to update |
-
-**Request Body:** same `ExerciseRequestDTO` as create.
-
-**Success Response (200):** `ExerciseDetailDTO` of the updated exercise.
-
-**Error Responses:**
-- `400` – Invalid slug or request body
-- `401` – Unauthorized
-- `403` – Forbidden: ADMIN role required
-- `404` – Exercise or referenced muscle not found
-- `409` – New slug already used by another exercise
-- `500` – Internal server error
+Fully updates the active exercise identified by the path slug. The request body is the same as create; the submitted muscle list replaces all existing associations. The slug may change if the new slug is unused. Returns `200 OK`.
 
 ## Delete Exercise (`DELETE /api/v1/exercises/{slug}`)
 
-**Description:** Soft-deletes the active exercise: it is kept with `active = false` and excluded from all reads. Requires `ADMIN` role.
-
-**Success Response:** `204 No Content` (empty body).
-
-**Error Responses:**
-- `400` – Slug is blank or null
-- `401` – Unauthorized
-- `403` – Forbidden: ADMIN role required
-- `404` – Exercise not found
-- `500` – Internal server error
+Soft-deletes the active exercise by setting `active = false`; it is excluded from reads and its slug remains reserved. Returns `204 No Content`.
 
 ## List Muscles (`GET /api/v1/muscles`)
 
-**Description:** Returns a paginated list of all muscles.
-
-**Query Parameters:**
+Returns a paginated list of muscles. Use the exact slugs listed in [Muscle slugs](README.md#muscle-slugs) when filtering exercises or submitting muscle associations.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| page | Integer | No | Page number (0-based) |
+| page | Integer | No | Zero-based page number |
 | size | Integer | No | Number of items per page |
 | sort | String | No | Sort criteria |
 
-**Success Response (200):**
-```json
-{
-  "content": [
-    {
-      "name": "bicep",
-      "slug": "bicep",
-      "bodyRegion": "ARMS"
-    }
-  ]
-}
-```
-
-**Error Responses:**
-- `401` – Unauthorized
-- `500` – Internal server error
+Returns `200 OK` with a Spring `Page<MuscleResponseDTO>`.
 
 ## Get Muscle (`GET /api/v1/muscles/{slug}`)
 
-**Description:** Returns a muscle by its slug.
+Returns a muscle by its URL-friendly slug. Returns `200 OK`, or `404 Not Found` when the slug does not exist.
 
-**Path Parameters:**
+## Common Error Responses
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| slug | String | Yes | URL-friendly muscle identifier |
-
-**Success Response (200):**
-```json
-{
-  "name": "bicep",
-  "slug": "bicep",
-  "bodyRegion": "ARMS"
-}
-```
-
-**Error Responses:**
-- `401` – Unauthorized
-- `404` – Muscle not found
-- `500` – Internal server error
+| Status | Meaning |
+|--------|---------|
+| 400 | Invalid request parameter or body |
+| 401 | Missing or invalid JWT |
+| 403 | Authenticated user lacks `ADMIN` for a write operation |
+| 404 | Exercise or muscle not found |
+| 409 | Exercise slug already exists |
+| 500 | Internal server error |
 
 ## Swagger/OpenAPI
 
-The OpenAPI specification is defined in `OpenApiConfig.java` and specifies:
-- Base path: `/api/v1/exercises` and `/api/v1/muscles`
-- Security scheme: `Bearer Authentication` (JWT)
+The OpenAPI specification is defined in `OpenApiConfig.java`:
+
+- Base paths: `/api/v1/exercises` and `/api/v1/muscles`
+- Security scheme: JWT bearer token
 - All endpoints require authentication
-- Exercise endpoints require JWT with user role
+- Exercise write endpoints require the `ADMIN` role

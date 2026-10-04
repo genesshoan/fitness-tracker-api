@@ -6,6 +6,12 @@ import jakarta.validation.constraints.NotNull;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+/**
+ * Muscle association submitted when creating or updating an exercise.
+ *
+ * @param muscleSlug slug of an existing muscle
+ * @param impactLevel role of the muscle in the exercise
+ */
 @Schema(description = "Muscle association in an exercise write request")
 public record ExerciseMuscleRequestDTO(
         @NotBlank @Schema(description = "Slug of an existing muscle", example = "biceps")

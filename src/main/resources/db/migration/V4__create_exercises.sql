@@ -7,7 +7,7 @@ CREATE TABLE exercises
     slug        VARCHAR(255)                NOT NULL,
     description TEXT                        NOT NULL,
     instructions TEXT[]                     NOT NULL,
-    media_object_key VARCHAR(255)           NOT NULL,
+    media_object_key VARCHAR(255),
     category    VARCHAR(255)                NOT NULL,
     difficulty  VARCHAR(255)                NOT NULL,
     active      BOOLEAN                     NOT NULL DEFAULT TRUE,

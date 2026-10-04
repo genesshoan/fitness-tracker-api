@@ -6,115 +6,76 @@
 |-------------|--------------|----------------|
 | Browse exercises | `GET /api/v1/exercises` | Pagination params, optional filters |
 | View exercise details | `GET /api/v1/exercises/{slug}` | Exercise slug |
-| Create exercise (admin) | `POST /api/v1/exercises` | `ExerciseRequestDTO` JSON body |
-| Update exercise (admin) | `PUT /api/v1/exercises/{slug}` | Exercise slug + `ExerciseRequestDTO` JSON body |
-| Delete exercise (admin) | `DELETE /api/v1/exercises/{slug}` | Exercise slug |
+| Create, update, or delete exercise (admin) | `POST`, `PUT`, or `DELETE /api/v1/exercises` | `ADMIN` token and request body |
 | Browse muscles | `GET /api/v1/muscles` | Pagination params |
 | View muscle details | `GET /api/v1/muscles/{slug}` | Muscle slug |
 
 ## Resources and Display
 
 ### Exercise List
-- Display exercise name, category, and difficulty
-- Use cursor pagination for infinite scroll or page navigation
-- Filter by category, difficulty, or target muscle
+
+- Display exercise name, category, and difficulty.
+- Use cursor pagination for infinite scroll or page navigation.
+- Filter by category, difficulty, or a muscle slug from [the catalog](README.md#muscle-slugs).
 
 ### Exercise Detail
-- Display full exercise description
-- Display `instructions` as a numbered step-by-step list (hide the section when the array is empty)
-- Display the demonstration GIF from `gifUrl` when present. Note: `gifUrl` is currently always `null` (backend placeholder), so show a placeholder or hide the image until the backend starts resolving URLs. Do not try to build the GIF URL client-side from any other field — there is no public key exposed.
-- Show target muscles with impact levels (primary, secondary, stabilizer). Stabilizer data is populated, so grouping/filtering by stabilizer muscles is meaningful.
-- Exercise muscles are loaded eagerly for detail view
+
+- Display the description and `instructions` as a numbered list; hide the section when empty.
+- Display `gifUrl` when present. It is currently always `null`; do not build a GIF URL client-side from another field.
+- Show target muscles with `PRIMARY`, `SECONDARY`, or `STABILIZER` impact levels.
 
 ### Muscle Directory
-- Display muscles organized by body region
-- Use for filtering exercises by muscle group
+
+- Display muscles grouped by body region.
+- Use the documented muscle slugs to filter exercises and navigate to details.
 
 ## Forms and Fields
 
 ### Exercise List Filter Form
+
 | Field | Required | Validation | Notes |
 |-------|----------|------------|-------|
 | cursor | No | Valid UUID | Cursor from previous response |
 | size | No | 1-100, positive | Default applied by server |
-| category | No | Valid enum value | STRENGTH, CARDIO, MOBILITY |
-| difficulty | No | Valid enum value | BEGINNER, INTERMEDIATE, ADVANCED |
-| muscleSlugs | No | One or more slugs | Comma-separated or array |
+| category | No | Valid enum value | `STRENGTH`, `CARDIO`, `MOBILITY` |
+| difficulty | No | Valid enum value | `BEGINNER`, `INTERMEDIATE`, `ADVANCED` |
+| muscleSlugs | No | Existing muscle slugs | Comma-separated or array |
 
-### Exercise Detail View
-No form input required. Navigate by slug from exercise list.
+### Admin Exercise Forms
 
-### Admin Exercise Forms (ADMIN role required)
+All write operations require the `ADMIN` role.
+
 | Field | Required | Validation | Notes |
 |-------|----------|------------|-------|
 | name | Yes | Not blank | |
-| slug | Yes | Not blank, unique | May be changed on update if the new value is free |
+| slug | Yes | Not blank, unique | May change on update if the new value is free |
 | description | Yes | Not blank | |
-| instructions | No | — | Ordered list of steps; omit or send `null` (defaults to empty list) |
-| category | Yes | Valid enum value | STRENGTH, CARDIO, MOBILITY |
-| difficulty | Yes | Valid enum value | BEGINNER, INTERMEDIATE, ADVANCED |
-| muscles | No | Each entry needs `muscleSlug` + `impactLevel`, no duplicate slugs | Must reference existing muscle slugs; on update the list **replaces** all current associations |
+| instructions | No | Ordered list | Omitted or `null` defaults to `[]` |
+| category | Yes | Valid enum value | `STRENGTH`, `CARDIO`, `MOBILITY` |
+| difficulty | Yes | Valid enum value | `BEGINNER`, `INTERMEDIATE`, `ADVANCED` |
+| muscles | No | Existing slug and impact level; no duplicate slugs | Replaces all associations on update |
 
-### Muscle Directory
-No form input required. Navigate by slug from muscle list.
+## Endpoint Mapping
 
-## Endpoint Mapping to User Actions
-
-### Browse Exercises
-1. User navigates to exercise catalog
-2. `GET /api/v1/exercises` with optional filters → receives paginated exercise list
-3. Display exercise name, category, difficulty
-4. User can filter by category, difficulty, or muscle
-5. User scrolls to next page → use cursor from previous response
-
-### View Exercise Detail
-1. User selects an exercise from the list
-2. `GET /api/v1/exercises/{slug}` → receives full exercise details
-3. Display exercise name, description, category, difficulty
-4. Display `instructions` as numbered steps (if present)
-5. Display GIF from `gifUrl` (if present; currently always `null`)
-6. Display associated muscles with impact levels
-
-### Browse Muscles
-1. User navigates to muscle directory
-2. `GET /api/v1/muscles` → receives paginated muscle list
-3. Display muscle name, body region
-4. User can filter by body region
-
-### Manage Exercises (Admin)
-1. Admin opens the exercise admin panel (guard: requires ADMIN role, otherwise API returns 403)
-2. Create: `POST /api/v1/exercises` with `ExerciseRequestDTO` → 201 with the created detail; on 409 show "slug already exists", on 404 show "muscle not found"
-3. Update: `PUT /api/v1/exercises/{slug}` with `ExerciseRequestDTO` → 200; the `muscles` list replaces all current associations
-4. Delete: `DELETE /api/v1/exercises/{slug}` → 204; the exercise disappears from catalog reads (soft delete)
-
-### View Muscle Details
-1. User selects a muscle
-2. `GET /api/v1/muscles/{slug}` → receives muscle details
-3. Display muscle name, body region
+1. Call `GET /api/v1/exercises` with optional filters and display the returned page.
+2. Use an exercise slug with `GET /api/v1/exercises/{slug}` to display details and muscles.
+3. Use a muscle slug with `GET /api/v1/muscles/{slug}` to display muscle details.
+4. For admins, use `POST`, `PUT`, and `DELETE` as documented in [the API reference](api.md).
 
 ## Required Error Handling
 
-| Endpoint | Status | Frontend Action |
-|----------|--------|-----------------|
-| `GET /api/v1/exercises` | 400 | Show validation error (e.g., size > 100) |
-| `GET /api/v1/exercises` | 401 | Redirect to login |
-| `GET /api/v1/exercises/{slug}` | 400 | Show error: "Slug is required" |
-| `GET /api/v1/exercises/{slug}` | 404 | Show exercise not found message |
-| `GET /api/v1/exercises/{slug}` | 401 | Redirect to login |
-| `POST /api/v1/exercises` | 403 | Show "admin only" message |
-| `POST /api/v1/exercises` | 409 | Show "slug already exists" message |
-| `PUT /api/v1/exercises/{slug}` | 403 | Show "admin only" message |
-| `PUT /api/v1/exercises/{slug}` | 404 | Show exercise not found message |
-| `DELETE /api/v1/exercises/{slug}` | 403 | Show "admin only" message |
-| `DELETE /api/v1/exercises/{slug}` | 404 | Show exercise not found message |
-| `GET /api/v1/muscles/{slug}` | 404 | Show muscle not found message |
+| Status | Frontend Action |
+|--------|-----------------|
+| 400 | Show the validation error |
+| 401 | Redirect the user to login |
+| 403 | Show an admin-only message |
+| 404 | Show exercise or muscle not found |
+| 409 | Show that the exercise slug already exists |
 
-## Data Flow
+## Authentication
+
+- Send `Authorization: Bearer <token>` on every request.
+- On a 401 response, redirect the user to login.
+- Do not expose or derive values from the internal `media_object_key`.
 
 ![Exercise Sequence Diagram](exercise-sequence.png)
-
-## Token Persistence Recommendations
-
-- **Access token**: Store in client memory or localStorage; include in Authorization header for API calls
-- All endpoints require Bearer token authentication
-- On 401 response, redirect user to login

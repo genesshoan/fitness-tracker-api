@@ -56,7 +56,7 @@ Seed data populates all three levels (stabilizers were backfilled for free compo
 ### Instructions and Media
 
 - `instructions` — ordered step-by-step execution guide, persisted as a Postgres `TEXT[]` array column and exposed in the detail DTO as a JSON string array (nullable).
-- `media_object_key` — internal object-storage key (e.g. `exercises/abc123.gif`). Infrastructure detail: stored on the entity, **never exposed** in any API response.
+- `media_object_key` — nullable internal object-storage key (e.g. `exercises/abc123.gif`). Infrastructure detail: stored on the entity, **never exposed** in any API response, and assigned later by the media pipeline.
 - `gifUrl` — client-facing placeholder for the demonstration GIF URL. Currently always `null`; real URL resolution (signed or public) from `media_object_key` will be implemented later in the service layer, not in the entity or DTO mapping.
 
 ### Seed Data Review (feature/muscle-enhancement)
@@ -80,6 +80,7 @@ The `seeds/exercises.yml` catalog was biomechanically reviewed:
 
 - Muscles are organized by `BodyRegion` (CHEST, BACK, SHOULDERS, ARMS, CORE, LEGS, OTHER)
 - Each muscle has a unique slug and name
+- The complete slug catalog is documented in [Muscle slugs](README.md#muscle-slugs); clients must use those slugs in filters and write requests.
 - No write operations are exposed via API
 
 ## Category Validation
