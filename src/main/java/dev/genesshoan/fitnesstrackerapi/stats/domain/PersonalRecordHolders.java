@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/** Current personal records used when comparing completed session sets. */
 @Getter
 @Setter
 @NoArgsConstructor

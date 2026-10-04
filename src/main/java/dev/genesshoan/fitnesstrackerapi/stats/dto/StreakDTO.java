@@ -1,5 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.stats.dto;
 
+/** API representation of current and longest workout-day streaks. */
 import java.time.LocalDate;
 
 import io.swagger.v3.oas.annotations.media.Schema;

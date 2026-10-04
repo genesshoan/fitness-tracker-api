@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+/** Identifies the set and session that currently hold one personal-record value. */
 @Getter
 @Setter
 @AllArgsConstructor

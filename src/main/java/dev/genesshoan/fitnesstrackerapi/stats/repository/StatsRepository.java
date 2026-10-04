@@ -19,6 +19,7 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
 import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.BodyRegion;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.ExerciseProgressProjection;
+import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MonthlyVolumeProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MuscleIntensityProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.OneRepMaxProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.RankedSetProjection;
@@ -130,13 +131,96 @@ public class StatsRepository {
                     AND ss.weight_kg IS NOT NULL
                     AND ws.id = :sessionId
                     AND ws.user_id = :userId
+                    AND ws.status = :completedStatus
             """;
 
-        MapSqlParameterSource params =
-                new MapSqlParameterSource().addValue("sessionId", sessionId).addValue("userId", userId);
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("sessionId", sessionId)
+                .addValue("userId", userId)
+                .addValue("completedStatus", SessionStatus.COMPLETED.name());
 
         return jdbcTemplate.query(
                 sql, params, (rs, rowNum) -> new VolumeSetProjection(rs.getDouble("weight_kg"), rs.getInt("reps")));
+    }
+
+    /**
+     * Aggregates completed strength-set volume by calendar month in a timezone.
+     *
+     * @param userId owner of the sessions
+     * @param fromInclusive inclusive instant boundary
+     * @param toExclusive exclusive instant boundary
+     * @param timezone IANA timezone used to determine each calendar month
+     * @return monthly volume ordered chronologically
+     */
+    public List<MonthlyVolumeProjection> getMonthlyVolume(
+            UUID userId, Instant fromInclusive, Instant toExclusive, String timezone) {
+
+        String sql = """
+                WITH monthly AS (
+                    SELECT
+                        DATE_TRUNC('month', ws.completed_at AT TIME ZONE :timezone) AS month,
+                        ss.weight_kg * ss.reps AS volume_kg
+                    FROM session_sets ss
+                    JOIN session_exercises se ON ss.session_exercise_id = se.id
+                    JOIN workout_sessions ws ON se.session_id = ws.id
+                    WHERE ws.user_id = :userId
+                        AND ws.status = :completedStatus
+                        AND ws.completed_at >= :fromInclusive
+                        AND ws.completed_at < :toExclusive
+                        AND ss.completed = true
+                        AND ss.reps IS NOT NULL
+                        AND ss.weight_kg IS NOT NULL
+                )
+                SELECT TO_CHAR(month, 'YYYY-MM') AS month, SUM(volume_kg) AS volume_kg
+                FROM monthly
+                GROUP BY month
+                ORDER BY month ASC
+            """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("userId", userId)
+                .addValue("fromInclusive", Timestamp.from(fromInclusive))
+                .addValue("toExclusive", Timestamp.from(toExclusive))
+                .addValue("timezone", timezone)
+                .addValue("completedStatus", SessionStatus.COMPLETED.name());
+
+        return jdbcTemplate.query(
+                sql,
+                params,
+                (rs, rowNum) -> new MonthlyVolumeProjection(
+                        rs.getString("month"), rs.getBigDecimal("volume_kg").doubleValue()));
+    }
+
+    /**
+     * Aggregates completed strength-set volume for an instant range.
+     *
+     * @param userId owner of the sessions
+     * @param fromInclusive inclusive instant boundary
+     * @param toExclusive exclusive instant boundary
+     * @return total volume in kilogram-repetitions
+     */
+    public double getVolume(UUID userId, Instant fromInclusive, Instant toExclusive) {
+        String sql = """
+                SELECT COALESCE(SUM(ss.weight_kg * ss.reps), 0.0) AS volume_kg
+                FROM session_sets ss
+                JOIN session_exercises se ON ss.session_exercise_id = se.id
+                JOIN workout_sessions ws ON se.session_id = ws.id
+                WHERE ws.user_id = :userId
+                    AND ws.status = :completedStatus
+                    AND ws.completed_at >= :fromInclusive
+                    AND ws.completed_at < :toExclusive
+                    AND ss.completed = true
+                    AND ss.reps IS NOT NULL
+                    AND ss.weight_kg IS NOT NULL
+            """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("userId", userId)
+                .addValue("fromInclusive", Timestamp.from(fromInclusive))
+                .addValue("toExclusive", Timestamp.from(toExclusive))
+                .addValue("completedStatus", SessionStatus.COMPLETED.name());
+
+        return jdbcTemplate.queryForObject(sql, params, Double.class);
     }
 
     /**

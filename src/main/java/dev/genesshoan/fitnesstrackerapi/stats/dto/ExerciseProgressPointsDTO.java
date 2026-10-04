@@ -1,5 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.stats.dto;
 
+/** Exercise progression response containing chronological performance points. */
 import java.util.List;
 import java.util.UUID;
 

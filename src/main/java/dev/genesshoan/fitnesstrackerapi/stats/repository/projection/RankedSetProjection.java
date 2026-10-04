@@ -1,5 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.stats.repository.projection;
 
+/** JDBC projection containing a set and its per-metric window-function ranks. */
 import java.util.UUID;
 
 public record RankedSetProjection(

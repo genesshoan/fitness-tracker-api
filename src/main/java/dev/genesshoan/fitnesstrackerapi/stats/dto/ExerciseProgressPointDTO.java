@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+/** Best estimated-1RM performance point for one completed workout session. */
 @Schema(description = "Exercise performance point for a completed workout session")
 public record ExerciseProgressPointDTO(
         @Schema(description = "Date of the completed workout session", example = "2026-09-12")

@@ -2,6 +2,7 @@ package dev.genesshoan.fitnesstrackerapi.stats.controller;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ProblemDetail;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPointsDTO;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.MonthlyVolumeDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.OneRepMaxDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.SessionVolumeDTO;
@@ -81,11 +83,119 @@ public class StatsController {
                                 mediaType = "application/problem+json",
                                 schema = @Schema(implementation = ProblemDetail.class)))
     })
-    @GetMapping("/volume")
+    @GetMapping(value = "/volume", params = "sessionId")
     public ResponseEntity<SessionVolumeDTO> getSessionVolume(
             @AuthenticationPrincipal UserDetailsImpl principal,
             @Parameter(description = "Workout session id", required = true) @RequestParam UUID sessionId) {
         return ResponseEntity.ok(statsService.calculateSessionVolume(sessionId, principal.getId()));
+    }
+
+    /**
+     * Returns completed strength volume for an inclusive local-date range.
+     *
+     * @param principal authenticated user
+     * @param from inclusive start date in the user's timezone
+     * @param to inclusive end date in the user's timezone
+     * @return total volume in kilogram-repetitions
+     */
+    @Operation(
+            summary = "Get volume for a date range",
+            description = "Calculate completed strength volume in the user's timezone")
+    @ApiResponses({
+        @ApiResponse(
+                responseCode = "200",
+                description = "Date-range volume calculated successfully",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema = @Schema(implementation = SessionVolumeDTO.class))),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid date range",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class)))
+    })
+    @GetMapping(
+            value = "/volume",
+            params = {"from", "to"})
+    public ResponseEntity<SessionVolumeDTO> getVolume(
+            @AuthenticationPrincipal UserDetailsImpl principal,
+            @Parameter(
+                            description = "Inclusive start date in the user's timezone",
+                            required = true,
+                            example = "2026-01-01")
+                    @RequestParam
+                    LocalDate from,
+            @Parameter(
+                            description = "Inclusive end date in the user's timezone",
+                            required = true,
+                            example = "2026-01-31")
+                    @RequestParam
+                    LocalDate to) {
+        return ResponseEntity.ok(statsService.calculateVolume(
+                principal.getId(), from, to, principal.getUser().getTimezone()));
+    }
+
+    /**
+     * Returns completed strength volume grouped by calendar month.
+     *
+     * @param principal authenticated user
+     * @param from inclusive start date in the user's timezone
+     * @param to inclusive end date in the user's timezone
+     * @return chronological monthly volume
+     */
+    @Operation(
+            summary = "Get monthly volume",
+            description = "Calculate completed strength volume grouped by calendar month in the user's timezone")
+    @ApiResponses({
+        @ApiResponse(
+                responseCode = "200",
+                description = "Monthly volume calculated successfully",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema = @Schema(implementation = MonthlyVolumeDTO.class))),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid date range",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class)))
+    })
+    @GetMapping("/volume/monthly")
+    public ResponseEntity<List<MonthlyVolumeDTO>> getMonthlyVolume(
+            @AuthenticationPrincipal UserDetailsImpl principal,
+            @Parameter(
+                            description = "Inclusive start date in the user's timezone",
+                            required = true,
+                            example = "2026-01-01")
+                    @RequestParam
+                    LocalDate from,
+            @Parameter(
+                            description = "Inclusive end date in the user's timezone",
+                            required = true,
+                            example = "2026-12-31")
+                    @RequestParam
+                    LocalDate to) {
+        return ResponseEntity.ok(statsService.getMonthlyVolume(
+                principal.getId(), from, to, principal.getUser().getTimezone()));
     }
 
     @Operation(
