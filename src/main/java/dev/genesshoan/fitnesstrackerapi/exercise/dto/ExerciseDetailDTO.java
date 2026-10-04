@@ -7,6 +7,19 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+/**
+ * Detailed exercise response, including associated muscles and impact levels.
+ *
+ * @param id exercise identifier
+ * @param name exercise display name
+ * @param slug URL-friendly exercise identifier
+ * @param description exercise description
+ * @param instructions ordered execution instructions
+ * @param category exercise category
+ * @param difficulty exercise difficulty
+ * @param exerciseMuscles associated muscles
+ * @param gifUrl client-facing media URL, currently a placeholder
+ */
 @Schema(description = "Exercise detail DTO")
 public record ExerciseDetailDTO(
         @Schema(description = "Exercise ID", example = "123e4567-e89b-12d3-a456-426614174000")

@@ -17,6 +17,9 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 
+/**
+ * Persistence operations for exercises, including active-catalog queries and soft deletion.
+ */
 @Repository
 public interface ExerciseRepository extends JpaRepository<Exercise, UUID> {
     @EntityGraph(attributePaths = {"exerciseMuscles", "exerciseMuscles.muscle"})

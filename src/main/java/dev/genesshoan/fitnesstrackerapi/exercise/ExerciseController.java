@@ -39,6 +39,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * REST controller for exercise catalog reads and ADMIN-only maintenance.
+ */
 @Validated
 @RestController
 @RequiredArgsConstructor
@@ -48,6 +51,9 @@ public class ExerciseController {
 
     private final ExerciseService exerciseService;
 
+    /**
+     * Returns active exercises using cursor pagination and optional filters.
+     */
     @Operation(summary = "Get all exercises", description = "Retrieve a paginated list of all exercises")
     @ApiResponses({
         @ApiResponse(
@@ -92,6 +98,9 @@ public class ExerciseController {
         return ResponseEntity.ok(exerciseService.getAllExercises(request, category, difficulty, muscleSlugs));
     }
 
+    /**
+     * Returns an active exercise with its muscle relationships.
+     */
     @Operation(summary = "Get exercise by slug", description = "Retrieve an exercise by its slug")
     @ApiResponses({
         @ApiResponse(
@@ -136,6 +145,9 @@ public class ExerciseController {
         return ResponseEntity.ok(exerciseService.getExerciseBySlug(slug));
     }
 
+    /**
+     * Creates an exercise and optionally associates it with muscles.
+     */
     @Operation(summary = "Create exercise", description = "Create a new exercise (ADMIN only)")
     @ApiResponses({
         @ApiResponse(
@@ -194,6 +206,9 @@ public class ExerciseController {
         return ResponseEntity.status(HttpStatus.CREATED).body(exerciseService.createExercise(request));
     }
 
+    /**
+     * Replaces the exercise fields and all submitted muscle associations.
+     */
     @Operation(summary = "Update exercise", description = "Fully update an exercise by slug (ADMIN only)")
     @ApiResponses({
         @ApiResponse(
@@ -253,6 +268,9 @@ public class ExerciseController {
         return ResponseEntity.ok(exerciseService.updateExercise(slug, request));
     }
 
+    /**
+     * Soft-deletes an active exercise.
+     */
     @Operation(summary = "Delete exercise", description = "Soft-delete an exercise by slug (ADMIN only)")
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Exercise soft-deleted successfully"),
