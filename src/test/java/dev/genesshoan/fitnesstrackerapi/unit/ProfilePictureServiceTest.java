@@ -57,7 +57,7 @@ class ProfilePictureServiceTest {
     void setUp() {
         user = User.builder()
                 .id(USER_ID)
-                .username(FAKER.name().username())
+                .username(FAKER.name().firstName().toLowerCase() + "_" + USER_ID)
                 .email(FAKER.internet().emailAddress())
                 .passwordHash("hash")
                 .timezone("UTC")
