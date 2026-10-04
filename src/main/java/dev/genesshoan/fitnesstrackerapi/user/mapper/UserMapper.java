@@ -18,5 +18,6 @@ public interface UserMapper {
     @Mapping(target = "profilePictureKey", ignore = true)
     User toEntity(RegisterRequestDTO dto);
 
+    @Mapping(target = "profilePictureUrl", ignore = true)
     UserResponseDTO toResponseDTO(User user);
 }

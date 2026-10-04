@@ -14,6 +14,7 @@ import dev.genesshoan.fitnesstrackerapi.user.dto.ChangePasswordRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.user.dto.ChangeUsernameRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.user.dto.UserResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.user.mapper.UserMapper;
+import dev.genesshoan.fitnesstrackerapi.user.profilepicture.service.ProfilePictureUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,6 +27,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
+    private final ProfilePictureUseCase profilePictureUseCase;
 
     /**
      *
@@ -36,7 +38,10 @@ public class UserService {
      * @throws ResourceNotFoundException if the user does not exist
      */
     public UserResponseDTO getProfile(UUID id) {
-        return userMapper.toResponseDTO(findUserById(id));
+        var user = findUserById(id);
+        var profile = userMapper.toResponseDTO(user);
+        return new UserResponseDTO(profile.email(), profile.username(),
+                profilePictureUseCase.getProfilePictureUrl(user.getProfilePictureKey()));
     }
 
     /**

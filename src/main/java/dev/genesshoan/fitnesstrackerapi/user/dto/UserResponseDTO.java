@@ -8,4 +8,7 @@ public record UserResponseDTO(
         String email,
 
         @Schema(description = "Username", example = "user_123")
-        String username) {}
+        String username,
+
+        @Schema(description = "Temporary URL for the user's profile picture", nullable = true)
+        String profilePictureUrl) {}

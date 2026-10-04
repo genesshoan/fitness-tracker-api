@@ -55,6 +55,11 @@ public class ProfilePictureService implements ProfilePictureUseCase {
         }
     }
 
+    @Override
+    public String getProfilePictureUrl(String profilePictureKey) {
+        return profilePictureKey == null ? null : fileStorage.getPresignedUrl(profilePictureKey);
+    }
+
     private String profilePictureKey(User user) {
         if (user.getProfilePictureKey() == null) {
             return "profile-pictures/" + user.getId() + ".jpg";
