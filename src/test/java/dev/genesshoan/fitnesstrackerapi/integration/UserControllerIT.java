@@ -15,9 +15,9 @@ import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +30,7 @@ import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 @DisplayName("Integration Tests - User Controller")
 class UserControllerIT extends AbstractIntegrationTest {
 
-    @MockBean
+    @MockitoBean
     private ObjectStoragePort objectStorage;
 
     private User user;
