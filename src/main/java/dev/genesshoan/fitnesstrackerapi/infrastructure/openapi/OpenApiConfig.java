@@ -19,7 +19,7 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("Fitness Tracker API")
                         .description("REST API for fitness tracking application")
-                        .version("0.1.0-SNAPSHOT")
+                        .version("0.2.0")
                         .contact(new Contact()
                                 .name("Shoan")
                                 .email("shoangenes42@gmail.com")
