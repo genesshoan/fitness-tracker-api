@@ -14,7 +14,7 @@ import dev.genesshoan.fitnesstrackerapi.user.dto.ChangePasswordRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.user.dto.ChangeUsernameRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.user.dto.UserResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.user.mapper.UserMapper;
-import dev.genesshoan.fitnesstrackerapi.user.profilepicture.service.ProfilePictureUseCase;
+import dev.genesshoan.fitnesstrackerapi.user.profilepicture.usecase.ProfilePictureUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

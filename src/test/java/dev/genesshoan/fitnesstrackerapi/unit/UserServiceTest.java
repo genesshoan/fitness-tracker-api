@@ -16,7 +16,7 @@ import dev.genesshoan.fitnesstrackerapi.user.dto.ChangePasswordRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.user.dto.ChangeUsernameRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.user.dto.UserResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.user.mapper.UserMapper;
-import dev.genesshoan.fitnesstrackerapi.user.profilepicture.service.ProfilePictureUseCase;
+import dev.genesshoan.fitnesstrackerapi.user.profilepicture.usecase.ProfilePictureUseCase;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,6 +72,22 @@ class UserServiceTest {
         verify(userRepository).findById(USER_ID);
         verify(userMapper).toResponseDTO(user);
         verify(profilePictureUseCase).getProfilePictureUrl(null);
+    }
+
+    @Test
+    void getProfile_ShouldResolveProfilePictureUrlFromStoredKey() {
+        String key = "profile-pictures/" + USER_ID + ".jpg";
+        user.setProfilePictureKey(key);
+        UserResponseDTO mapped = new UserResponseDTO(user.getEmail(), user.getUsername(), null);
+        UserResponseDTO expected = new UserResponseDTO(user.getEmail(), user.getUsername(), "https://storage/picture.jpg");
+
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+        when(userMapper.toResponseDTO(user)).thenReturn(mapped);
+        when(profilePictureUseCase.getProfilePictureUrl(key)).thenReturn(expected.profilePictureUrl());
+
+        assertThat(userService.getProfile(USER_ID)).isEqualTo(expected);
+
+        verify(profilePictureUseCase).getProfilePictureUrl(key);
     }
 
     @Test

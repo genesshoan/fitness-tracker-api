@@ -10,5 +10,5 @@ public record UserResponseDTO(
         @Schema(description = "Username", example = "user_123")
         String username,
 
-        @Schema(description = "Temporary URL for the user's profile picture", nullable = true)
+        @Schema(description = "Temporary URL for the user's profile picture; null when absent", nullable = true)
         String profilePictureUrl) {}

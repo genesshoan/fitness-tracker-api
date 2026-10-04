@@ -19,7 +19,7 @@ import dev.genesshoan.fitnesstrackerapi.user.dto.ChangePasswordRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.user.dto.ChangeUsernameRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.user.dto.ProfilePictureResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.user.dto.UserResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.user.profilepicture.service.ProfilePictureUseCase;
+import dev.genesshoan.fitnesstrackerapi.user.profilepicture.usecase.ProfilePictureUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
