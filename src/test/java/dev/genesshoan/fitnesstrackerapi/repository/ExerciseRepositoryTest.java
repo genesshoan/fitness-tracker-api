@@ -84,6 +84,25 @@ public class ExerciseRepositoryTest extends AbstractPostgresTest {
     }
 
     @Test
+    @DisplayName("Should search active exercises by name or slug")
+    void searchActive_ShouldMatchNameOrSlugAndExcludeInactiveExercises() {
+        var byName = testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker())
+                .withName("Barbell Bench Press")
+                .withSlug("barbell-bench-press"));
+        var bySlug = testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker())
+                .withName("Chest Press")
+                .withSlug("machine-barbell-press"));
+        testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker())
+                .withName("Inactive Barbell")
+                .withSlug("inactive-barbell")
+                .withActive(false));
+
+        var result = exerciseRepository.searchActive("barbell", 10);
+
+        assertThat(result).containsExactly(byName, bySlug);
+    }
+
+    @Test
     @DisplayName("Should return empty when no active exercise found by slug")
     void findBySlugAndActiveTrue_ShouldReturnEmptyWhenNoActiveExerciseFoundBySlug() {
         // When

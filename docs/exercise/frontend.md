@@ -5,6 +5,7 @@
 | User Action | API Endpoint | Required Input |
 |-------------|--------------|----------------|
 | Browse exercises | `GET /api/v1/exercises` | Pagination params, optional filters |
+| Autocomplete exercise search | `GET /api/v1/exercises/search?q=...&limit=...` | Name or slug search; limit defaults to 10 and may be 1-20 |
 | View exercise details | `GET /api/v1/exercises/{slug}` | Exercise slug |
 | Create, update, or delete exercise (admin) | `POST`, `PUT`, or `DELETE /api/v1/exercises` | `ADMIN` token and request body |
 | Browse muscles | `GET /api/v1/muscles` | Pagination params |
@@ -17,6 +18,13 @@
 - Display exercise name, category, and difficulty.
 - Use cursor pagination for infinite scroll or page navigation.
 - Filter by category, difficulty, or a muscle slug from [the catalog](README.md#muscle-slugs).
+
+### Exercise Autocomplete
+
+- Debounce input before calling `GET /api/v1/exercises/search`.
+- Send the user's text as `q` and optionally set `limit` between 1 and 20.
+- Render `highlightedName` as trusted server-generated markup, or use `name` and highlight the matching text in the client.
+- An empty `results` array means that no active exercise matched the query.
 
 ### Exercise Detail
 

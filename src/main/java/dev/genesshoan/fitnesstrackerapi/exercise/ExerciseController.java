@@ -5,8 +5,10 @@ import java.util.UUID;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -30,6 +32,7 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseDetailDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseListItemDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseRequestDTO;
+import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseSearchResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -96,6 +99,53 @@ public class ExerciseController {
         var request = new CursorPageRequest<>(cursor, size);
 
         return ResponseEntity.ok(exerciseService.getAllExercises(request, category, difficulty, muscleSlugs));
+    }
+
+    /**
+     * Returns active exercises matching an autocomplete query.
+     */
+    @Operation(
+            summary = "Search exercises",
+            description = "Find active exercises by name or slug for autocomplete suggestions")
+    @ApiResponses({
+        @ApiResponse(
+                responseCode = "200",
+                description = "Matching exercises returned",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema = @Schema(implementation = ExerciseSearchResponseDTO.class))),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid query or limit",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class)))
+    })
+    @GetMapping("/search")
+    public ResponseEntity<ExerciseSearchResponseDTO> searchExercises(
+            @Parameter(
+                            description = "Text to match against exercise name or slug",
+                            required = true,
+                            example = "barbell")
+                    @RequestParam
+                    @NotBlank
+                    @Size(max = 100)
+                    String q,
+            @Parameter(description = "Maximum number of results", example = "10")
+                    @RequestParam(defaultValue = "10")
+                    @Min(1)
+                    @Max(20)
+                    Integer limit) {
+        return ResponseEntity.ok(exerciseService.searchExercises(q, limit));
     }
 
     /**
