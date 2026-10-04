@@ -12,6 +12,7 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseMuscleRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseRequestDTO;
+import dev.genesshoan.fitnesstrackerapi.testdata.builder.ExerciseBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -19,6 +20,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -35,6 +37,12 @@ public class ExerciseControllerIT extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page").isArray())
                 .andExpect(jsonPath("$.page.length()").value(1));
+    }
+
+    @Test
+    @DisplayName("Should return 401 when listing exercises without authentication")
+    void getAllExercises_ShouldReturn401WithoutAuthentication() throws Exception {
+        mockMvc.perform(get("/api/v1/exercises")).andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -65,6 +73,21 @@ public class ExerciseControllerIT extends AbstractIntegrationTest {
     @WithMockUser
     void getAllExercises_ShouldReturn400WhenSizeExceedsMax() throws Exception {
         mockMvc.perform(get("/api/v1/exercises").param("size", "101")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should filter exercises by muscle slug")
+    @WithMockUser
+    void getAllExercises_ShouldFilterByMuscleSlug() throws Exception {
+        var muscle = testEntityFactory.createAndPersistMuscle();
+        testEntityFactory.createAndPersistExerciseWithMuscles(
+                ExerciseBuilder.anExercise(testEntityFactory.faker()), List.of(muscle), ImpactLevel.PRIMARY);
+        testEntityFactory.createAndPersistExercise();
+
+        mockMvc.perform(get("/api/v1/exercises").param("muscleSlugs", muscle.getSlug()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.length()").value(1))
+                .andExpect(jsonPath("$.page[0].slug").isNotEmpty());
     }
 
     @Test
@@ -123,6 +146,38 @@ public class ExerciseControllerIT extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Bicep Curl"))
                 .andExpect(jsonPath("$.exerciseMuscles.length()").value(1));
+    }
+
+    @Test
+    @DisplayName("Should update exercise and replace its muscles")
+    @WithMockUser(roles = "ADMIN")
+    void updateExercise_ShouldReplaceMuscleAssociations() throws Exception {
+        var exercise = testEntityFactory.createAndPersistExerciseWithMuscles(1, ImpactLevel.PRIMARY);
+        var muscle = testEntityFactory.createAndPersistMuscle();
+        var request = new ExerciseRequestDTO(
+                "Updated Exercise",
+                "updated-exercise",
+                "Updated description",
+                List.of("Updated step"),
+                Category.MOBILITY,
+                Difficulty.ADVANCED,
+                List.of(new ExerciseMuscleRequestDTO(muscle.getSlug(), ImpactLevel.SECONDARY)));
+
+        mockMvc.perform(put("/api/v1/exercises/{slug}", exercise.getSlug())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.slug").value("updated-exercise"))
+                .andExpect(jsonPath("$.category").value("MOBILITY"))
+                .andExpect(jsonPath("$.exerciseMuscles.length()").value(1))
+                .andExpect(jsonPath("$.exerciseMuscles[0].muscle.slug").value(muscle.getSlug()))
+                .andExpect(jsonPath("$.exerciseMuscles[0].impactLevel").value("SECONDARY"));
+    }
+
+    @Test
+    @DisplayName("Should return 401 when reading exercise without authentication")
+    void getExerciseBySlug_ShouldReturn401WithoutAuthentication() throws Exception {
+        mockMvc.perform(get("/api/v1/exercises/example-slug")).andExpect(status().isUnauthorized());
     }
 
     @Test
