@@ -18,6 +18,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidProfilePictureException;
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.FileStorageException;
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.storage.ObjectStoragePort;
 import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
@@ -116,5 +118,43 @@ class ProfilePictureServiceTest {
                 .isInstanceOf(InvalidProfilePictureException.class);
 
         verifyNoInteractions(imageProcessor, objectStorage);
+    }
+
+    @Test
+    void uploadProfilePicture_ShouldFailBeforeReadingFileWhenUserDoesNotExist() {
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.empty());
+        var file = new MockMultipartFile("file", "avatar.png", "image/png", new byte[] {1});
+
+        assertThatThrownBy(() -> service.uploadProfilePicture(USER_ID, file))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verifyNoInteractions(validator, imageProcessor, objectStorage);
+    }
+
+    @Test
+    void uploadProfilePicture_ShouldPropagateStorageFailureWithoutChangingUserKey() {
+        var existingKey = "profile-pictures/existing.jpg";
+        user.setProfilePictureKey(existingKey);
+        var file = new MockMultipartFile("file", "avatar.png", "image/png", new byte[] {1});
+        var processed = new ProcessedImage(new byte[] {2}, "image/jpeg");
+
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+        when(imageProcessor.process(org.mockito.ArgumentMatchers.any())).thenReturn(processed);
+        org.mockito.Mockito.doThrow(new FileStorageException("provider details", new RuntimeException()))
+                .when(objectStorage)
+                .upload(org.mockito.ArgumentMatchers.eq(existingKey), org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.eq(1L), org.mockito.ArgumentMatchers.eq("image/jpeg"));
+
+        assertThatThrownBy(() -> service.uploadProfilePicture(USER_ID, file))
+                .isInstanceOf(FileStorageException.class)
+                .hasMessage("provider details");
+
+        assertThat(user.getProfilePictureKey()).isEqualTo(existingKey);
+    }
+
+    @Test
+    void getProfilePictureUrl_ShouldReturnNullWhenKeyIsMissing() {
+        assertThat(service.getProfilePictureUrl(null)).isNull();
+        verifyNoInteractions(objectStorage);
     }
 }
