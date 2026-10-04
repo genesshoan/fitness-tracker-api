@@ -1,16 +1,18 @@
 package dev.genesshoan.fitnesstrackerapi.user.profilepicture.processor;
 
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidProfilePictureException;
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.ProfilePictureProcessingException;
-import dev.genesshoan.fitnesstrackerapi.user.profilepicture.config.ProfilePictureProperties;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+import org.springframework.stereotype.Component;
+
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidProfilePictureException;
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.ProfilePictureProcessingException;
+import dev.genesshoan.fitnesstrackerapi.user.profilepicture.config.ProfilePictureProperties;
 import lombok.RequiredArgsConstructor;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.geometry.Positions;
 import net.coobird.thumbnailator.tasks.UnsupportedFormatException;
-import org.springframework.stereotype.Component;
 
 /**
  * Processes uploaded profile pictures by generating thumbnails.

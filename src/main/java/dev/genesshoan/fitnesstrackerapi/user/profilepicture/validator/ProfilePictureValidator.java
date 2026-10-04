@@ -1,18 +1,21 @@
 package dev.genesshoan.fitnesstrackerapi.user.profilepicture.validator;
 
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidProfilePictureException;
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.ProfilePictureProcessingException;
-import dev.genesshoan.fitnesstrackerapi.user.profilepicture.config.ProfilePictureProperties;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.function.Supplier;
+
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+
+import org.springframework.stereotype.Component;
+
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidProfilePictureException;
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.ProfilePictureProcessingException;
+import dev.genesshoan.fitnesstrackerapi.user.profilepicture.config.ProfilePictureProperties;
 import lombok.RequiredArgsConstructor;
 import org.apache.tika.Tika;
-import org.springframework.stereotype.Component;
 
 /**
  * Validates uploaded profile pictures against size, format, and dimension constraints.

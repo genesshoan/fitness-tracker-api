@@ -1,8 +1,9 @@
 package dev.genesshoan.fitnesstrackerapi.user.profilepicture.config;
 
-import org.apache.tika.Tika;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import org.apache.tika.Tika;
 
 /**
  * Configuration class for profile picture processing.
