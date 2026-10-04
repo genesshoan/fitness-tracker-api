@@ -23,8 +23,8 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundE
 import dev.genesshoan.fitnesstrackerapi.common.storage.ObjectStoragePort;
 import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
-import dev.genesshoan.fitnesstrackerapi.user.profilepicture.processor.ImageProcessor;
 import dev.genesshoan.fitnesstrackerapi.user.profilepicture.processor.ProcessedImage;
+import dev.genesshoan.fitnesstrackerapi.user.profilepicture.processor.ProfilePictureProcessor;
 import dev.genesshoan.fitnesstrackerapi.user.profilepicture.service.ProfilePictureService;
 import dev.genesshoan.fitnesstrackerapi.user.profilepicture.validator.ProfilePictureValidator;
 import net.datafaker.Faker;
@@ -43,7 +43,7 @@ class ProfilePictureServiceTest {
     private ProfilePictureValidator validator;
 
     @Mock
-    private ImageProcessor imageProcessor;
+    private ProfilePictureProcessor profilePictureProcessor;
 
     @Mock
     private ObjectStoragePort objectStorage;
@@ -70,7 +70,7 @@ class ProfilePictureServiceTest {
         var processed = new ProcessedImage(new byte[] {4, 5}, "image/jpeg");
 
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
-        when(imageProcessor.process(org.mockito.ArgumentMatchers.any())).thenReturn(processed);
+        when(profilePictureProcessor.process(org.mockito.ArgumentMatchers.any())).thenReturn(processed);
         when(objectStorage.getPresignedUrl(PICTURE_KEY)).thenReturn("https://storage/profile.jpg");
 
         String result = service.uploadProfilePicture(USER_ID, file);
@@ -93,7 +93,7 @@ class ProfilePictureServiceTest {
         var processed = new ProcessedImage(new byte[] {2}, "image/jpeg");
 
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
-        when(imageProcessor.process(org.mockito.ArgumentMatchers.any())).thenReturn(processed);
+        when(profilePictureProcessor.process(org.mockito.ArgumentMatchers.any())).thenReturn(processed);
         when(objectStorage.getPresignedUrl(existingKey)).thenReturn("https://storage/replaced.jpg");
 
         assertThat(service.uploadProfilePicture(USER_ID, file)).isEqualTo("https://storage/replaced.jpg");
@@ -117,7 +117,7 @@ class ProfilePictureServiceTest {
         assertThatThrownBy(() -> service.uploadProfilePicture(USER_ID, file))
                 .isInstanceOf(InvalidProfilePictureException.class);
 
-        verifyNoInteractions(imageProcessor, objectStorage);
+        verifyNoInteractions(profilePictureProcessor, objectStorage);
     }
 
     @Test
@@ -128,7 +128,7 @@ class ProfilePictureServiceTest {
         assertThatThrownBy(() -> service.uploadProfilePicture(USER_ID, file))
                 .isInstanceOf(ResourceNotFoundException.class);
 
-        verifyNoInteractions(validator, imageProcessor, objectStorage);
+        verifyNoInteractions(validator, profilePictureProcessor, objectStorage);
     }
 
     @Test
@@ -139,7 +139,7 @@ class ProfilePictureServiceTest {
         var processed = new ProcessedImage(new byte[] {2}, "image/jpeg");
 
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
-        when(imageProcessor.process(org.mockito.ArgumentMatchers.any())).thenReturn(processed);
+        when(profilePictureProcessor.process(org.mockito.ArgumentMatchers.any())).thenReturn(processed);
         org.mockito.Mockito.doThrow(new FileStorageException("provider details", new RuntimeException()))
                 .when(objectStorage)
                 .upload(org.mockito.ArgumentMatchers.eq(existingKey), org.mockito.ArgumentMatchers.any(),

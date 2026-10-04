@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ImageProcessor {
+public class ProfilePictureProcessor {
 
     private final ProfilePictureProperties pictureProperties;
 

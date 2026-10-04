@@ -16,8 +16,8 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundE
 import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import dev.genesshoan.fitnesstrackerapi.common.storage.ObjectStoragePort;
-import dev.genesshoan.fitnesstrackerapi.user.profilepicture.processor.ImageProcessor;
 import dev.genesshoan.fitnesstrackerapi.user.profilepicture.processor.ProcessedImage;
+import dev.genesshoan.fitnesstrackerapi.user.profilepicture.processor.ProfilePictureProcessor;
 import dev.genesshoan.fitnesstrackerapi.user.profilepicture.usecase.ProfilePictureUseCase;
 import dev.genesshoan.fitnesstrackerapi.user.profilepicture.validator.ProfilePictureValidator;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class ProfilePictureService implements ProfilePictureUseCase {
 
     private final UserRepository userRepository;
     private final ProfilePictureValidator validator;
-    private final ImageProcessor imageProcessor;
+    private final ProfilePictureProcessor profilePictureProcessor;
     private final ObjectStoragePort objectStorage;
 
     /** {@inheritDoc} */
@@ -46,7 +46,7 @@ public class ProfilePictureService implements ProfilePictureUseCase {
             Supplier<java.io.InputStream> content = () -> new ByteArrayInputStream(original);
             validator.validate(content, file.getSize());
 
-            ProcessedImage processed = imageProcessor.process(content.get());
+            ProcessedImage processed = profilePictureProcessor.process(content.get());
             String key = profilePictureKey(user);
             objectStorage.upload(key, processed.inputStream(), processed.size(), processed.contentType());
             user.setProfilePictureKey(key);
