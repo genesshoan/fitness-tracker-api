@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'dev.genesshoan'
-version = '0.0.1-SNAPSHOT'
+version = '0.1.0-SNAPSHOT'
 description = 'fitness-tracker-api'
 
 java {
