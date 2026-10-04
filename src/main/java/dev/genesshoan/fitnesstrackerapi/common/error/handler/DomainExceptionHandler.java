@@ -1,18 +1,16 @@
 package dev.genesshoan.fitnesstrackerapi.common.error.handler;
 
-import jakarta.servlet.http.HttpServletRequest;
+import static dev.genesshoan.fitnesstrackerapi.common.error.handler.ProblemDetailUtils.errorResponse;
 
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.*;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.*;
-import lombok.extern.slf4j.Slf4j;
-
-import static dev.genesshoan.fitnesstrackerapi.common.error.handler.ProblemDetailUtils.errorResponse;
 
 /**
  * Global exception handler for domain/business logic exceptions.
@@ -146,9 +144,6 @@ public class DomainExceptionHandler {
     /**
      * Handles unauthorized request errors.
      *
-     * Typical cases:
-     * -
-     *
      * @param ex      unauthorized exception from service layer
      * @param request current HTTP request
      * @return 403 Forbidden ProblemDetail response
@@ -166,5 +161,52 @@ public class DomainExceptionHandler {
                 errorResponse(HttpStatus.BAD_REQUEST, "Validation error", ex.getMessage(), ex.getErrors(), request);
 
         return ResponseEntity.badRequest().body(problem);
+    }
+
+    /**
+     * Handles file storage errors.
+     *
+     * @param ex      file storage exception from service layer
+     * @param request current HTTP request
+     * @return 500 Internal Server Error ProblemDetail response
+     */
+    @ExceptionHandler(FileStorageException.class)
+    public ResponseEntity<ProblemDetail> handleFileStorage(FileStorageException ex, HttpServletRequest request) {
+        ProblemDetail problem =
+                errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "File storage error", ex.getMessage(), null, request);
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem);
+    }
+
+    /**
+     * Handles invalid profile picture errors.
+     *
+     * @param ex      invalid profile picture exception from service layer
+     * @param request current HTTP request
+     * @return 400 Bad Request ProblemDetail response
+     */
+    @ExceptionHandler(InvalidProfilePictureException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidProfilePicture(
+            InvalidProfilePictureException ex, HttpServletRequest request) {
+        ProblemDetail problem =
+                errorResponse(HttpStatus.BAD_REQUEST, "Invalid profile picture", ex.getMessage(), null, request);
+
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    /**
+     * Handles profile picture processing errors.
+     *
+     * @param ex      profile picture processing exception from service layer
+     * @param request current HTTP request
+     * @return 500 Internal Server Error ProblemDetail response
+     */
+    @ExceptionHandler(ProfilePictureProcessingException.class)
+    public ResponseEntity<ProblemDetail> handleProfilePictureProcessing(
+            ProfilePictureProcessingException ex, HttpServletRequest request) {
+        ProblemDetail problem =
+                errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Image processing error", ex.getMessage(), null, request);
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem);
     }
 }

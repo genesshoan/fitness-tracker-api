@@ -15,6 +15,7 @@ public interface UserMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "passwordHash", ignore = true)
     @Mapping(target = "role", ignore = true)
+    @Mapping(target = "profilePictureKey", ignore = true)
     User toEntity(RegisterRequestDTO dto);
 
     UserResponseDTO toResponseDTO(User user);

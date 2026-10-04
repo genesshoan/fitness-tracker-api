@@ -36,4 +36,7 @@ public class User extends BaseEntity {
 
     @Column(nullable = false, length = 50)
     private String timezone;
+
+    @Column(name = "profile_picture_key")
+    private String profilePictureKey;
 }
