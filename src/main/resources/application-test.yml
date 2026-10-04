@@ -11,3 +11,23 @@ application:
       expiration: 86400000
       refresh-token:
         expiration: 604800000
+
+app:
+  file:
+    upload:
+      profile-picture:
+        max-size: 5MB
+        allowed-types: image/jpeg,image/png,image/webp
+        min-dimension: 64
+        max-pixels: 25000000
+        output-size: 512
+        output-quality: 0.85
+        output-format: jpeg
+  storage:
+    endpoint: http://localhost:9000
+    region: us-east-1
+    bucket: test-profile-pictures
+    access-key: test-access-key
+    secret-key: test-secret-key
+    path-style: true
+    presigned-url-expiration: 1h
