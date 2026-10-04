@@ -2,7 +2,7 @@ package dev.genesshoan.fitnesstrackerapi.infrastructure.storage.s3;
 
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.FileStorageException;
 import dev.genesshoan.fitnesstrackerapi.infrastructure.storage.s3.config.StorageProperties;
-import dev.genesshoan.fitnesstrackerapi.user.profilepicture.port.FileStoragePort;
+import dev.genesshoan.fitnesstrackerapi.common.storage.ObjectStoragePort;
 import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -16,7 +16,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
 /**
- * S3-compatible implementation of the {@link FileStoragePort}.
+ * S3-compatible implementation of the {@link ObjectStoragePort}.
  *
  * <p>This adapter uses the AWS SDK v2 to interact with S3-compatible
  * object storage (e.g. MinIO, Backblaze B2) for uploading, retrieving,
@@ -24,7 +24,7 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
  */
 @Component
 @RequiredArgsConstructor
-public class S3FileStorageAdapter implements FileStoragePort {
+public class S3FileStorageAdapter implements ObjectStoragePort {
 
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;

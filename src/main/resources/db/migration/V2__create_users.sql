@@ -8,6 +8,7 @@ CREATE TABLE users
     password_hash VARCHAR(255)                NOT NULL,
     role          VARCHAR(255)                NOT NULL,
     timezone      VARCHAR(50)                 NOT NULL,
+    profile_picture_key VARCHAR(512),
 
     CONSTRAINT pk_users PRIMARY KEY (id),
     CONSTRAINT uk_user_email UNIQUE (email),

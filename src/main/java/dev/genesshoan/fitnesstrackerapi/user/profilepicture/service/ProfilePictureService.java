@@ -14,12 +14,16 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.ProfilePicturePro
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
-import dev.genesshoan.fitnesstrackerapi.user.profilepicture.port.FileStoragePort;
+import dev.genesshoan.fitnesstrackerapi.common.storage.ObjectStoragePort;
 import dev.genesshoan.fitnesstrackerapi.user.profilepicture.processor.ImageProcessor;
 import dev.genesshoan.fitnesstrackerapi.user.profilepicture.processor.ProcessedImage;
+import dev.genesshoan.fitnesstrackerapi.user.profilepicture.usecase.ProfilePictureUseCase;
 import dev.genesshoan.fitnesstrackerapi.user.profilepicture.validator.ProfilePictureValidator;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Application service that validates, processes, and stores profile pictures.
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -28,8 +32,9 @@ public class ProfilePictureService implements ProfilePictureUseCase {
     private final UserRepository userRepository;
     private final ProfilePictureValidator validator;
     private final ImageProcessor imageProcessor;
-    private final FileStoragePort fileStorage;
+    private final ObjectStoragePort objectStorage;
 
+    /** {@inheritDoc} */
     @Override
     public String uploadProfilePicture(UUID userId, MultipartFile file) {
         User user = userRepository.findById(userId)
@@ -42,10 +47,10 @@ public class ProfilePictureService implements ProfilePictureUseCase {
 
             ProcessedImage processed = imageProcessor.process(content.get());
             String key = profilePictureKey(user);
-            fileStorage.upload(key, processed.inputStream(), processed.size(), processed.contentType());
+            objectStorage.upload(key, processed.inputStream(), processed.size(), processed.contentType());
             user.setProfilePictureKey(key);
 
-            return fileStorage.getPresignedUrl(key);
+            return objectStorage.getPresignedUrl(key);
         } catch (InvalidProfilePictureException | IllegalArgumentException e) {
             throw e;
         } catch (IOException e) {
@@ -55,9 +60,10 @@ public class ProfilePictureService implements ProfilePictureUseCase {
         }
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getProfilePictureUrl(String profilePictureKey) {
-        return profilePictureKey == null ? null : fileStorage.getPresignedUrl(profilePictureKey);
+        return profilePictureKey == null ? null : objectStorage.getPresignedUrl(profilePictureKey);
     }
 
     private String profilePictureKey(User user) {
