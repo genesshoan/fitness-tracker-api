@@ -25,6 +25,8 @@ import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseDetailDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseListItemDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseMuscleRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseRequestDTO;
+import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseSearchResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseSearchResultDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.mapper.ExerciseMapper;
 import dev.genesshoan.fitnesstrackerapi.exercise.muscle.MuscleRepository;
 import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.Muscle;
@@ -82,6 +84,26 @@ public class ExerciseService {
         log.info("Found {} exercises", exercises == null ? 0 : exercises.size());
 
         return CursorPage.of(exercises, request.size(), Exercise::getId, exerciseMapper::toItemDTO);
+    }
+
+    /**
+     * Searches active exercises for autocomplete suggestions.
+     *
+     * <p>The query matches exercise names and slugs case-insensitively. Results
+     * are ordered by name and limited by the requested result count.
+     *
+     * @param query text to search for
+     * @param limit maximum number of suggestions
+     * @return matching lightweight exercise results
+     */
+    public ExerciseSearchResponseDTO searchExercises(String query, int limit) {
+        String normalizedQuery = query == null ? "" : query.trim();
+        List<ExerciseSearchResultDTO> results =
+                exerciseRepository.searchActive(escapeLike(normalizedQuery), limit).stream()
+                        .map(exercise -> toSearchResult(exercise, normalizedQuery))
+                        .toList();
+
+        return new ExerciseSearchResponseDTO(results);
     }
 
     /**
@@ -213,6 +235,19 @@ public class ExerciseService {
 
     private List<String> orEmptyInstructions(List<String> instructions) {
         return instructions == null ? List.of() : instructions;
+    }
+
+    private ExerciseSearchResultDTO toSearchResult(Exercise exercise, String query) {
+        return new ExerciseSearchResultDTO(
+                exercise.getId(),
+                exercise.getName(),
+                exercise.getSlug(),
+                exercise.getCategory(),
+                ExerciseNameHighlighter.highlight(exercise.getName(), query));
+    }
+
+    private String escapeLike(String query) {
+        return query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
     private Set<ExerciseMuscle> resolveMuscles(Exercise exercise, List<ExerciseMuscleRequestDTO> muscles) {

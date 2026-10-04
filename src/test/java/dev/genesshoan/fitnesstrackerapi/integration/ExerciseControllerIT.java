@@ -46,6 +46,63 @@ public class ExerciseControllerIT extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should search exercises for autocomplete")
+    @WithMockUser
+    void searchExercises_ShouldReturnMatchingResultsWithHighlightedName() throws Exception {
+        testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker())
+                .withName("Barbell Bench Press")
+                .withSlug("barbell-bench-press"));
+        testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker())
+                .withName("Dumbbell Row")
+                .withSlug("dumbbell-row"));
+
+        mockMvc.perform(get("/api/v1/exercises/search").param("q", "barbell").param("limit", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results.length()").value(1))
+                .andExpect(jsonPath("$.results[0].name").value("Barbell Bench Press"))
+                .andExpect(jsonPath("$.results[0].slug").value("barbell-bench-press"))
+                .andExpect(jsonPath("$.results[0].highlightedName").value("<b>Barbell</b> Bench Press"));
+    }
+
+    @Test
+    @DisplayName("Should treat LIKE metacharacters literally when searching")
+    @WithMockUser
+    void searchExercises_ShouldTreatLikeMetacharactersLiterally() throws Exception {
+        testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker())
+                .withName("100% Effort")
+                .withSlug("100-percent-effort"));
+        testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker())
+                .withName("Barbell Bench Press")
+                .withSlug("barbell-bench-press"));
+
+        mockMvc.perform(get("/api/v1/exercises/search").param("q", "%"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results.length()").value(1))
+                .andExpect(jsonPath("$.results[0].name").value("100% Effort"));
+    }
+
+    @Test
+    @DisplayName("Should return 400 when autocomplete query is blank")
+    @WithMockUser
+    void searchExercises_ShouldReturn400ForBlankQuery() throws Exception {
+        mockMvc.perform(get("/api/v1/exercises/search").param("q", " ")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should reject invalid autocomplete limits")
+    @WithMockUser
+    void searchExercises_ShouldReturn400ForInvalidLimit() throws Exception {
+        mockMvc.perform(get("/api/v1/exercises/search").param("q", "press").param("limit", "21"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should return 401 when searching exercises without authentication")
+    void searchExercises_ShouldReturn401WithoutAuthentication() throws Exception {
+        mockMvc.perform(get("/api/v1/exercises/search").param("q", "press")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
     @DisplayName("Should return 200 with exercise muscles populated")
     @WithMockUser
     void getExerciseBySlug_ShouldReturn200WithMusclesPopulated() throws Exception {

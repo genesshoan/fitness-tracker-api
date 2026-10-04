@@ -46,6 +46,20 @@ public interface ExerciseRepository extends JpaRepository<Exercise, UUID> {
             @Param("muscleSlugs") List<String> muscleSlugs,
             Pageable pageable);
 
+    @Query(value = """
+            SELECT e.*
+            FROM exercises e
+            WHERE e.active = true
+                AND (e.name ILIKE '%' || :query || '%' ESCAPE '\\'
+                    OR e.slug ILIKE '%' || :query || '%' ESCAPE '\\')
+            ORDER BY
+                CASE WHEN e.name ILIKE :query || '%' ESCAPE '\\' THEN 0 ELSE 1 END,
+                e.name ASC,
+                e.id ASC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Exercise> searchActive(@Param("query") String query, @Param("limit") int limit);
+
     List<Exercise> findAllByIdInAndActiveTrue(Set<UUID> ids);
 
     Optional<Exercise> findByIdAndActiveTrue(UUID id);

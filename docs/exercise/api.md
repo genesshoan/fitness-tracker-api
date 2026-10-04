@@ -7,6 +7,7 @@ All endpoints require an authenticated user and a JWT bearer token. Exercise wri
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/v1/exercises` | List exercises with filtering and pagination |
+| GET | `/api/v1/exercises/search?q={query}&limit={limit}` | Search exercises for autocomplete |
 | GET | `/api/v1/exercises/{slug}` | Get exercise details by slug |
 | POST | `/api/v1/exercises` | Create exercise (ADMIN only) |
 | PUT | `/api/v1/exercises/{slug}` | Fully update exercise (ADMIN only) |
@@ -55,6 +56,31 @@ Returns an active exercise and its muscle relationships. `slug` is required and 
 ```
 
 `instructions` is an ordered array and defaults to an empty array. `gifUrl` is currently always `null`. The nullable internal `media_object_key` is never exposed and is assigned later by the media pipeline.
+
+## Search Exercises (`GET /api/v1/exercises/search`)
+
+Searches active exercises by name or slug for autocomplete suggestions. The query is case-insensitive.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| q | String | Yes | Text to match against the exercise name or slug; maximum 100 characters |
+| limit | Integer | No | Number of results from 1 to 20; defaults to 10 |
+
+```json
+{
+  "results": [
+    {
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "name": "Barbell Bench Press",
+      "slug": "barbell-bench-press",
+      "category": "STRENGTH",
+      "highlightedName": "<b>Barbell</b> Bench Press"
+    }
+  ]
+}
+```
+
+Results contain only active exercises and are ordered alphabetically by name. The `highlightedName` field is intended for rendering the matching fragment in the autocomplete UI.
 
 ## Create Exercise (`POST /api/v1/exercises`)
 
