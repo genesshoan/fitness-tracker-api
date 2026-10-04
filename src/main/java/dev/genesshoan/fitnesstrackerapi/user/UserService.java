@@ -40,7 +40,9 @@ public class UserService {
     public UserResponseDTO getProfile(UUID id) {
         var user = findUserById(id);
         var profile = userMapper.toResponseDTO(user);
-        return new UserResponseDTO(profile.email(), profile.username(),
+        return new UserResponseDTO(
+                profile.email(),
+                profile.username(),
                 profilePictureUseCase.getProfilePictureUrl(user.getProfilePictureKey()));
     }
 

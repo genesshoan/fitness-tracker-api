@@ -1,16 +1,18 @@
 package dev.genesshoan.fitnesstrackerapi.common.error.handler;
 
-import static dev.genesshoan.fitnesstrackerapi.common.error.handler.ProblemDetailUtils.errorResponse;
-
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.*;
+import lombok.extern.slf4j.Slf4j;
+
+import static dev.genesshoan.fitnesstrackerapi.common.error.handler.ProblemDetailUtils.errorResponse;
 
 /**
  * Global exception handler for domain/business logic exceptions.
@@ -172,13 +174,12 @@ public class DomainExceptionHandler {
      */
     @ExceptionHandler(FileStorageException.class)
     public ResponseEntity<ProblemDetail> handleFileStorage(FileStorageException ex, HttpServletRequest request) {
-        ProblemDetail problem =
-                errorResponse(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                        "File storage error",
-                        "The profile picture could not be stored",
-                        null,
-                        request);
+        ProblemDetail problem = errorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "File storage error",
+                "The profile picture could not be stored",
+                null,
+                request);
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem);
     }
@@ -209,13 +210,12 @@ public class DomainExceptionHandler {
     @ExceptionHandler(ProfilePictureProcessingException.class)
     public ResponseEntity<ProblemDetail> handleProfilePictureProcessing(
             ProfilePictureProcessingException ex, HttpServletRequest request) {
-        ProblemDetail problem =
-                errorResponse(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                        "Image processing error",
-                        "The profile picture could not be processed",
-                        null,
-                        request);
+        ProblemDetail problem = errorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Image processing error",
+                "The profile picture could not be processed",
+                null,
+                request);
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem);
     }

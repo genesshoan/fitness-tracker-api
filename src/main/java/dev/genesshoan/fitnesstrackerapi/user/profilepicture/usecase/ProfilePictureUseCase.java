@@ -1,6 +1,7 @@
 package dev.genesshoan.fitnesstrackerapi.user.profilepicture.usecase;
 
 import java.util.UUID;
+
 import org.springframework.web.multipart.MultipartFile;
 
 /**

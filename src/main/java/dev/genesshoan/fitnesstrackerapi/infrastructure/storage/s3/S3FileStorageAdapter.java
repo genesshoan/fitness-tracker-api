@@ -1,11 +1,13 @@
 package dev.genesshoan.fitnesstrackerapi.infrastructure.storage.s3;
 
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.FileStorageException;
-import dev.genesshoan.fitnesstrackerapi.infrastructure.storage.s3.config.StorageProperties;
-import dev.genesshoan.fitnesstrackerapi.common.storage.ObjectStoragePort;
 import java.io.InputStream;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Component;
+
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.FileStorageException;
+import dev.genesshoan.fitnesstrackerapi.common.storage.ObjectStoragePort;
+import dev.genesshoan.fitnesstrackerapi.infrastructure.storage.s3.config.StorageProperties;
+import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;

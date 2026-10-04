@@ -9,13 +9,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidProfilePictureException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.FileStorageException;
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidProfilePictureException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ProfilePictureProcessingException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
+import dev.genesshoan.fitnesstrackerapi.common.storage.ObjectStoragePort;
 import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
-import dev.genesshoan.fitnesstrackerapi.common.storage.ObjectStoragePort;
 import dev.genesshoan.fitnesstrackerapi.user.profilepicture.processor.ProcessedImage;
 import dev.genesshoan.fitnesstrackerapi.user.profilepicture.processor.ProfilePictureProcessor;
 import dev.genesshoan.fitnesstrackerapi.user.profilepicture.usecase.ProfilePictureUseCase;
@@ -38,8 +38,7 @@ public class ProfilePictureService implements ProfilePictureUseCase {
     /** {@inheritDoc} */
     @Override
     public String uploadProfilePicture(UUID userId, MultipartFile file) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         try {
             byte[] original = file.getBytes();

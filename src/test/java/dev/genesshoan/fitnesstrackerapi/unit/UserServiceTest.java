@@ -79,7 +79,8 @@ class UserServiceTest {
         String key = "profile-pictures/" + USER_ID + ".jpg";
         user.setProfilePictureKey(key);
         UserResponseDTO mapped = new UserResponseDTO(user.getEmail(), user.getUsername(), null);
-        UserResponseDTO expected = new UserResponseDTO(user.getEmail(), user.getUsername(), "https://storage/picture.jpg");
+        UserResponseDTO expected =
+                new UserResponseDTO(user.getEmail(), user.getUsername(), "https://storage/picture.jpg");
 
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
         when(userMapper.toResponseDTO(user)).thenReturn(mapped);

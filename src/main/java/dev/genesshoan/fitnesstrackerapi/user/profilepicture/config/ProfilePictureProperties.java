@@ -1,8 +1,10 @@
 package dev.genesshoan.fitnesstrackerapi.user.profilepicture.config;
 
+import java.util.List;
+
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
-import java.util.List;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.unit.DataSize;
 import org.springframework.validation.annotation.Validated;
@@ -22,5 +24,4 @@ public record ProfilePictureProperties(
         long maxPixels,
         int outputSize,
         @DecimalMin("0.1") @DecimalMax("1.0") double outputQuality,
-        String outputFormat) {
-}
+        String outputFormat) {}

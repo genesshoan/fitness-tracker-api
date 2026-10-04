@@ -173,8 +173,7 @@ public class UserController {
     })
     @PutMapping(value = "/me/profile-picture", consumes = "multipart/form-data")
     public ResponseEntity<ProfilePictureResponseDTO> uploadProfilePicture(
-            @AuthenticationPrincipal UserDetailsImpl principal,
-            @RequestPart("file") MultipartFile file) {
+            @AuthenticationPrincipal UserDetailsImpl principal, @RequestPart("file") MultipartFile file) {
 
         String url = profilePictureUseCase.uploadProfilePicture(principal.getId(), file);
         return ResponseEntity.ok(new ProfilePictureResponseDTO(url));
