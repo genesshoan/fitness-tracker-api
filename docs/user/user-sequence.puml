@@ -5,13 +5,24 @@ participant UserController
 participant UserService
 participant UserRepository
 participant PasswordEncoder
+participant ObjectStoragePort
 
 group Get profile
   Client -> UserController : GET /user/me
   UserController -> UserService : getProfile(authenticated user)
   UserService -> UserRepository : findById(userId)
   UserRepository --> UserService : User
+  UserService -> ObjectStoragePort : getPresignedUrl(profilePictureKey)
+  ObjectStoragePort --> UserService : temporary URL
   UserService --> Client : UserResponseDTO
+end
+
+group Upload or replace profile picture
+  Client -> UserController : PUT /user/me/profile-picture (multipart)
+  UserController -> ProfilePictureUseCase : uploadProfilePicture(userId, file)
+  ProfilePictureUseCase -> ObjectStoragePort : upload(stable user key)
+  ObjectStoragePort --> ProfilePictureUseCase : stored
+  ProfilePictureUseCase --> Client : ProfilePictureResponseDTO
 end
 
 group Change password

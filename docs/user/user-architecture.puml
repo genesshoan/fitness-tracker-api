@@ -7,16 +7,22 @@ interface UserRepository
 class UserMapper
 class User
 class UserResponseDTO
+class ProfilePictureResponseDTO
 class ChangePasswordRequestDTO
 class ChangeUsernameRequestDTO
 class PasswordEncoder
+interface ProfilePictureUseCase
+interface ObjectStoragePort
 
 UserController --> UserService
 UserService --> UserRepository
 UserService --> UserMapper
 UserService --> PasswordEncoder
+UserService --> ProfilePictureUseCase
+ProfilePictureUseCase --> ObjectStoragePort
 UserRepository --> User
 UserMapper --> UserResponseDTO
+UserController ..> ProfilePictureResponseDTO
 UserController ..> ChangePasswordRequestDTO
 UserController ..> ChangeUsernameRequestDTO
 

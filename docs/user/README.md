@@ -7,9 +7,10 @@ Manages the authenticated user's profile and credentials.
 ## Responsibilities
 
 - Return the current user's public profile
+- Upload or replace the authenticated user's profile picture
 - Change the authenticated user's password after verifying the old password
 - Change the authenticated user's username
-- Keep password hashes and internal roles out of API responses
+- Keep password hashes, internal roles, and storage keys out of API responses
 - Store a user timezone used by streak and progress calculations
 
 ## Documentation
