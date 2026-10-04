@@ -19,6 +19,7 @@ import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.BodyRegion;
 import dev.genesshoan.fitnesstrackerapi.stats.domain.AchievementType;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.AchievementDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPointsDTO;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.MonthlyVolumeDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.OneRepMaxDTO;
@@ -27,6 +28,7 @@ import dev.genesshoan.fitnesstrackerapi.stats.dto.StreakDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.mapper.AchievementMapper;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.StatsRepository;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.ExerciseProgressProjection;
+import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MonthlyVolumeProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MuscleIntensityProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.OneRepMaxProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.RankedSetProjection;
@@ -138,6 +140,42 @@ class StatsServiceTest {
 
         assertThat(result.volumeKg()).isEqualTo(700.0);
         verify(statsRepository).getSetsForVolume(sessionId, userId);
+    }
+
+    @Test
+    @DisplayName("Should calculate volume for an inclusive local-date range")
+    void calculateVolume_shouldConvertDatesAndReturnVolume() {
+        UUID userId = UUID.randomUUID();
+        when(statsRepository.getVolume(
+                        userId, Instant.parse("2026-01-01T03:00:00Z"), Instant.parse("2026-02-01T03:00:00Z")))
+                .thenReturn(700.0);
+
+        assertThat(statsService.calculateVolume(
+                        userId, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31), "America/Sao_Paulo"))
+                .isEqualTo(new SessionVolumeDTO(700.0));
+    }
+
+    @Test
+    @DisplayName("Should calculate monthly volume in repository order")
+    void getMonthlyVolume_shouldMapRepositoryResults() {
+        UUID userId = UUID.randomUUID();
+        when(statsRepository.getMonthlyVolume(
+                        userId, Instant.parse("2026-01-01T00:00:00Z"), Instant.parse("2026-02-01T00:00:00Z"), "UTC"))
+                .thenReturn(List.of(new MonthlyVolumeProjection("2026-01", 500.0)));
+
+        assertThat(statsService.getMonthlyVolume(userId, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31), "UTC"))
+                .containsExactly(new MonthlyVolumeDTO("2026-01", 500.0));
+    }
+
+    @Test
+    @DisplayName("Should reject volume ranges when start date is after end date")
+    void calculateVolume_shouldThrowWhenFromIsAfterTo() {
+        assertThatThrownBy(() -> statsService.calculateVolume(
+                        UUID.randomUUID(), LocalDate.of(2026, 2, 1), LocalDate.of(2026, 1, 1), "UTC"))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("The start date cannot be after the end date");
+
+        verifyNoInteractions(statsRepository);
     }
 
     @Test

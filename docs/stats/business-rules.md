@@ -11,6 +11,8 @@
 
 - Estimated 1RM uses the Epley formula: `weightKg * (1 + reps / 30.0)`.
 - Session volume is the sum of `weightKg * reps`.
+- Monthly volume groups completed strength-set volume by the user's local calendar month. Completed sets must have non-null weight and reps; months without qualifying sets are omitted.
+- Date-range volume sums the same qualifying sets over an inclusive local-date range.
 - Progression returns one highest estimated-1RM set per completed session.
 - Achievement comparison can emit multiple records for one set: max weight, estimated 1RM, more reps at the same weight, max distance, and max duration.
 - Ties do not create new achievements because comparisons require a strictly greater value.
@@ -28,3 +30,5 @@ Completed session timestamps are converted to the user's IANA timezone before da
 ## Ownership and Ranges
 
 Every query is filtered by user ID. Progress uses the half-open interval `[from, to)`. An invalid range currently raises the module's not-found exception rather than a dedicated validation exception.
+
+Monthly volume and muscle intensity use inclusive local-date ranges and convert them to a half-open instant interval using the user's IANA timezone. Muscle intensity returns all catalog muscles, weights impact levels (`PRIMARY=1.0`, `SECONDARY=0.5`, `STABILIZER=0.25`), and normalizes the result to 0–10 relative to the strongest muscle in the selected range.

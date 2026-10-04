@@ -16,6 +16,7 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
 import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.BodyRegion;
 import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.Muscle;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.StatsRepository;
+import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MonthlyVolumeProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MuscleIntensityProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.VolumeSetProjection;
 import dev.genesshoan.fitnesstrackerapi.testdata.TestEntityFactory;
@@ -171,6 +172,49 @@ class StatsRepositoryTest extends AbstractIntegrationTest {
 
         assertThat(statsRepository.getSetsForVolume(session.getId(), otherUser.getId()))
                 .isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should aggregate completed volume by local calendar month")
+    void getMonthlyVolume_shouldAggregateByMonthAndTimezone() {
+        User user = testEntityFactory.createAndPersistUser();
+        Exercise exercise = testEntityFactory.createAndPersistExercise();
+        Instant completedAt = Instant.parse("2026-01-31T23:30:00Z");
+        WorkoutSession session = persistCompletedSession(user, completedAt.minusSeconds(100), completedAt);
+        SessionExercise sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
+        testEntityFactory.createAndPersistSessionSet(SessionSetBuilder.aSessionSet(testEntityFactory.faker())
+                .forSessionExercise(sessionExercise)
+                .withCompleted(true)
+                .withReps(10)
+                .withWeightKg(50.0));
+
+        assertThat(statsRepository.getMonthlyVolume(
+                        user.getId(),
+                        Instant.parse("2026-01-01T00:00:00Z"),
+                        Instant.parse("2026-03-01T00:00:00Z"),
+                        "UTC"))
+                .containsExactly(new MonthlyVolumeProjection("2026-01", 500.0));
+        assertThat(statsRepository.getMonthlyVolume(
+                        user.getId(),
+                        Instant.parse("2026-01-01T00:00:00Z"),
+                        Instant.parse("2026-03-01T00:00:00Z"),
+                        "Europe/Berlin"))
+                .containsExactly(new MonthlyVolumeProjection("2026-02", 500.0));
+    }
+
+    @Test
+    @DisplayName("Should return total completed volume for an instant range")
+    void getVolume_shouldAggregateCompletedSetsInRange() {
+        User user = testEntityFactory.createAndPersistUser();
+        Exercise exercise = testEntityFactory.createAndPersistExercise();
+        Instant completedAt = Instant.parse("2026-01-15T10:00:00Z");
+        WorkoutSession session = persistCompletedSession(user, completedAt.minusSeconds(100), completedAt);
+        SessionExercise sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
+        persistSet(sessionExercise, 1, 8, 75.0, null, null, true);
+
+        assertThat(statsRepository.getVolume(
+                        user.getId(), Instant.parse("2026-01-01T00:00:00Z"), Instant.parse("2026-02-01T00:00:00Z")))
+                .isEqualTo(600.0);
     }
 
     @Test

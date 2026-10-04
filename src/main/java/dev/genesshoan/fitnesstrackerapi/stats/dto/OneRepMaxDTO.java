@@ -1,5 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.stats.dto;
 
+/** API representation of an exercise's highest estimated one-repetition maximum. */
 import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.media.Schema;

@@ -125,6 +125,105 @@ class StatsControllerIT extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should return monthly volume in the user's timezone")
+    void getMonthlyVolume_shouldAggregateCompletedSetsByMonth() throws Exception {
+        var exercise = testEntityFactory.createAndPersistExercise();
+        Instant january = Instant.parse("2026-01-31T23:30:00Z");
+        Instant february = Instant.parse("2026-02-01T00:30:00Z");
+
+        WorkoutSession januarySession = testEntityFactory.createAndPersistWorkoutSession(
+                WorkoutSessionBuilder.aWorkoutSession(testEntityFactory.faker())
+                        .forUser(user)
+                        .withStatus(SessionStatus.COMPLETED)
+                        .withStartedAt(january.minusSeconds(3600))
+                        .withCompletedAt(january));
+        var januaryExercise = testEntityFactory.createAndPersistSessionExercise(januarySession, exercise);
+        testEntityFactory.createAndPersistSessionSet(SessionSetBuilder.aSessionSet(testEntityFactory.faker())
+                .forSessionExercise(januaryExercise)
+                .withCompleted(true)
+                .withReps(10)
+                .withWeightKg(50.0));
+
+        WorkoutSession februarySession = testEntityFactory.createAndPersistWorkoutSession(
+                WorkoutSessionBuilder.aWorkoutSession(testEntityFactory.faker())
+                        .forUser(user)
+                        .withStatus(SessionStatus.COMPLETED)
+                        .withStartedAt(february.minusSeconds(3600))
+                        .withCompletedAt(february));
+        var februaryExercise = testEntityFactory.createAndPersistSessionExercise(februarySession, exercise);
+        testEntityFactory.createAndPersistSessionSet(SessionSetBuilder.aSessionSet(testEntityFactory.faker())
+                .forSessionExercise(februaryExercise)
+                .withCompleted(true)
+                .withReps(5)
+                .withWeightKg(40.0));
+
+        mockMvc.perform(get("/api/v1/stats/volume/monthly")
+                        .param("from", "2026-01-01")
+                        .param("to", "2026-02-28")
+                        .with(asUser(user)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].month").value("2026-01"))
+                .andExpect(jsonPath("$[0].volumeKg").value(500.0))
+                .andExpect(jsonPath("$[1].month").value("2026-02"))
+                .andExpect(jsonPath("$[1].volumeKg").value(200.0));
+    }
+
+    @Test
+    @DisplayName("Should return 400 when monthly volume range is inverted")
+    void getMonthlyVolume_shouldReturn400WhenRangeIsInverted() throws Exception {
+        mockMvc.perform(get("/api/v1/stats/volume/monthly")
+                        .param("from", "2026-02-01")
+                        .param("to", "2026-01-01")
+                        .with(asUser(user)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should return 401 for unauthenticated monthly volume requests")
+    void getMonthlyVolume_shouldReturn401WhenUnauthenticated() throws Exception {
+        mockMvc.perform(get("/api/v1/stats/volume/monthly")
+                        .param("from", "2026-01-01")
+                        .param("to", "2026-01-31"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Should return total volume for an inclusive date range")
+    void getVolume_shouldAggregateCompletedSetsForDateRange() throws Exception {
+        var exercise = testEntityFactory.createAndPersistExercise();
+        Instant completedAt = Instant.parse("2026-01-15T10:00:00Z");
+        WorkoutSession session = testEntityFactory.createAndPersistWorkoutSession(
+                WorkoutSessionBuilder.aWorkoutSession(testEntityFactory.faker())
+                        .forUser(user)
+                        .withStatus(SessionStatus.COMPLETED)
+                        .withStartedAt(completedAt.minusSeconds(3600))
+                        .withCompletedAt(completedAt));
+        var sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
+        testEntityFactory.createAndPersistSessionSet(SessionSetBuilder.aSessionSet(testEntityFactory.faker())
+                .forSessionExercise(sessionExercise)
+                .withCompleted(true)
+                .withReps(8)
+                .withWeightKg(75.0));
+
+        mockMvc.perform(get("/api/v1/stats/volume")
+                        .param("from", "2026-01-01")
+                        .param("to", "2026-01-31")
+                        .with(asUser(user)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.volumeKg").value(600.0));
+    }
+
+    @Test
+    @DisplayName("Should return 400 when date-range volume is inverted")
+    void getVolume_shouldReturn400WhenRangeIsInverted() throws Exception {
+        mockMvc.perform(get("/api/v1/stats/volume")
+                        .param("from", "2026-02-01")
+                        .param("to", "2026-01-01")
+                        .with(asUser(user)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("Should return muscle intensity metadata and scores for the requested range")
     void getMuscleIntensity_shouldReturn200WithMuscleData() throws Exception {
         String muscleSlug = "controller-target-" + UUID.randomUUID();

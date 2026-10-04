@@ -1,5 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.stats.dto;
 
+/** Muscle intensity response for an inclusive local-date range. */
 import java.time.LocalDate;
 import java.util.List;
 

@@ -1,5 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.stats.mapper;
 
+/** Maps achievement domain values to API DTOs. */
 import java.util.List;
 
 import dev.genesshoan.fitnesstrackerapi.stats.domain.Achievement;

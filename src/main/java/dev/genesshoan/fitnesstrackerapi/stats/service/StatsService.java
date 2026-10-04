@@ -32,6 +32,7 @@ import dev.genesshoan.fitnesstrackerapi.stats.domain.PersonalRecordHolders;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.AchievementDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPointDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPointsDTO;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.MonthlyVolumeDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.OneRepMaxDTO;
@@ -111,6 +112,54 @@ public class StatsService {
         List<VolumeSetProjection> setVolumes = statsRepository.getSetsForVolume(sessionId, userId);
 
         return new SessionVolumeDTO(VolumeCalculator.calculate(setVolumes));
+    }
+
+    /**
+     * Calculates completed strength volume grouped by the user's calendar month.
+     *
+     * @param userId the authenticated owner
+     * @param from inclusive local date range start
+     * @param to inclusive local date range end
+     * @param userTimezone the user's IANA timezone
+     * @return chronological monthly volume entries; months without volume are omitted
+     * @throws BadRequestException if {@code from} is after {@code to}
+     */
+    public List<MonthlyVolumeDTO> getMonthlyVolume(UUID userId, LocalDate from, LocalDate to, String userTimezone) {
+
+        if (from.isAfter(to)) {
+            throw new BadRequestException("The start date cannot be after the end date");
+        }
+
+        ZoneId userZoneId = ZoneId.of(userTimezone);
+        Instant fromInclusive = from.atStartOfDay(userZoneId).toInstant();
+        Instant toExclusive = to.plusDays(1).atStartOfDay(userZoneId).toInstant();
+
+        return statsRepository.getMonthlyVolume(userId, fromInclusive, toExclusive, userTimezone).stream()
+                .map(projection -> new MonthlyVolumeDTO(projection.month(), projection.volumeKg()))
+                .toList();
+    }
+
+    /**
+     * Calculates completed strength volume for an inclusive local-date range.
+     *
+     * @param userId the authenticated owner
+     * @param from inclusive local date range start
+     * @param to inclusive local date range end
+     * @param userTimezone the user's IANA timezone
+     * @return total volume in kilogram-repetitions
+     * @throws BadRequestException if {@code from} is after {@code to}
+     */
+    public SessionVolumeDTO calculateVolume(UUID userId, LocalDate from, LocalDate to, String userTimezone) {
+
+        if (from.isAfter(to)) {
+            throw new BadRequestException("The start date cannot be after the end date");
+        }
+
+        ZoneId userZoneId = ZoneId.of(userTimezone);
+        Instant fromInclusive = from.atStartOfDay(userZoneId).toInstant();
+        Instant toExclusive = to.plusDays(1).atStartOfDay(userZoneId).toInstant();
+
+        return new SessionVolumeDTO(statsRepository.getVolume(userId, fromInclusive, toExclusive));
     }
 
     /**

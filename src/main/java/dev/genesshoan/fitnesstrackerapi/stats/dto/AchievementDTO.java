@@ -5,6 +5,7 @@ import java.util.UUID;
 import dev.genesshoan.fitnesstrackerapi.stats.domain.AchievementType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+/** API representation of a newly achieved personal record. */
 @Schema(description = "Achievement obtained by the user during a workout session")
 public record AchievementDTO(
         @Schema(description = "Type of achievement obtained", example = "NEW_MAX_WEIGHT")
