@@ -173,7 +173,12 @@ public class DomainExceptionHandler {
     @ExceptionHandler(FileStorageException.class)
     public ResponseEntity<ProblemDetail> handleFileStorage(FileStorageException ex, HttpServletRequest request) {
         ProblemDetail problem =
-                errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "File storage error", ex.getMessage(), null, request);
+                errorResponse(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "File storage error",
+                        "The profile picture could not be stored",
+                        null,
+                        request);
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem);
     }
@@ -205,7 +210,12 @@ public class DomainExceptionHandler {
     public ResponseEntity<ProblemDetail> handleProfilePictureProcessing(
             ProfilePictureProcessingException ex, HttpServletRequest request) {
         ProblemDetail problem =
-                errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Image processing error", ex.getMessage(), null, request);
+                errorResponse(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Image processing error",
+                        "The profile picture could not be processed",
+                        null,
+                        request);
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem);
     }
