@@ -23,6 +23,16 @@ app:
         output-size: 512
         output-quality: 0.85
         output-format: jpeg
+
+    get:
+      catalog:
+        base-url: https://cdn.test.example.com/catalog
+        exercise:
+          gifs: exercises/gifs
+          thumbnails: exercises/thumbnails
+        muscle:
+          images: muscles/images
+
   storage:
     endpoint: http://localhost:9000
     region: us-east-1

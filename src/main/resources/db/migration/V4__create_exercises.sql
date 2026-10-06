@@ -8,6 +8,7 @@ CREATE TABLE exercises
     description TEXT                        NOT NULL,
     instructions TEXT[]                     NOT NULL,
     media_object_key VARCHAR(255),
+    thumbnail_object_key VARCHAR(255),
     category    VARCHAR(255)                NOT NULL,
     difficulty  VARCHAR(255)                NOT NULL,
     active      BOOLEAN                     NOT NULL DEFAULT TRUE,
@@ -16,6 +17,7 @@ CREATE TABLE exercises
     CONSTRAINT uk_exercises_name UNIQUE (name),
     CONSTRAINT uk_exercises_slug UNIQUE (slug),
     CONSTRAINT uk_exercises_media_object_key UNIQUE (media_object_key),
+    CONSTRAINT uk_exercises_thumbnail_object_key UNIQUE (thumbnail_object_key),
     CONSTRAINT ck_exercises_category  CHECK (category   IN ('STRENGTH', 'CARDIO', 'MOBILITY')),
     CONSTRAINT ck_exercises_difficulty CHECK (difficulty IN ('BEGINNER', 'INTERMEDIATE', 'ADVANCED'))
 );

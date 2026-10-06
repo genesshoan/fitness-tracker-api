@@ -46,6 +46,12 @@ app:
         output-size: ${PROFILE_PICTURE_OUTPUT_SIZE}
         output-quality: ${PROFILE_PICTURE_OUTPUT_QUALITY}
         output-format: ${PROFILE_PICTURE_OUTPUT_FORMAT}
+    get:
+      catalog:
+        base-url: ${STORAGE_CATALOG_BASE_URL}
+        exercise:
+          gifs: ${STORAGE_CATALOG_EXERCISE_GIF}
+          thumbnails: ${STORAGE_CATALOG_EXERCISE_THUMBNAIL}
 
   storage:
     endpoint: ${STORAGE_ENDPOINT}

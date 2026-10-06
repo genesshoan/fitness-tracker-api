@@ -1,9 +1,12 @@
 package dev.genesshoan.fitnesstrackerapi.testdata.builder;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.BodyRegion;
-import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.Muscle;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.BodyRegion;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.Muscle;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.MuscleAsset;
 import net.datafaker.Faker;
 
 public class MuscleBuilder {
@@ -11,10 +14,11 @@ public class MuscleBuilder {
     private String name;
     private String slug;
     private BodyRegion bodyRegion = BodyRegion.ARMS;
+    private Set<MuscleAsset> assets = new HashSet<>();
 
     public MuscleBuilder(Faker faker) {
-        this.name = faker.funnyName().name() + UUID.randomUUID().toString();
-        this.slug = faker.internet().slug() + UUID.randomUUID().toString();
+        this.name = faker.funnyName().name() + UUID.randomUUID();
+        this.slug = faker.internet().slug() + UUID.randomUUID();
     }
 
     public static MuscleBuilder aMuscle(Faker faker) {
@@ -36,7 +40,17 @@ public class MuscleBuilder {
         return this;
     }
 
+    public MuscleBuilder withAssets(Set<MuscleAsset> assets) {
+        this.assets = assets;
+        return this;
+    }
+
     public Muscle build() {
-        return Muscle.builder().name(name).slug(slug).bodyRegion(bodyRegion).build();
+        return Muscle.builder()
+                .name(name)
+                .slug(slug)
+                .bodyRegion(bodyRegion)
+                .assets(assets)
+                .build();
     }
 }
