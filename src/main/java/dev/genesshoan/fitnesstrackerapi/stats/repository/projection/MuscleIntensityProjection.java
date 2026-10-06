@@ -3,7 +3,7 @@ package dev.genesshoan.fitnesstrackerapi.stats.repository.projection;
 import java.util.UUID;
 
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
-import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.BodyRegion;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.BodyRegion;
 
 /** JDBC projection for raw muscle stimulus grouped by impact level. */
 public record MuscleIntensityProjection(

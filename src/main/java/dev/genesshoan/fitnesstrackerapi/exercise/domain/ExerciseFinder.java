@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.ExerciseRepository;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.ExerciseRepository;
 import lombok.RequiredArgsConstructor;
 
 @Component

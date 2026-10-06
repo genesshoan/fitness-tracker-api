@@ -77,6 +77,9 @@ public class Exercise extends BaseEntity {
     @Column(name = "media_object_key", nullable = true)
     private String mediaObjectKey;
 
+    @Column(name = "thumbnail_object_key", nullable = true)
+    private String thumbnailObjectKey;
+
     /**
      * Exercise category (strength, cardio, or mobility).
      */

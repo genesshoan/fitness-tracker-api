@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise;
+package dev.genesshoan.fitnesstrackerapi.exercise.controller;
 
 import java.util.List;
 import java.util.UUID;
@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPage;
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPageRequest;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseServicePort;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseDetailDTO;
@@ -52,7 +53,7 @@ import lombok.RequiredArgsConstructor;
 @Tag(name = "Exercises", description = "Endpoints for managing and retrieving exercises")
 public class ExerciseController {
 
-    private final ExerciseService exerciseService;
+    private final ExerciseServicePort exerciseService;
 
     /**
      * Returns active exercises using cursor pagination and optional filters.
