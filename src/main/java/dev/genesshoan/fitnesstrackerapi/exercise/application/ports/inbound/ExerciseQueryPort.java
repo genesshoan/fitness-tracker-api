@@ -31,14 +31,6 @@ public interface ExerciseQueryPort {
     List<Exercise> findAllByIdInAndActiveTrue(Collection<UUID> ids);
 
     /**
-     * Finds an active exercise by its slug.
-     *
-     * @param slug the URL-friendly identifier
-     * @return optional containing the exercise if found
-     */
-    Optional<Exercise> findBySlugAndActiveTrue(String slug);
-
-    /**
      * Finds an active exercise by its ID.
      *
      * @param id the exercise UUID
@@ -47,12 +39,12 @@ public interface ExerciseQueryPort {
     Optional<Exercise> findByIdAndActiveTrue(UUID id);
 
     /**
-     * Checks if an exercise with the given slug exists.
+     * Checks if an exercise with the given id exists.
      *
-     * @param slug the exercise slug
+     * @param id the exercise id
      * @return true if the exercise exists
      */
-    boolean existsBySlug(String slug);
+    boolean existsByIdAndActiveTrue(UUID id);
 
     /**
      * Resolves a collection of exercise IDs to a map of ID to Exercise.

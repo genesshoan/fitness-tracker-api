@@ -12,10 +12,10 @@ import dev.genesshoan.fitnesstrackerapi.common.domain.ExerciseMetrics;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.mapper.ExerciseMetricsMapper;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseQueryPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.BodyRegion;
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.ExerciseRepository;
 import dev.genesshoan.fitnesstrackerapi.stats.domain.AchievementType;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.AchievementDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPointsDTO;
@@ -69,7 +69,7 @@ class StatsServiceTest {
     private WorkoutSessionRepository workoutSessionRepository;
 
     @Mock
-    private ExerciseRepository exerciseRepository;
+    private ExerciseQueryPort exerciseQueryPort;
 
     @Mock
     private ExerciseMetricsMapper exerciseMetricsMapper;
@@ -183,7 +183,7 @@ class StatsServiceTest {
         UUID exerciseId = UUID.randomUUID();
         Instant from = Instant.parse("2026-01-01T00:00:00Z");
         Instant to = Instant.parse("2026-02-01T00:00:00Z");
-        when(exerciseRepository.existsById(exerciseId)).thenReturn(true);
+        when(exerciseQueryPort.existsByIdAndActiveTrue(exerciseId)).thenReturn(true);
         when(statsRepository.getExerciseProgressPoints(any(), any(), any(), any()))
                 .thenReturn(List.of());
 
@@ -195,7 +195,7 @@ class StatsServiceTest {
     @DisplayName("Should reject progress for an unknown exercise")
     void getExerciseProgress_shouldThrowWhenExerciseDoesNotExist() {
         UUID exerciseId = UUID.randomUUID();
-        when(exerciseRepository.existsById(exerciseId)).thenReturn(false);
+        when(exerciseQueryPort.existsByIdAndActiveTrue(exerciseId)).thenReturn(false);
 
         assertThatThrownBy(() -> statsService.getExerciseProgress(
                         UUID.randomUUID(), exerciseId, Instant.now().minusSeconds(3600), Instant.now(), "UTC"))
@@ -216,7 +216,7 @@ class StatsServiceTest {
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("The start date cannot be after the end date");
 
-        verifyNoInteractions(statsRepository, exerciseRepository);
+        verifyNoInteractions(statsRepository, exerciseQueryPort);
     }
 
     @Test
@@ -238,7 +238,7 @@ class StatsServiceTest {
     void getOneRepMax_shouldReturnProjectionValue() {
         UUID userId = UUID.randomUUID();
         UUID exerciseId = UUID.randomUUID();
-        when(exerciseRepository.existsById(exerciseId)).thenReturn(true);
+        when(exerciseQueryPort.existsByIdAndActiveTrue(exerciseId)).thenReturn(true);
         when(statsRepository.getSetForOneRepMax(userId, exerciseId))
                 .thenReturn(Optional.of(new OneRepMaxProjection(100.0)));
 
@@ -251,7 +251,7 @@ class StatsServiceTest {
     @DisplayName("Should return zero one rep max when no completed sets exist")
     void getOneRepMax_shouldReturnZeroWhenNoSetExists() {
         UUID exerciseId = UUID.randomUUID();
-        when(exerciseRepository.existsById(exerciseId)).thenReturn(true);
+        when(exerciseQueryPort.existsByIdAndActiveTrue(exerciseId)).thenReturn(true);
         when(statsRepository.getSetForOneRepMax(any(), any())).thenReturn(Optional.empty());
 
         assertThat(statsService.getOneRepMax(UUID.randomUUID(), exerciseId).estimatedOneRepMax())
@@ -262,7 +262,7 @@ class StatsServiceTest {
     @DisplayName("Should reject one rep max for an unknown exercise")
     void getOneRepMax_shouldThrowWhenExerciseDoesNotExist() {
         UUID exerciseId = UUID.randomUUID();
-        when(exerciseRepository.existsById(exerciseId)).thenReturn(false);
+        when(exerciseQueryPort.existsByIdAndActiveTrue(exerciseId)).thenReturn(false);
 
         assertThatThrownBy(() -> statsService.getOneRepMax(UUID.randomUUID(), exerciseId))
                 .isInstanceOf(ResourceNotFoundException.class)
@@ -278,7 +278,7 @@ class StatsServiceTest {
         UUID exerciseId = UUID.randomUUID();
         Instant from = Instant.parse("2026-01-01T00:00:00Z");
         Instant to = Instant.parse("2026-02-01T00:00:00Z");
-        when(exerciseRepository.existsById(exerciseId)).thenReturn(true);
+        when(exerciseQueryPort.existsByIdAndActiveTrue(exerciseId)).thenReturn(true);
         when(statsRepository.getExerciseProgressPoints(userId, exerciseId, from, to))
                 .thenReturn(
                         List.of(new ExerciseProgressProjection(Instant.parse("2026-01-15T01:00:00Z"), 80.0, 5, 93.33)));

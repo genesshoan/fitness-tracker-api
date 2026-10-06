@@ -20,7 +20,7 @@ import dev.genesshoan.fitnesstrackerapi.common.domain.ExerciseMetrics;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.mapper.ExerciseMetricsMapper;
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.ExerciseRepository;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseQueryPort;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.AchievementCalculator;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.OneRepMaxCalculator;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.StreakCalculator;
@@ -63,7 +63,7 @@ public class StatsService {
 
     private final StatsRepository statsRepository;
     private final WorkoutSessionRepository workoutSessionRepository;
-    private final ExerciseRepository exerciseRepository;
+    private final ExerciseQueryPort exerciseQueryPort;
 
     private final ExerciseMetricsMapper exerciseMetricsMapper;
     private final AchievementMapper achievementMapper;
@@ -174,7 +174,7 @@ public class StatsService {
      */
     public OneRepMaxDTO getOneRepMax(UUID userId, UUID exerciseId) {
 
-        if (!exerciseRepository.existsById(exerciseId)) {
+        if (!exerciseQueryPort.existsByIdAndActiveTrue(exerciseId)) {
             throw new ResourceNotFoundException("Exercise not found");
         }
 
@@ -206,7 +206,7 @@ public class StatsService {
             throw new BadRequestException("The start date cannot be after the end date");
         }
 
-        if (!exerciseRepository.existsById(exerciseId)) {
+        if (!exerciseQueryPort.existsByIdAndActiveTrue(exerciseId)) {
             throw new ResourceNotFoundException("Exercise not found");
         }
 
