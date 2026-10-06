@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.muscle;
+package dev.genesshoan.fitnesstrackerapi.exercise.application.usecases;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -6,8 +6,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
-import dev.genesshoan.fitnesstrackerapi.exercise.muscle.dto.MuscleResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.exercise.muscle.mapper.MuscleMapper;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.MuscleServicePort;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.MuscleRepositoryPort;
+import dev.genesshoan.fitnesstrackerapi.exercise.dto.MuscleResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.exercise.mapper.MuscleMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,20 +24,15 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class MuscleService {
+public class MuscleServiceImpl implements MuscleServicePort {
 
-    private final MuscleRepository muscleRepository;
+    private final MuscleRepositoryPort muscleRepository;
     private final MuscleMapper muscleMapper;
 
     /**
-     * Retrieves a paginated list of all muscles.
-     *
-     * <p>Muscles are organized by {@link dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.BodyRegion}
-     * and can be used to filter exercises by target muscle groups.
-     *
-     * @param pageable pagination parameters (page number, size, sort)
-     * @return a {@link Page} of {@link MuscleResponseDTO} objects
+     * {@inheritDoc}
      */
+    @Override
     public Page<MuscleResponseDTO> getMuscles(Pageable pageable) {
 
         log.debug("Fetching muscles page={} size={}", pageable.getPageNumber(), pageable.getPageSize());
@@ -44,14 +41,9 @@ public class MuscleService {
     }
 
     /**
-     * Retrieves a single muscle by its URL-friendly slug.
-     *
-     * <p>The slug is a URL-friendly identifier (e.g., "bicep", "quadriceps").
-     *
-     * @param slug the URL-friendly muscle identifier
-     * @return a {@link MuscleResponseDTO} with muscle details
-     * @throws ResourceNotFoundException if no muscle exists with the given slug
+     * {@inheritDoc}
      */
+    @Override
     public MuscleResponseDTO getMuscleBySlug(String slug) {
 
         log.info("Fetching muscle by slug={}", slug);

@@ -15,6 +15,7 @@ public class SeedGenerator {
 
     private final Map<String, UUID> muscleIds = new HashMap<>();
     private final Map<String, UUID> exerciseIds = new HashMap<>();
+    private final Map<String, UUID> muscleAssetIds = new HashMap<>();
 
     private final SeedData seedData = new SeedData();
 
@@ -25,7 +26,9 @@ public class SeedGenerator {
     public void generate() {
         generateMuscles();
         generateExercises();
+        generateMuscleAssets();
         generateExerciseMuscles();
+        generateMuscleAssetMappings();
 
         writeToFile();
 
@@ -47,30 +50,22 @@ public class SeedGenerator {
     }
 
     private void generateMuscles() {
-        sql.append("-- MUSCLES\n");
-        sql.append("INSERT INTO muscles (id, name, slug, body_region) VALUES\n");
-
         List<String> rows = new ArrayList<>();
 
-        for (MuscleSeed muscle : seedData.muscles) {
+        for (MuscleSeed muscle : seedData.databaseSeed.muscles()) {
             UUID id = newId();
             muscleIds.put(muscle.slug(), id);
 
             rows.add(row(id, muscle.name(), muscle.slug(), muscle.region()));
         }
 
-        sql.append(String.join(",\n", rows));
-        sql.append(";\n\n");
+        appendInsert("-- MUSCLES", "muscles (id, name, slug, body_region)", rows);
     }
 
     private void generateExercises() {
-        sql.append("-- EXERCISES\n");
-        sql.append("INSERT INTO exercises (id, name, slug, description, category, difficulty, instructions,"
-                + " media_object_key) VALUES\n");
-
         List<String> rows = new ArrayList<>();
 
-        for (ExerciseSeed exercise : seedData.exercises) {
+        for (ExerciseSeed exercise : seedData.databaseSeed.exercises()) {
             UUID id = newId();
             exerciseIds.put(exercise.slug(), id);
 
@@ -82,20 +77,61 @@ public class SeedGenerator {
                     exercise.category(),
                     exercise.difficulty(),
                     exercise.instructions(),
-                    exercise.mediaObjectKey()));
+                    exercise.mediaObjectKey(),
+                    exercise.thumbnailObjectKey()));
         }
 
-        sql.append(String.join(",\n", rows));
-        sql.append(";\n\n");
+        appendInsert(
+                "-- EXERCISES",
+                "exercises (id, name, slug, description, category, difficulty, instructions, media_object_key,"
+                        + " thumbnail_object_key)",
+                rows);
+    }
+
+    private void generateMuscleAssets() {
+        List<String> rows = new ArrayList<>();
+        Map<String, MuscleAssetSeed> assetsByKey = new LinkedHashMap<>();
+
+        addAssets(assetsByKey, seedData.databaseSeed.muscleAssets());
+        for (MuscleSeed muscle : seedData.databaseSeed.muscles()) {
+            addAssets(assetsByKey, muscle.assets());
+        }
+
+        for (Map.Entry<String, MuscleAssetSeed> entry : assetsByKey.entrySet()) {
+            UUID id = newId();
+            muscleAssetIds.put(entry.getKey(), id);
+            MuscleAssetSeed asset = entry.getValue();
+            rows.add(row(id, asset.objectKey(), asset.variant(), asset.view(), asset.contentType()));
+        }
+
+        appendInsert("-- MUSCLE ASSETS", "muscle_assets (id, object_key, variant, view, content_type)", rows);
+    }
+
+    private void addAssets(Map<String, MuscleAssetSeed> assetsByKey, List<MuscleAssetSeed> assets) {
+        if (assets == null) {
+            return;
+        }
+
+        for (MuscleAssetSeed asset : assets) {
+            if (asset == null || asset.objectKey() == null || asset.objectKey().isBlank()) {
+                throw new IllegalStateException("Muscle asset must have an object_key");
+            }
+
+            MuscleAssetSeed previous = assetsByKey.putIfAbsent(asset.objectKey(), asset);
+            if (previous != null
+                    && (!Objects.equals(previous.variant(), asset.variant())
+                            || !Objects.equals(previous.view(), asset.view())
+                            || !Objects.equals(previous.contentType(), asset.contentType()))) {
+                throw new IllegalStateException(
+                        "Conflicting muscle asset metadata for object_key: " + asset.objectKey());
+            }
+        }
     }
 
     private void generateExerciseMuscles() {
-        sql.append("-- EXERCISE MUSCLES\n");
-        sql.append("INSERT INTO exercise_muscles (exercise_id, muscle_id, impact_level) VALUES\n");
-
         List<String> rows = new ArrayList<>();
 
-        for (ExerciseSeed exercise : seedData.exercises) {
+        for (ExerciseSeed exercise : seedData.databaseSeed.exercises()) {
             String exerciseSlug = exercise.slug();
 
             addMuscleRows(rows, exerciseSlug, exercise.muscles().primary(), ImpactLevel.PRIMARY);
@@ -103,6 +139,42 @@ public class SeedGenerator {
             addMuscleRows(rows, exerciseSlug, exercise.muscles().stabilizer(), ImpactLevel.STABILIZER);
         }
 
+        appendInsert("-- EXERCISE MUSCLES", "exercise_muscles (exercise_id, muscle_id, impact_level)", rows);
+    }
+
+    private void generateMuscleAssetMappings() {
+        List<String> rows = new ArrayList<>();
+        Set<String> mappingKeys = new HashSet<>();
+        List<MuscleAssetMappingSeed> mappings = seedData.databaseSeed.muscleAssetMappings();
+
+        if (mappings != null) {
+            for (MuscleAssetMappingSeed mapping : mappings) {
+                UUID muscleId = muscleIds.get(mapping.muscleSlug());
+                UUID assetId = muscleAssetIds.get(mapping.objectKey());
+
+                if (muscleId == null) {
+                    throw new IllegalStateException("Missing muscle slug: " + mapping.muscleSlug());
+                }
+                if (assetId == null) {
+                    throw new IllegalStateException("Missing muscle asset object_key: " + mapping.objectKey());
+                }
+
+                if (mappingKeys.add(mapping.muscleSlug() + "\u0000" + mapping.objectKey())) {
+                    rows.add(row(muscleId, assetId));
+                }
+            }
+        }
+
+        appendInsert("-- MUSCLE ASSET MAPPINGS", "muscle_asset_mappings (muscle_id, muscle_asset_id)", rows);
+    }
+
+    private void appendInsert(String comment, String columns, List<String> rows) {
+        if (rows.isEmpty()) {
+            return;
+        }
+
+        sql.append(comment).append("\n");
+        sql.append("INSERT INTO ").append(columns).append(" VALUES\n");
         sql.append(String.join(",\n", rows));
         sql.append(";\n\n");
     }

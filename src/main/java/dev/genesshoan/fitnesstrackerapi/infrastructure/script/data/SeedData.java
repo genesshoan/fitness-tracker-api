@@ -1,7 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.infrastructure.script.data;
 
 import java.io.InputStream;
-import java.util.Set;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,21 +8,19 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 public class SeedData {
 
-    public final Set<MuscleSeed> muscles;
-    public final Set<ExerciseSeed> exercises;
+    public final DatabaseSeed databaseSeed;
 
     private final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
     public SeedData() {
         try {
-            muscles = load("seeds/muscles.yml", new TypeReference<>() {});
-            exercises = load("seeds/exercises.yml", new TypeReference<>() {});
+            databaseSeed = load("seeds/database_seed.yml", new TypeReference<>() {});
         } catch (Exception e) {
             throw new RuntimeException("Failed to load seed data", e);
         }
     }
 
-    private <T> Set<T> load(String path, TypeReference<Set<T>> type) throws Exception {
+    private <T> T load(String path, TypeReference<T> type) throws Exception {
         InputStream is = getClass().getClassLoader().getResourceAsStream(path);
 
         if (is == null) {

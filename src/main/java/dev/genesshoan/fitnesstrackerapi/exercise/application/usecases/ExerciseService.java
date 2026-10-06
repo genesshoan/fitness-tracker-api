@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise;
+package dev.genesshoan.fitnesstrackerapi.exercise.application.usecases;
 
 import java.util.HashSet;
 import java.util.List;
@@ -16,20 +16,24 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyEx
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPage;
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPageRequest;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseServicePort;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.AssetUrlProviderPort;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.usecases.search.ExerciseNameHighlighter;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ExerciseMuscle;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ExerciseMuscleId;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.Muscle;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseDetailDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseListItemDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseMuscleRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseSearchResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseSearchResultDTO;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.ExerciseRepository;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.MuscleRepository;
 import dev.genesshoan.fitnesstrackerapi.exercise.mapper.ExerciseMapper;
-import dev.genesshoan.fitnesstrackerapi.exercise.muscle.MuscleRepository;
-import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.Muscle;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -53,29 +57,17 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class ExerciseService {
+public class ExerciseService implements ExerciseServicePort {
 
     private final ExerciseRepository exerciseRepository;
     private final MuscleRepository muscleRepository;
     private final ExerciseMapper exerciseMapper;
+    private final AssetUrlProviderPort assetUrlProviderPort;
 
     /**
-     * Retrieves a paginated list of active exercises with optional filtering.
-     *
-     * <p>Filters are combined with AND logic. Each filter is optional;
-     * null or absent filters are ignored. Only exercises with
-     * {@code active = true} are returned.
-     *
-     * <p>Pagination uses cursor-based pagination: the cursor is the
-     * last ID from the previous page. A null cursor returns the first page.
-     *
-     * @param request      the cursor pagination request (cursor + size)
-     * @param category     optional exercise category filter; null to ignore
-     * @param difficulty   optional exercise difficulty filter; null to ignore
-     * @param muscleSlugs  optional list of muscle slugs to filter by;
-     *                     exercises matching any of these muscles are returned
-     * @return a {@link CursorPage} containing {@link ExerciseListItemDTO} items
+     * {@inheritDoc}
      */
+    @Override
     public CursorPage<ExerciseListItemDTO, UUID> getAllExercises(
             CursorPageRequest<UUID> request, Category category, Difficulty difficulty, List<String> muscleSlugs) {
         List<Exercise> exercises = exerciseRepository.findByFiltersAndActiveTrue(
@@ -83,7 +75,12 @@ public class ExerciseService {
 
         log.info("Found {} exercises", exercises == null ? 0 : exercises.size());
 
-        return CursorPage.of(exercises, request.size(), Exercise::getId, exerciseMapper::toItemDTO);
+        return CursorPage.of(
+                exercises,
+                request.size(),
+                Exercise::getId,
+                exercise -> exerciseMapper.toItemDTO(
+                        exercise, assetUrlProviderPort.exerciseThumbnailUrl(exercise.getThumbnailObjectKey())));
     }
 
     /**
@@ -125,7 +122,7 @@ public class ExerciseService {
 
         log.info("Found exercise with slug {}", slug);
 
-        return exerciseMapper.toDetailDTO(exercise);
+        return exerciseMapper.toDetailDTO(exercise, assetUrlProviderPort.exerciseGifUrl(exercise.getMediaObjectKey()));
     }
 
     /**
@@ -150,11 +147,11 @@ public class ExerciseService {
         exercise.setInstructions(orEmptyInstructions(request.instructions()));
         exercise.setExerciseMuscles(resolveMuscles(exercise, request.muscles()));
 
-        Exercise saved = exerciseRepository.save(exercise);
+        Exercise saved = exerciseRepository.saveExercise(exercise);
 
         log.info("Created exercise with slug {}", saved.getSlug());
 
-        return exerciseMapper.toDetailDTO(saved);
+        return exerciseMapper.toDetailDTO(saved, assetUrlProviderPort.exerciseGifUrl(exercise.getMediaObjectKey()));
     }
 
     /**
@@ -188,11 +185,11 @@ public class ExerciseService {
         exercise.getExerciseMuscles().clear();
         exercise.getExerciseMuscles().addAll(resolveMuscles(exercise, request.muscles()));
 
-        Exercise saved = exerciseRepository.save(exercise);
+        Exercise saved = exerciseRepository.saveExercise(exercise);
 
         log.info("Updated exercise with slug {}", saved.getSlug());
 
-        return exerciseMapper.toDetailDTO(saved);
+        return exerciseMapper.toDetailDTO(saved, assetUrlProviderPort.exerciseGifUrl(exercise.getMediaObjectKey()));
     }
 
     /**

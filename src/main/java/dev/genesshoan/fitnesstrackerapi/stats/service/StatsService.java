@@ -20,7 +20,7 @@ import dev.genesshoan.fitnesstrackerapi.common.domain.ExerciseMetrics;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.mapper.ExerciseMetricsMapper;
-import dev.genesshoan.fitnesstrackerapi.exercise.ExerciseRepository;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.ExerciseRepository;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.AchievementCalculator;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.OneRepMaxCalculator;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.StreakCalculator;

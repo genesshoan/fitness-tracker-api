@@ -17,7 +17,7 @@ import org.springframework.stereotype.Repository;
 
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
-import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.BodyRegion;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.BodyRegion;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.ExerciseProgressProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MonthlyVolumeProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MuscleIntensityProjection;
