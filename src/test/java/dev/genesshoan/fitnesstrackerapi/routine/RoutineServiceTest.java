@@ -14,8 +14,8 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestExcepti
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyExistsException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ValidationException;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseQueryPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.ExerciseRepository;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.RoutineExercise;
 import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineExerciseRequestDTO;
@@ -55,7 +55,7 @@ public class RoutineServiceTest {
     private RoutineRepository routineRepository;
 
     @Mock
-    private ExerciseRepository exerciseRepository;
+    private ExerciseQueryPort exerciseQueryPort;
 
     @Mock
     private RoutineMapper routineMapper;
@@ -143,7 +143,7 @@ public class RoutineServiceTest {
 
         when(routineRepository.save(any(Routine.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(exerciseRepository.findAllByIdInAndActiveTrue(anySet())).thenReturn(List.of(ex1, ex2, ex3));
+        when(exerciseQueryPort.findAllByIdInAndActiveTrue(anySet())).thenReturn(List.of(ex1, ex2, ex3));
 
         when(routineMapper.toRoutineResponseDTO(any(Routine.class))).thenReturn(response);
 
@@ -154,7 +154,7 @@ public class RoutineServiceTest {
         ArgumentCaptor<Routine> captor = ArgumentCaptor.forClass(Routine.class);
 
         verify(routineRepository).save(any(Routine.class));
-        verify(exerciseRepository).findAllByIdInAndActiveTrue(anySet());
+        verify(exerciseQueryPort).findAllByIdInAndActiveTrue(anySet());
         verify(routineMapper).toRoutineResponseDTO(captor.capture());
 
         Routine captured = captor.getValue();
@@ -204,7 +204,7 @@ public class RoutineServiceTest {
         assertThat(captor.getValue().getUserId()).isEqualTo(userId);
         assertThat(captor.getValue().getExercises()).isEmpty();
 
-        verify(exerciseRepository, never()).findAllByIdInAndActiveTrue(anySet());
+        verify(exerciseQueryPort, never()).findAllByIdInAndActiveTrue(anySet());
     }
 
     @Test
@@ -274,12 +274,12 @@ public class RoutineServiceTest {
         when(routineRepository.existsByNameAndUserIdAndActiveTrue(request.name(), userId))
                 .thenReturn(false);
 
-        when(exerciseRepository.findAllByIdInAndActiveTrue(anySet())).thenReturn(List.of(ex1, ex2));
+        when(exerciseQueryPort.findAllByIdInAndActiveTrue(anySet())).thenReturn(List.of(ex1, ex2));
 
         assertThatThrownBy(() -> routineService.createRoutine(request, userId)).isInstanceOf(BadRequestException.class);
 
         verify(routineRepository).save(any(Routine.class));
-        verify(exerciseRepository).findAllByIdInAndActiveTrue(anySet());
+        verify(exerciseQueryPort).findAllByIdInAndActiveTrue(anySet());
         verify(routineMapper, never()).toRoutineResponseDTO(any(Routine.class));
     }
 
@@ -302,7 +302,7 @@ public class RoutineServiceTest {
         when(routineRepository.existsByNameAndUserIdAndActiveTrue(request.name(), userId))
                 .thenReturn(false);
 
-        when(exerciseRepository.findAllByIdInAndActiveTrue(anySet())).thenReturn(List.of(ex1, ex2, ex3));
+        when(exerciseQueryPort.findAllByIdInAndActiveTrue(anySet())).thenReturn(List.of(ex1, ex2, ex3));
 
         assertThatThrownBy(() -> routineService.createRoutine(request, userId))
                 .isInstanceOf(ValidationException.class)
@@ -314,7 +314,7 @@ public class RoutineServiceTest {
                             .containsEntry(ex2.getId().toString(), List.of("Invalid data for category: STRENGTH"));
                 });
 
-        verify(exerciseRepository).findAllByIdInAndActiveTrue(anySet());
+        verify(exerciseQueryPort).findAllByIdInAndActiveTrue(anySet());
         verify(routineMapper, never()).toRoutineResponseDTO(any(Routine.class));
     }
 
@@ -345,7 +345,7 @@ public class RoutineServiceTest {
         when(routineRepository.existsByNameAndUserIdAndActiveTrue(request.name(), userId))
                 .thenReturn(false);
 
-        when(exerciseRepository.findAllByIdInAndActiveTrue(anySet())).thenReturn(List.of(ex2, ex3));
+        when(exerciseQueryPort.findAllByIdInAndActiveTrue(anySet())).thenReturn(List.of(ex2, ex3));
 
         when(routineMapper.toRoutineResponseDTO(any(Routine.class))).thenReturn(mock(RoutineResponseDTO.class));
 
@@ -355,7 +355,7 @@ public class RoutineServiceTest {
 
         ArgumentCaptor<Routine> captor = ArgumentCaptor.forClass(Routine.class);
 
-        verify(exerciseRepository).findAllByIdInAndActiveTrue(anySet());
+        verify(exerciseQueryPort).findAllByIdInAndActiveTrue(anySet());
         verify(routineMapper).toRoutineResponseDTO(captor.capture());
 
         Routine captured = captor.getValue();
@@ -452,7 +452,7 @@ public class RoutineServiceTest {
         assertThatThrownBy(() -> routineService.updateRoutine(routineId, request, userId))
                 .isInstanceOf(ResourceAlreadyExistsException.class);
 
-        verify(exerciseRepository, never()).findAllByIdInAndActiveTrue(anySet());
+        verify(exerciseQueryPort, never()).findAllByIdInAndActiveTrue(anySet());
         verify(routineMapper, never()).toRoutineResponseDTO(any(Routine.class));
     }
 
@@ -469,7 +469,7 @@ public class RoutineServiceTest {
         assertThatThrownBy(() -> routineService.updateRoutine(routineId, request, userId))
                 .isInstanceOf(ResourceNotFoundException.class);
 
-        verify(exerciseRepository, never()).findAllByIdInAndActiveTrue(anySet());
+        verify(exerciseQueryPort, never()).findAllByIdInAndActiveTrue(anySet());
         verify(routineMapper, never()).toRoutineResponseDTO(any());
     }
 
@@ -489,7 +489,7 @@ public class RoutineServiceTest {
         assertThatThrownBy(() -> routineService.updateRoutine(routineId, request, requestUserId))
                 .isInstanceOf(ResourceNotFoundException.class);
 
-        verify(exerciseRepository, never()).findAllByIdInAndActiveTrue(anySet());
+        verify(exerciseQueryPort, never()).findAllByIdInAndActiveTrue(anySet());
         verify(routineMapper, never()).toRoutineResponseDTO(any());
     }
 
@@ -515,7 +515,7 @@ public class RoutineServiceTest {
         when(routineRepository.existsByNameAndUserIdAndActiveTrue(request.name(), userId))
                 .thenReturn(false);
 
-        when(exerciseRepository.findAllByIdInAndActiveTrue(anySet())).thenReturn(List.of(ex1, ex2, ex3));
+        when(exerciseQueryPort.findAllByIdInAndActiveTrue(anySet())).thenReturn(List.of(ex1, ex2, ex3));
 
         when(routineRepository.findByIdAndActiveTrue(routine.getId())).thenReturn(Optional.of(routine));
 
@@ -529,7 +529,7 @@ public class RoutineServiceTest {
                             .containsEntry(ex2.getId().toString(), List.of("Invalid data for category: STRENGTH"));
                 });
 
-        verify(exerciseRepository).findAllByIdInAndActiveTrue(anySet());
+        verify(exerciseQueryPort).findAllByIdInAndActiveTrue(anySet());
         verify(routineMapper, never()).toRoutineResponseDTO(any(Routine.class));
     }
 
@@ -607,7 +607,7 @@ public class RoutineServiceTest {
                 new RoutineExerciseRequestDTO(newExercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
-        when(exerciseRepository.findById(newExercise.getId())).thenReturn(Optional.of(newExercise));
+        when(exerciseQueryPort.findByIdAndActiveTrue(newExercise.getId())).thenReturn(Optional.of(newExercise));
         when(routineMapper.toRoutineResponseDTO(routine)).thenReturn(mock(RoutineResponseDTO.class));
 
         routineService.addRoutineExercise(routineId, 2, dto, userId);
@@ -637,7 +637,7 @@ public class RoutineServiceTest {
                 new RoutineExerciseRequestDTO(newExercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
-        when(exerciseRepository.findById(newExercise.getId())).thenReturn(Optional.of(newExercise));
+        when(exerciseQueryPort.findByIdAndActiveTrue(newExercise.getId())).thenReturn(Optional.of(newExercise));
         when(routineMapper.toRoutineResponseDTO(routine)).thenReturn(mock(RoutineResponseDTO.class));
 
         routineService.addRoutineExercise(routineId, 10, dto, userId);
@@ -667,7 +667,7 @@ public class RoutineServiceTest {
                 new RoutineExerciseRequestDTO(newExercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
-        when(exerciseRepository.findById(newExercise.getId())).thenReturn(Optional.of(newExercise));
+        when(exerciseQueryPort.findByIdAndActiveTrue(newExercise.getId())).thenReturn(Optional.of(newExercise));
         when(routineMapper.toRoutineResponseDTO(routine)).thenReturn(mock(RoutineResponseDTO.class));
 
         routineService.addRoutineExercise(routineId, -5, dto, userId);
@@ -697,7 +697,7 @@ public class RoutineServiceTest {
                 new RoutineExerciseRequestDTO(newExercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
-        when(exerciseRepository.findById(newExercise.getId())).thenReturn(Optional.of(newExercise));
+        when(exerciseQueryPort.findByIdAndActiveTrue(newExercise.getId())).thenReturn(Optional.of(newExercise));
         when(routineMapper.toRoutineResponseDTO(routine)).thenReturn(mock(RoutineResponseDTO.class));
 
         routineService.addRoutineExercise(routineId, 3, dto, userId);
@@ -723,7 +723,7 @@ public class RoutineServiceTest {
                 new RoutineExerciseRequestDTO(newExercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
-        when(exerciseRepository.findById(newExercise.getId())).thenReturn(Optional.of(newExercise));
+        when(exerciseQueryPort.findByIdAndActiveTrue(newExercise.getId())).thenReturn(Optional.of(newExercise));
         when(routineMapper.toRoutineResponseDTO(routine)).thenReturn(mock(RoutineResponseDTO.class));
 
         routineService.addRoutineExercise(routineId, 1, dto, userId);
@@ -748,7 +748,7 @@ public class RoutineServiceTest {
                 new RoutineExerciseRequestDTO(missingExerciseId, 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
-        when(exerciseRepository.findById(missingExerciseId)).thenReturn(Optional.empty());
+        when(exerciseQueryPort.findByIdAndActiveTrue(missingExerciseId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> routineService.addRoutineExercise(routineId, 1, dto, userId))
                 .isInstanceOf(ResourceNotFoundException.class);
@@ -770,7 +770,7 @@ public class RoutineServiceTest {
         assertThatThrownBy(() -> routineService.addRoutineExercise(routineId, 1, dto, userId))
                 .isInstanceOf(ResourceNotFoundException.class);
 
-        verify(exerciseRepository, never()).findById(any());
+        verify(exerciseQueryPort, never()).findByIdAndActiveTrue(any());
         verify(routineMapper, never()).toRoutineResponseDTO(any());
     }
 
@@ -792,7 +792,7 @@ public class RoutineServiceTest {
         assertThatThrownBy(() -> routineService.addRoutineExercise(routineId, 1, dto, requestUserId))
                 .isInstanceOf(ResourceNotFoundException.class);
 
-        verify(exerciseRepository, never()).findById(any());
+        verify(exerciseQueryPort, never()).findByIdAndActiveTrue(any());
         verify(routineMapper, never()).toRoutineResponseDTO(any());
     }
 
@@ -812,7 +812,7 @@ public class RoutineServiceTest {
                 new RoutineExerciseRequestDTO(exercise.getId(), 0, 3, 12, 14.0, 30, 20.5, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
-        when(exerciseRepository.findById(exercise.getId())).thenReturn(Optional.of(exercise));
+        when(exerciseQueryPort.findByIdAndActiveTrue(exercise.getId())).thenReturn(Optional.of(exercise));
 
         assertThatThrownBy(() -> routineService.addRoutineExercise(routineId, 1, dto, userId))
                 .isInstanceOf(ValidationException.class)
@@ -939,7 +939,7 @@ public class RoutineServiceTest {
         RoutineExerciseRequestDTO dto = new RoutineExerciseRequestDTO(ex2.getId(), 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
-        when(exerciseRepository.findById(ex2.getId())).thenReturn(Optional.of(ex2));
+        when(exerciseQueryPort.findByIdAndActiveTrue(ex2.getId())).thenReturn(Optional.of(ex2));
         when(routineMapper.toRoutineResponseDTO(routine)).thenReturn(mock(RoutineResponseDTO.class));
 
         routineService.updateRoutineExercise(routineId, 2, dto, userId);
@@ -965,7 +965,7 @@ public class RoutineServiceTest {
                 new RoutineExerciseRequestDTO(exercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
-        when(exerciseRepository.findById(exercise.getId())).thenReturn(Optional.of(exercise));
+        when(exerciseQueryPort.findByIdAndActiveTrue(exercise.getId())).thenReturn(Optional.of(exercise));
 
         assertThatThrownBy(() -> routineService.updateRoutineExercise(routineId, 3, dto, userId))
                 .isInstanceOf(ResourceNotFoundException.class);
@@ -986,7 +986,7 @@ public class RoutineServiceTest {
                 new RoutineExerciseRequestDTO(missingExerciseId, 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
-        when(exerciseRepository.findById(missingExerciseId)).thenReturn(Optional.empty());
+        when(exerciseQueryPort.findByIdAndActiveTrue(missingExerciseId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> routineService.updateRoutineExercise(routineId, 1, dto, userId))
                 .isInstanceOf(ResourceNotFoundException.class);
@@ -1011,7 +1011,7 @@ public class RoutineServiceTest {
         RoutineExerciseRequestDTO dto = new RoutineExerciseRequestDTO(ex2.getId(), 0, 3, 12, 14.0, 30, 20.5, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
-        when(exerciseRepository.findById(ex2.getId())).thenReturn(Optional.of(ex2));
+        when(exerciseQueryPort.findByIdAndActiveTrue(ex2.getId())).thenReturn(Optional.of(ex2));
 
         assertThatThrownBy(() -> routineService.updateRoutineExercise(routineId, 1, dto, userId))
                 .isInstanceOf(ValidationException.class)
@@ -1039,7 +1039,7 @@ public class RoutineServiceTest {
         assertThatThrownBy(() -> routineService.updateRoutineExercise(routineId, 1, dto, userId))
                 .isInstanceOf(ResourceNotFoundException.class);
 
-        verify(exerciseRepository, never()).findById(any());
+        verify(exerciseQueryPort, never()).findByIdAndActiveTrue(any());
     }
 
     @Test
@@ -1060,7 +1060,7 @@ public class RoutineServiceTest {
         assertThatThrownBy(() -> routineService.updateRoutineExercise(routineId, 1, dto, requestUserId))
                 .isInstanceOf(ResourceNotFoundException.class);
 
-        verify(exerciseRepository, never()).findById(any());
+        verify(exerciseQueryPort, never()).findByIdAndActiveTrue(any());
     }
 
     @Test
