@@ -1,3 +1,11 @@
 package dev.genesshoan.fitnesstrackerapi.infrastructure.script.data;
 
-public record MuscleSeed(String name, String slug, String region) {}
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record MuscleSeed(
+        String name,
+        String slug,
+        String region,
+        @JsonProperty("assets") List<MuscleAssetSeed> assets) {}

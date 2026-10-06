@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.muscle;
+package dev.genesshoan.fitnesstrackerapi.exercise.controller;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,7 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.muscle.dto.MuscleResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.MuscleServicePort;
+import dev.genesshoan.fitnesstrackerapi.exercise.dto.MuscleResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -27,7 +28,7 @@ import org.springdoc.core.annotations.ParameterObject;
 @Tag(name = "Muscles", description = "Endpoints for managing and retrieving muscles")
 public class MuscleController {
 
-    private final MuscleService muscleService;
+    private final MuscleServicePort muscleService;
 
     @Operation(summary = "Gets all muscles", description = "Returns a paginated list of all muscles")
     @ApiResponses(

@@ -21,4 +21,7 @@ public record ExerciseListItemDTO(
         Category category,
 
         @Schema(description = "Exercise difficulty", example = "INTERMEDIATE")
-        Difficulty difficulty) {}
+        Difficulty difficulty,
+
+        @Schema(description = "URL to the exercise thumbnail (placeholder, always null for now)")
+        String thumbnailUrl) {}

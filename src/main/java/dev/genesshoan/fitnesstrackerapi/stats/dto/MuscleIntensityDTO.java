@@ -3,7 +3,7 @@ package dev.genesshoan.fitnesstrackerapi.stats.dto;
 /** API representation of one catalog muscle's range-relative intensity. */
 import java.util.UUID;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.BodyRegion;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.BodyRegion;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Range-relative application intensity for one muscle")
