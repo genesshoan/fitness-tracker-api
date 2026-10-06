@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:src/test/java/dev/genesshoan/fitnesstrackerapi/user/infrastructure/web/UserControllerIT.java
 package dev.genesshoan.fitnesstrackerapi.user.infrastructure.web;
+========
+package dev.genesshoan.fitnesstrackerapi.user;
+>>>>>>>> 960f79e (test: reorganize tests to mirror module architecture):src/test/java/dev/genesshoan/fitnesstrackerapi/user/UserControllerIT.java
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;

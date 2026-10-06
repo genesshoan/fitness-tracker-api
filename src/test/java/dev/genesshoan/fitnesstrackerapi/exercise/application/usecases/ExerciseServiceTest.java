@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise;
+package dev.genesshoan.fitnesstrackerapi.exercise.application.usecases;
 
 import java.util.Collections;
 import java.util.List;
@@ -8,20 +8,19 @@ import java.util.UUID;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyExistsException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
-import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPage;
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPageRequest;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.AssetUrlProviderPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.Muscle;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseDetailDTO;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseListItemDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseMuscleRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseSearchResultDTO;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.ExerciseRepository;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.MuscleRepository;
 import dev.genesshoan.fitnesstrackerapi.exercise.mapper.ExerciseMapper;
-import dev.genesshoan.fitnesstrackerapi.exercise.muscle.MuscleRepository;
-import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.Muscle;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.ExerciseBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.MuscleBuilder;
 import net.datafaker.Faker;
@@ -57,6 +56,9 @@ class ExerciseServiceTest {
 
     @Mock
     private ExerciseMapper exerciseMapper;
+
+    @Mock
+    private AssetUrlProviderPort assetUrlProviderPort;
 
     @InjectMocks
     private ExerciseService exerciseService;
@@ -109,7 +111,10 @@ class ExerciseServiceTest {
 
         when(exerciseRepository.findBySlugAndActiveTrue(slug)).thenReturn(Optional.of(exercise));
 
-        when(exerciseMapper.toDetailDTO(exercise)).thenReturn(detailDTO);
+        when(assetUrlProviderPort.exerciseGifUrl(exercise.getMediaObjectKey()))
+                .thenReturn("https://example.com/exercises/test.gif");
+
+        when(exerciseMapper.toDetailDTO(eq(exercise), any())).thenReturn(detailDTO);
 
         // When
         var result = exerciseService.getExerciseBySlug(slug);
@@ -119,7 +124,7 @@ class ExerciseServiceTest {
 
         verify(exerciseRepository).findBySlugAndActiveTrue(slug);
 
-        verify(exerciseMapper).toDetailDTO(exercise);
+        verify(exerciseMapper).toDetailDTO(eq(exercise), any());
     }
 
     @Test
@@ -185,8 +190,10 @@ class ExerciseServiceTest {
         when(exerciseRepository.existsBySlug(request.slug())).thenReturn(false);
         when(exerciseMapper.toEntity(request)).thenReturn(exercise);
         when(muscleRepository.findBySlugIn(List.of("biceps"))).thenReturn(List.of(muscle));
-        when(exerciseRepository.save(exercise)).thenReturn(exercise);
-        when(exerciseMapper.toDetailDTO(exercise)).thenReturn(detailDTO);
+        when(exerciseRepository.saveExercise(exercise)).thenReturn(exercise);
+        when(assetUrlProviderPort.exerciseGifUrl(exercise.getMediaObjectKey()))
+                .thenReturn("https://example.com/exercises/test.gif");
+        when(exerciseMapper.toDetailDTO(eq(exercise), any())).thenReturn(detailDTO);
 
         // When
         var result = exerciseService.createExercise(request);
@@ -197,7 +204,7 @@ class ExerciseServiceTest {
         assertThat(exercise.getExerciseMuscles()).hasSize(1);
 
         verify(exerciseRepository).existsBySlug(request.slug());
-        verify(exerciseRepository).save(exercise);
+        verify(exerciseRepository).saveExercise(exercise);
     }
 
     @Test
@@ -281,8 +288,10 @@ class ExerciseServiceTest {
         when(exerciseRepository.findBySlugAndActiveTrue(slug)).thenReturn(Optional.of(exercise));
         when(exerciseRepository.existsBySlug(request.slug())).thenReturn(false);
         when(muscleRepository.findBySlugIn(List.of("chest-upper"))).thenReturn(List.of(muscle));
-        when(exerciseRepository.save(exercise)).thenReturn(exercise);
-        when(exerciseMapper.toDetailDTO(exercise)).thenReturn(detailDTO);
+        when(exerciseRepository.saveExercise(exercise)).thenReturn(exercise);
+        when(assetUrlProviderPort.exerciseGifUrl(exercise.getMediaObjectKey()))
+                .thenReturn("https://example.com/exercises/test.gif");
+        when(exerciseMapper.toDetailDTO(eq(exercise), any())).thenReturn(detailDTO);
 
         // When
         var result = exerciseService.updateExercise(slug, request);
@@ -293,7 +302,7 @@ class ExerciseServiceTest {
         assertThat(exercise.getSlug()).isEqualTo("updated-bench-press");
         assertThat(exercise.getExerciseMuscles()).hasSize(1);
 
-        verify(exerciseRepository).save(exercise);
+        verify(exerciseRepository).saveExercise(exercise);
     }
 
     @Test
@@ -370,8 +379,10 @@ class ExerciseServiceTest {
 
         when(exerciseRepository.existsBySlug(request.slug())).thenReturn(false);
         when(exerciseMapper.toEntity(request)).thenReturn(exercise);
-        when(exerciseRepository.save(exercise)).thenReturn(exercise);
-        when(exerciseMapper.toDetailDTO(exercise)).thenReturn(detailDTO);
+        when(exerciseRepository.saveExercise(exercise)).thenReturn(exercise);
+        when(assetUrlProviderPort.exerciseGifUrl(exercise.getMediaObjectKey()))
+                .thenReturn("https://example.com/exercises/test.gif");
+        when(exerciseMapper.toDetailDTO(eq(exercise), any())).thenReturn(detailDTO);
 
         // When
         var result = exerciseService.createExercise(request);
