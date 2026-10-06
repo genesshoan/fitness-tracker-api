@@ -1,6 +1,8 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.muscle.dto;
+package dev.genesshoan.fitnesstrackerapi.exercise.dto;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.BodyRegion;
+import java.util.Set;
+
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.BodyRegion;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Muscle response DTO")
@@ -12,4 +14,6 @@ public record MuscleResponseDTO(
         String slug,
 
         @Schema(description = "Muscle body's region", example = "ARMS")
-        BodyRegion bodyRegion) {}
+        BodyRegion bodyRegion,
+
+        @Schema(description = "Muscle assets") Set<MuscleAssetResponseDTO> assets) {}
