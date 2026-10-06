@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise;
+package dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.persistence;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,7 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
-import dev.genesshoan.fitnesstrackerapi.exercise.muscle.MuscleRepository;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.persistence.MuscleRepository;
 import dev.genesshoan.fitnesstrackerapi.testdata.TestEntityFactory;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.ExerciseBuilder;
 import org.junit.jupiter.api.DisplayName;
