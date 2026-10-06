@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise;
+package dev.genesshoan.fitnesstrackerapi.exercise.controller;
 
 import java.util.List;
 
@@ -16,7 +16,6 @@ import dev.genesshoan.fitnesstrackerapi.testdata.builder.ExerciseBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -108,12 +107,14 @@ public class ExerciseControllerIT extends AbstractIntegrationTest {
     void getExerciseBySlug_ShouldReturn200WithMusclesPopulated() throws Exception {
         var exercise = testEntityFactory.createAndPersistExerciseWithMuscles(2, ImpactLevel.PRIMARY);
 
+        var expectedGifUrl = "https://cdn.test.example.com/catalog/exercises/gifs/" + exercise.getMediaObjectKey();
+
         mockMvc.perform(get("/api/v1/exercises/{slug}", exercise.getSlug()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.slug").value(exercise.getSlug()))
                 .andExpect(jsonPath("$.instructions").isArray())
                 .andExpect(jsonPath("$.instructions.length()").value(2))
-                .andExpect(jsonPath("$.gifUrl").value(nullValue()))
+                .andExpect(jsonPath("$.gifUrl").value(expectedGifUrl))
                 .andExpect(jsonPath("$.exerciseMuscles").isArray())
                 .andExpect(jsonPath("$.exerciseMuscles.length()").value(2));
     }
