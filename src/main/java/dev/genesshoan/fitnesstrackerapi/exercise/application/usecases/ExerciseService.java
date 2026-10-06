@@ -18,6 +18,8 @@ import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPage;
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPageRequest;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseServicePort;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.AssetUrlProviderPort;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.ExerciseRepositoryPort;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.MuscleRepositoryPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.usecases.search.ExerciseNameHighlighter;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
@@ -31,8 +33,6 @@ import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseMuscleRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseSearchResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseSearchResultDTO;
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.ExerciseRepository;
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.MuscleRepository;
 import dev.genesshoan.fitnesstrackerapi.exercise.mapper.ExerciseMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,8 +59,8 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional(readOnly = true)
 public class ExerciseService implements ExerciseServicePort {
 
-    private final ExerciseRepository exerciseRepository;
-    private final MuscleRepository muscleRepository;
+    private final ExerciseRepositoryPort exerciseRepositoryPort;
+    private final MuscleRepositoryPort muscleRepository;
     private final ExerciseMapper exerciseMapper;
     private final AssetUrlProviderPort assetUrlProviderPort;
 
@@ -70,7 +70,7 @@ public class ExerciseService implements ExerciseServicePort {
     @Override
     public CursorPage<ExerciseListItemDTO, UUID> getAllExercises(
             CursorPageRequest<UUID> request, Category category, Difficulty difficulty, List<String> muscleSlugs) {
-        List<Exercise> exercises = exerciseRepository.findByFiltersAndActiveTrue(
+        List<Exercise> exercises = exerciseRepositoryPort.findByFiltersAndActiveTrue(
                 request.cursor(), category, difficulty, muscleSlugs, request.pageable());
 
         log.info("Found {} exercises", exercises == null ? 0 : exercises.size());
@@ -96,7 +96,7 @@ public class ExerciseService implements ExerciseServicePort {
     public ExerciseSearchResponseDTO searchExercises(String query, int limit) {
         String normalizedQuery = query == null ? "" : query.trim();
         List<ExerciseSearchResultDTO> results =
-                exerciseRepository.searchActive(escapeLike(normalizedQuery), limit).stream()
+                exerciseRepositoryPort.searchActive(escapeLike(normalizedQuery), limit).stream()
                         .map(exercise -> toSearchResult(exercise, normalizedQuery))
                         .toList();
 
@@ -138,7 +138,7 @@ public class ExerciseService implements ExerciseServicePort {
      */
     @Transactional
     public ExerciseDetailDTO createExercise(ExerciseRequestDTO request) {
-        if (exerciseRepository.existsBySlug(request.slug())) {
+        if (exerciseRepositoryPort.existsBySlug(request.slug())) {
             throw new ResourceAlreadyExistsException("Exercise with slug " + request.slug() + " already exists");
         }
 
@@ -147,7 +147,7 @@ public class ExerciseService implements ExerciseServicePort {
         exercise.setInstructions(orEmptyInstructions(request.instructions()));
         exercise.setExerciseMuscles(resolveMuscles(exercise, request.muscles()));
 
-        Exercise saved = exerciseRepository.saveExercise(exercise);
+        Exercise saved = exerciseRepositoryPort.saveExercise(exercise);
 
         log.info("Created exercise with slug {}", saved.getSlug());
 
@@ -172,7 +172,7 @@ public class ExerciseService implements ExerciseServicePort {
     public ExerciseDetailDTO updateExercise(String slug, ExerciseRequestDTO request) {
         Exercise exercise = findActiveBySlug(slug);
 
-        if (!exercise.getSlug().equals(request.slug()) && exerciseRepository.existsBySlug(request.slug())) {
+        if (!exercise.getSlug().equals(request.slug()) && exerciseRepositoryPort.existsBySlug(request.slug())) {
             throw new ResourceAlreadyExistsException("Exercise with slug " + request.slug() + " already exists");
         }
 
@@ -185,7 +185,7 @@ public class ExerciseService implements ExerciseServicePort {
         exercise.getExerciseMuscles().clear();
         exercise.getExerciseMuscles().addAll(resolveMuscles(exercise, request.muscles()));
 
-        Exercise saved = exerciseRepository.saveExercise(exercise);
+        Exercise saved = exerciseRepositoryPort.saveExercise(exercise);
 
         log.info("Updated exercise with slug {}", saved.getSlug());
 
@@ -209,7 +209,7 @@ public class ExerciseService implements ExerciseServicePort {
             throw new BadRequestException("Slug is required");
         }
 
-        int updated = exerciseRepository.softDeleteBySlug(slug);
+        int updated = exerciseRepositoryPort.softDeleteBySlug(slug);
 
         if (updated == 0) {
             log.warn("Exercise with slug {} not found", slug);
@@ -224,7 +224,7 @@ public class ExerciseService implements ExerciseServicePort {
             throw new BadRequestException("Slug is required");
         }
 
-        return exerciseRepository.findBySlugAndActiveTrue(slug).orElseThrow(() -> {
+        return exerciseRepositoryPort.findBySlugAndActiveTrue(slug).orElseThrow(() -> {
             log.warn("Exercise with slug {} not found", slug);
             return new ResourceNotFoundException("Exercise with slug " + slug + " not found");
         });
