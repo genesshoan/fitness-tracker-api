@@ -21,6 +21,7 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestExcepti
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.mapper.ExerciseMetricsMapper;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseQueryPort;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.MuscleAssetUrlPort;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.AchievementCalculator;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.OneRepMaxCalculator;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.StreakCalculator;
@@ -64,6 +65,7 @@ public class StatsService {
     private final StatsRepository statsRepository;
     private final WorkoutSessionRepository workoutSessionRepository;
     private final ExerciseQueryPort exerciseQueryPort;
+    private final MuscleAssetUrlPort muscleAssetUrlPort;
 
     private final ExerciseMetricsMapper exerciseMetricsMapper;
     private final AchievementMapper achievementMapper;
@@ -281,12 +283,22 @@ public class StatsService {
                             : BigDecimal.valueOf(rawStimulusByMuscle.get(entry.getKey()) / maximumStimulus * 10.0)
                                     .setScale(1, RoundingMode.HALF_UP)
                                     .doubleValue();
+
+                    String frontAssetUrl = muscleAssetUrlPort.muscleUrl(metadata.frontObjectKey());
+                    String backAssetUrl = muscleAssetUrlPort.muscleUrl(metadata.backObjectKey());
+
                     return new MuscleIntensityDTO(
-                            metadata.muscleId(), metadata.name(), metadata.slug(), metadata.bodyRegion(), intensity);
+                            metadata.muscleId(),
+                            metadata.name(),
+                            metadata.slug(),
+                            metadata.bodyRegion(),
+                            frontAssetUrl,
+                            backAssetUrl,
+                            intensity);
                 })
                 .toList();
 
-        return new MuscleIntensityResponseDTO(from, to, muscles);
+        return new MuscleIntensityResponseDTO(from, to, muscleAssetUrlPort.findBaseAssets(), muscles);
     }
 
     /**
