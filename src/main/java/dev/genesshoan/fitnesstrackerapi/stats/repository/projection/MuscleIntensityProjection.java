@@ -7,4 +7,11 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.BodyRegion;
 
 /** JDBC projection for raw muscle stimulus grouped by impact level. */
 public record MuscleIntensityProjection(
-        UUID muscleId, String name, String slug, BodyRegion bodyRegion, ImpactLevel impactLevel, double rawStimulus) {}
+        UUID muscleId,
+        String name,
+        String slug,
+        BodyRegion bodyRegion,
+        String frontObjectKey,
+        String backObjectKey,
+        ImpactLevel impactLevel,
+        double rawStimulus) {}

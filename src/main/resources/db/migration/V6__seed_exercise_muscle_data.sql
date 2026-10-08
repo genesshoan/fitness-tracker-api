@@ -1186,7 +1186,9 @@ INSERT INTO muscle_assets (id, object_key, variant, view, content_type) VALUES
 ('01a11248-a54d-70a9-9968-105d6680d8e3', 'muscles/male/front/adductors.png', 'MALE', 'FRONT', NULL),
 ('01a11248-a54d-70a9-9969-fc72e8e38635', 'muscles/male/back/adductors.png', 'MALE', 'BACK', NULL),
 ('01a11248-a54d-70a9-996a-db34ce8c8789', 'muscles/male/front/calves.png', 'MALE', 'FRONT', NULL),
-('01a11248-a54d-70a9-996b-0d13c319a69f', 'muscles/male/back/calves.png', 'MALE', 'BACK', NULL);
+('01a11248-a54d-70a9-996b-0d13c319a69f', 'muscles/male/back/calves.png', 'MALE', 'BACK', NULL),
+('01a1194c-70b1-74fc-b0bb-2007f21aa717', 'muscles/male/back/male_back_base.png', 'MALE', 'BACK', NULL),
+('01a1194c-ac84-74f8-ae4f-03d9a2dc3f79', 'muscles/male/front/male_front_base.png', 'MALE', 'FRONT', NULL);
 
 -- EXERCISE MUSCLES
 INSERT INTO exercise_muscles (exercise_id, muscle_id, impact_level) VALUES
