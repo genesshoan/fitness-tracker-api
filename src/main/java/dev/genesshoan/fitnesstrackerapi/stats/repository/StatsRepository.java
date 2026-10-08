@@ -17,7 +17,7 @@ import org.springframework.stereotype.Repository;
 
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
-import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.BodyRegion;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.BodyRegion;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.ExerciseProgressProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MonthlyVolumeProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MuscleIntensityProjection;
@@ -419,16 +419,37 @@ public class StatsRepository {
                         SUM(stimulus) AS raw_stimulus
                     FROM calculated_sets
                     GROUP BY muscle_id, impact_level
+                ),
+                muscle_assets_aggregated AS (
+                    SELECT
+                        m.id AS muscle_id,
+                        MAX(ma.object_key) FILTER (
+                            WHERE ma.variant = 'MALE'
+                            AND ma.view = 'FRONT'
+                        ) AS front_object_key,
+                        MAX(ma.object_key) FILTER (
+                            WHERE ma.variant = 'MALE'
+                            AND ma.view = 'BACK'
+                        ) AS back_object_key
+                    FROM muscles m
+                    LEFT JOIN muscle_asset_mappings mam ON mam.muscle_id = m.id
+                    LEFT JOIN muscle_assets ma ON ma.id = mam.muscle_asset_id
+                    GROUP BY m.id
                 )
                 SELECT
                     m.id AS muscle_id,
                     m.name,
                     m.slug,
                     m.body_region,
+                    maa.front_object_key,
+                    maa.back_object_key,
                     a.impact_level,
                     COALESCE(a.raw_stimulus, 0.0) AS raw_stimulus
                 FROM muscles m
-                LEFT JOIN aggregated_stimulus a ON m.id = a.muscle_id
+                LEFT JOIN aggregated_stimulus a
+                    ON m.id = a.muscle_id
+                LEFT JOIN muscle_assets_aggregated maa
+                    ON maa.muscle_id = m.id
                 ORDER BY m.name ASC, m.id ASC
             """;
 
@@ -448,6 +469,8 @@ public class StatsRepository {
                     rs.getString("name"),
                     rs.getString("slug"),
                     BodyRegion.valueOf(rs.getString("body_region")),
+                    rs.getString("front_object_key"),
+                    rs.getString("back_object_key"),
                     impactLevel == null ? null : ImpactLevel.valueOf(impactLevel),
                     rs.getDouble("raw_stimulus"));
         });

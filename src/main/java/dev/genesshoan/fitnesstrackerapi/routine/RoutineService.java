@@ -19,7 +19,7 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestExcepti
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyExistsException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ValidationException;
-import dev.genesshoan.fitnesstrackerapi.exercise.ExerciseRepository;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseQueryPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.RoutineExercise;
@@ -43,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 public class RoutineService {
 
     private final RoutineRepository routineRepository;
-    private final ExerciseRepository exerciseRepository;
+    private final ExerciseQueryPort exerciseQueryPort;
     private final RoutineMapper routineMapper;
 
     /**
@@ -172,7 +172,7 @@ public class RoutineService {
 
         var routine = findAndValidateRoutine(routineId, user);
 
-        var exercise = exerciseRepository.findById(dto.exerciseId()).orElseThrow(() -> {
+        var exercise = exerciseQueryPort.findByIdAndActiveTrue(dto.exerciseId()).orElseThrow(() -> {
             log.warn("Exercise not found: {}", dto.exerciseId());
             return new ResourceNotFoundException("Exercise not found");
         });
@@ -249,7 +249,7 @@ public class RoutineService {
 
         var routine = findAndValidateRoutine(routineId, user);
 
-        var exercise = exerciseRepository.findById(dto.exerciseId()).orElseThrow(() -> {
+        var exercise = exerciseQueryPort.findByIdAndActiveTrue(dto.exerciseId()).orElseThrow(() -> {
             log.warn("Exercise not found: {}", dto.exerciseId());
             return new ResourceNotFoundException("Exercise not found");
         });
@@ -348,7 +348,7 @@ public class RoutineService {
 
         log.debug("Exercise IDs requested: {}", exerciseIds);
 
-        List<Exercise> exercises = exerciseRepository.findAllByIdInAndActiveTrue(exerciseIds);
+        List<Exercise> exercises = exerciseQueryPort.findAllByIdInAndActiveTrue(exerciseIds);
 
         if (exercises.size() != exerciseIds.size()) {
             log.warn("One or more exercises not found. Expected: {}, Found: {}", exerciseIds.size(), exercises.size());

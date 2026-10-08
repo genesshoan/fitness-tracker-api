@@ -13,10 +13,12 @@ import org.mapstruct.Mapping;
         builder = @Builder(disableBuilder = true),
         uses = {ExerciseMuscleMapper.class})
 public interface ExerciseMapper {
-    ExerciseListItemDTO toItemDTO(Exercise exercise);
 
-    @Mapping(target = "gifUrl", expression = "java(null)")
-    ExerciseDetailDTO toDetailDTO(Exercise exercise);
+    @Mapping(target = "thumbnailUrl", source = "thumbnailUrl")
+    ExerciseListItemDTO toItemDTO(Exercise exercise, String thumbnailUrl);
+
+    @Mapping(target = "gifUrl", source = "gifUrl")
+    ExerciseDetailDTO toDetailDTO(Exercise exercise, String gifUrl);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
@@ -24,5 +26,6 @@ public interface ExerciseMapper {
     @Mapping(target = "active", ignore = true)
     @Mapping(target = "exerciseMuscles", ignore = true)
     @Mapping(target = "mediaObjectKey", ignore = true)
+    @Mapping(target = "thumbnailObjectKey", ignore = true)
     Exercise toEntity(ExerciseRequestDTO request);
 }

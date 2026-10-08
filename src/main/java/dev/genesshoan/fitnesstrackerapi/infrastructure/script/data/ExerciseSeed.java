@@ -12,6 +12,7 @@ public record ExerciseSeed(
         String difficulty,
         List<String> instructions,
         @JsonProperty("media_object_key") String mediaObjectKey,
+        @JsonProperty("thumbnail_object_key") String thumbnailObjectKey,
         MuscleLinks muscles) {
     public record MuscleLinks(List<String> primary, List<String> secondary, List<String> stabilizer) {}
 }

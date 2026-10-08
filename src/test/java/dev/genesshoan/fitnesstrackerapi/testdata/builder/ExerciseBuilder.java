@@ -18,16 +18,18 @@ public class ExerciseBuilder {
     private String description;
     private List<String> instructions = List.of("Step 1", "Step 2");
     private String mediaObjectKey;
+    private String thumbnailObjectKey;
     private Category category = Category.STRENGTH;
     private Difficulty difficulty = Difficulty.INTERMEDIATE;
     private boolean active = true;
     private Set<ExerciseMuscle> exerciseMuscles = new HashSet<>();
 
     public ExerciseBuilder(Faker faker) {
-        this.name = faker.ancient().hero() + UUID.randomUUID().toString();
-        this.slug = faker.internet().slug() + UUID.randomUUID().toString();
+        this.name = faker.ancient().hero() + UUID.randomUUID();
+        this.slug = faker.internet().slug() + UUID.randomUUID();
         this.description = faker.lorem().sentence();
         this.mediaObjectKey = "exercises/" + UUID.randomUUID() + ".gif";
+        this.thumbnailObjectKey = "exercises/" + UUID.randomUUID() + ".webp";
     }
 
     public static ExerciseBuilder anExercise(Faker faker) {
@@ -59,6 +61,11 @@ public class ExerciseBuilder {
         return this;
     }
 
+    public ExerciseBuilder withThumbnailObjectKey(String thumbnailObjectKey) {
+        this.thumbnailObjectKey = thumbnailObjectKey;
+        return this;
+    }
+
     public ExerciseBuilder withCategory(Category category) {
         this.category = category;
         return this;
@@ -86,6 +93,7 @@ public class ExerciseBuilder {
                 .description(description)
                 .instructions(instructions)
                 .mediaObjectKey(mediaObjectKey)
+                .thumbnailObjectKey(thumbnailObjectKey)
                 .category(category)
                 .difficulty(difficulty)
                 .active(active)
