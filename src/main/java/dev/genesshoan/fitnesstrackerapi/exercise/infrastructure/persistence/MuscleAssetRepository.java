@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.infrastructure;
+package dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.persistence;
 
 import java.util.Optional;
 import java.util.UUID;
