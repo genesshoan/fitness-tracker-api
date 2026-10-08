@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class MuscleAssetServiceImpl implements MuscleAssetUrlPort {
+public class MuscleAssetService implements MuscleAssetUrlPort {
 
     private final AssetUrlProviderPort assetUrlProviderPort;
     private final MuscleAssetRepositoryPort muscleAssetRepositoryPort;
