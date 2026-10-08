@@ -14,9 +14,11 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestExcepti
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.mapper.ExerciseMetricsMapper;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseQueryPort;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.MuscleAssetUrlPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.BodyRegion;
+import dev.genesshoan.fitnesstrackerapi.exercise.dto.MuscleBaseAssetsDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.domain.AchievementType;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.AchievementDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPointsDTO;
@@ -83,6 +85,9 @@ class StatsServiceTest {
 
     @Mock
     private AchievementMapper achievementMapper;
+
+    @Mock
+    private MuscleAssetUrlPort muscleAssetUrlPort;
 
     @InjectMocks
     private StatsService statsService;
@@ -569,9 +574,19 @@ class StatsServiceTest {
                         userId, Instant.parse("2026-09-01T00:00:00Z"), Instant.parse("2026-09-08T00:00:00Z")))
                 .thenReturn(List.of(
                         new MuscleIntensityProjection(
-                                firstMuscleId, "First muscle", "first-muscle", BodyRegion.ARMS, null, 0.0),
+                                firstMuscleId, "First muscle", "first-muscle", BodyRegion.ARMS, null, null, null, 0.0),
                         new MuscleIntensityProjection(
-                                secondMuscleId, "Second muscle", "second-muscle", BodyRegion.LEGS, null, 0.0)));
+                                secondMuscleId,
+                                "Second muscle",
+                                "second-muscle",
+                                BodyRegion.LEGS,
+                                null,
+                                null,
+                                null,
+                                0.0)));
+
+        when(muscleAssetUrlPort.muscleUrl(any())).thenReturn(null);
+        when(muscleAssetUrlPort.findBaseAssets()).thenReturn(new MuscleBaseAssetsDTO(null, null));
 
         MuscleIntensityResponseDTO result = statsService.getMuscleIntensity(userId, from, to);
 
@@ -579,8 +594,10 @@ class StatsServiceTest {
         assertThat(result.to()).isEqualTo(to);
         assertThat(result.muscles())
                 .containsExactly(
-                        new MuscleIntensityDTO(firstMuscleId, "First muscle", "first-muscle", BodyRegion.ARMS, 0.0),
-                        new MuscleIntensityDTO(secondMuscleId, "Second muscle", "second-muscle", BodyRegion.LEGS, 0.0));
+                        new MuscleIntensityDTO(
+                                firstMuscleId, "First muscle", "first-muscle", BodyRegion.ARMS, null, null, 0.0),
+                        new MuscleIntensityDTO(
+                                secondMuscleId, "Second muscle", "second-muscle", BodyRegion.LEGS, null, null, 0.0));
     }
 
     @Test
@@ -598,6 +615,8 @@ class StatsServiceTest {
                                 "Weighted muscle",
                                 "weighted-muscle",
                                 BodyRegion.BACK,
+                                null,
+                                null,
                                 ImpactLevel.PRIMARY,
                                 8.0),
                         new MuscleIntensityProjection(
@@ -605,6 +624,8 @@ class StatsServiceTest {
                                 "Weighted muscle",
                                 "weighted-muscle",
                                 BodyRegion.BACK,
+                                null,
+                                null,
                                 ImpactLevel.SECONDARY,
                                 4.0),
                         new MuscleIntensityProjection(
@@ -612,6 +633,8 @@ class StatsServiceTest {
                                 "Weighted muscle",
                                 "weighted-muscle",
                                 BodyRegion.BACK,
+                                null,
+                                null,
                                 ImpactLevel.STABILIZER,
                                 4.0),
                         new MuscleIntensityProjection(
@@ -619,10 +642,15 @@ class StatsServiceTest {
                                 "Highest muscle",
                                 "highest-muscle",
                                 BodyRegion.LEGS,
+                                null,
+                                null,
                                 ImpactLevel.PRIMARY,
                                 5.0),
                         new MuscleIntensityProjection(
-                                zeroMuscleId, "Zero muscle", "zero-muscle", BodyRegion.OTHER, null, 0.0)));
+                                zeroMuscleId, "Zero muscle", "zero-muscle", BodyRegion.OTHER, null, null, null, 0.0)));
+
+        when(muscleAssetUrlPort.muscleUrl(any())).thenReturn(null);
+        when(muscleAssetUrlPort.findBaseAssets()).thenReturn(new MuscleBaseAssetsDTO(null, null));
 
         MuscleIntensityResponseDTO result =
                 statsService.getMuscleIntensity(userId, LocalDate.of(1970, 1, 1), LocalDate.of(1970, 1, 1));
@@ -630,10 +658,17 @@ class StatsServiceTest {
         assertThat(result.muscles())
                 .containsExactly(
                         new MuscleIntensityDTO(
-                                weightedMuscleId, "Weighted muscle", "weighted-muscle", BodyRegion.BACK, 10.0),
+                                weightedMuscleId,
+                                "Weighted muscle",
+                                "weighted-muscle",
+                                BodyRegion.BACK,
+                                null,
+                                null,
+                                10.0),
                         new MuscleIntensityDTO(
-                                highestMuscleId, "Highest muscle", "highest-muscle", BodyRegion.LEGS, 4.5),
-                        new MuscleIntensityDTO(zeroMuscleId, "Zero muscle", "zero-muscle", BodyRegion.OTHER, 0.0));
+                                highestMuscleId, "Highest muscle", "highest-muscle", BodyRegion.LEGS, null, null, 4.5),
+                        new MuscleIntensityDTO(
+                                zeroMuscleId, "Zero muscle", "zero-muscle", BodyRegion.OTHER, null, null, 0.0));
     }
 
     @Test
@@ -651,6 +686,8 @@ class StatsServiceTest {
                                 "Half-up muscle",
                                 "half-up-muscle",
                                 BodyRegion.ARMS,
+                                null,
+                                null,
                                 ImpactLevel.PRIMARY,
                                 0.105),
                         new MuscleIntensityProjection(
@@ -658,6 +695,8 @@ class StatsServiceTest {
                                 "Lower muscle",
                                 "lower-muscle",
                                 BodyRegion.ARMS,
+                                null,
+                                null,
                                 ImpactLevel.PRIMARY,
                                 0.101),
                         new MuscleIntensityProjection(
@@ -665,8 +704,13 @@ class StatsServiceTest {
                                 "Maximum muscle",
                                 "maximum-muscle",
                                 BodyRegion.LEGS,
+                                null,
+                                null,
                                 ImpactLevel.PRIMARY,
                                 1.0)));
+
+        when(muscleAssetUrlPort.muscleUrl(any())).thenReturn(null);
+        when(muscleAssetUrlPort.findBaseAssets()).thenReturn(new MuscleBaseAssetsDTO(null, null));
 
         MuscleIntensityResponseDTO result =
                 statsService.getMuscleIntensity(userId, LocalDate.of(1970, 1, 1), LocalDate.of(1970, 1, 1));
@@ -684,6 +728,8 @@ class StatsServiceTest {
         when(statsRepository.getMuscleIntensity(
                         userId, Instant.parse("2026-01-01T03:00:00Z"), Instant.parse("2026-01-02T03:00:00Z")))
                 .thenReturn(List.of());
+
+        when(muscleAssetUrlPort.findBaseAssets()).thenReturn(new MuscleBaseAssetsDTO(null, null));
 
         statsService.getMuscleIntensity(userId, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 1));
 
