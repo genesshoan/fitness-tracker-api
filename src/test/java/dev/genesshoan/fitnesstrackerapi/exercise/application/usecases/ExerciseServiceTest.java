@@ -10,6 +10,8 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyEx
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPageRequest;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.AssetUrlProviderPort;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.ExerciseRepositoryPort;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.MuscleRepositoryPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
@@ -18,8 +20,6 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.Muscle;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseDetailDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseMuscleRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.ExerciseRepository;
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.MuscleRepository;
 import dev.genesshoan.fitnesstrackerapi.exercise.mapper.ExerciseMapper;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.ExerciseBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.MuscleBuilder;
@@ -49,10 +49,10 @@ class ExerciseServiceTest {
     private static final Faker FAKER = new Faker();
 
     @Mock
-    private ExerciseRepository exerciseRepository;
+    private ExerciseRepositoryPort exerciseRepositoryPort;
 
     @Mock
-    private MuscleRepository muscleRepository;
+    private MuscleRepositoryPort muscleRepositoryPort;
 
     @Mock
     private ExerciseMapper exerciseMapper;
@@ -73,14 +73,14 @@ class ExerciseServiceTest {
 
         CursorPageRequest<UUID> request = new CursorPageRequest<>(null, 10);
 
-        when(exerciseRepository.findByFiltersAndActiveTrue(any(), any(), any(), any(), any()))
+        when(exerciseRepositoryPort.findByFiltersAndActiveTrue(any(), any(), any(), any(), any()))
                 .thenReturn(Collections.emptyList());
 
         // When
         exerciseService.getAllExercises(request, category, difficulty, muscleSlugs);
 
         // Then
-        verify(exerciseRepository)
+        verify(exerciseRepositoryPort)
                 .findByFiltersAndActiveTrue(
                         eq(request.cursor()), eq(category), eq(difficulty), eq(muscleSlugs), eq(request.pageable()));
 
@@ -109,7 +109,7 @@ class ExerciseServiceTest {
                 List.of(),
                 null);
 
-        when(exerciseRepository.findBySlugAndActiveTrue(slug)).thenReturn(Optional.of(exercise));
+        when(exerciseRepositoryPort.findBySlugAndActiveTrue(slug)).thenReturn(Optional.of(exercise));
 
         when(assetUrlProviderPort.exerciseGifUrl(exercise.getMediaObjectKey()))
                 .thenReturn("https://example.com/exercises/test.gif");
@@ -122,7 +122,7 @@ class ExerciseServiceTest {
         // Then
         assertThat(result).isEqualTo(detailDTO);
 
-        verify(exerciseRepository).findBySlugAndActiveTrue(slug);
+        verify(exerciseRepositoryPort).findBySlugAndActiveTrue(slug);
 
         verify(exerciseMapper).toDetailDTO(eq(exercise), any());
     }
@@ -133,14 +133,14 @@ class ExerciseServiceTest {
         // Given
         String slug = "bench-press";
 
-        when(exerciseRepository.findBySlugAndActiveTrue(slug)).thenReturn(Optional.empty());
+        when(exerciseRepositoryPort.findBySlugAndActiveTrue(slug)).thenReturn(Optional.empty());
 
         // When / Then
         assertThatThrownBy(() -> exerciseService.getExerciseBySlug(slug))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Exercise with slug " + slug + " not found");
 
-        verify(exerciseRepository).findBySlugAndActiveTrue(slug);
+        verify(exerciseRepositoryPort).findBySlugAndActiveTrue(slug);
 
         verifyNoInteractions(exerciseMapper);
     }
@@ -155,7 +155,7 @@ class ExerciseServiceTest {
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("Slug is required");
 
-        verifyNoInteractions(exerciseRepository);
+        verifyNoInteractions(exerciseRepositoryPort);
         verifyNoInteractions(exerciseMapper);
     }
 
@@ -187,10 +187,10 @@ class ExerciseServiceTest {
                 List.of(),
                 null);
 
-        when(exerciseRepository.existsBySlug(request.slug())).thenReturn(false);
+        when(exerciseRepositoryPort.existsBySlug(request.slug())).thenReturn(false);
         when(exerciseMapper.toEntity(request)).thenReturn(exercise);
-        when(muscleRepository.findBySlugIn(List.of("biceps"))).thenReturn(List.of(muscle));
-        when(exerciseRepository.saveExercise(exercise)).thenReturn(exercise);
+        when(muscleRepositoryPort.findBySlugIn(List.of("biceps"))).thenReturn(List.of(muscle));
+        when(exerciseRepositoryPort.saveExercise(exercise)).thenReturn(exercise);
         when(assetUrlProviderPort.exerciseGifUrl(exercise.getMediaObjectKey()))
                 .thenReturn("https://example.com/exercises/test.gif");
         when(exerciseMapper.toDetailDTO(eq(exercise), any())).thenReturn(detailDTO);
@@ -203,8 +203,8 @@ class ExerciseServiceTest {
         assertThat(exercise.isActive()).isTrue();
         assertThat(exercise.getExerciseMuscles()).hasSize(1);
 
-        verify(exerciseRepository).existsBySlug(request.slug());
-        verify(exerciseRepository).saveExercise(exercise);
+        verify(exerciseRepositoryPort).existsBySlug(request.slug());
+        verify(exerciseRepositoryPort).saveExercise(exercise);
     }
 
     @Test
@@ -220,14 +220,14 @@ class ExerciseServiceTest {
                 Difficulty.INTERMEDIATE,
                 null);
 
-        when(exerciseRepository.existsBySlug(request.slug())).thenReturn(true);
+        when(exerciseRepositoryPort.existsBySlug(request.slug())).thenReturn(true);
 
         // When / Then
         assertThatThrownBy(() -> exerciseService.createExercise(request))
                 .isInstanceOf(ResourceAlreadyExistsException.class)
                 .hasMessage("Exercise with slug bicep-curl already exists");
 
-        verify(exerciseRepository, never()).save(any(Exercise.class));
+        verify(exerciseRepositoryPort, never()).saveExercise(any(Exercise.class));
     }
 
     @Test
@@ -245,9 +245,9 @@ class ExerciseServiceTest {
 
         var exercise = ExerciseBuilder.anExercise(FAKER).build();
 
-        when(exerciseRepository.existsBySlug(request.slug())).thenReturn(false);
+        when(exerciseRepositoryPort.existsBySlug(request.slug())).thenReturn(false);
         when(exerciseMapper.toEntity(request)).thenReturn(exercise);
-        when(muscleRepository.findBySlugIn(List.of("unknown-muscle"))).thenReturn(List.of());
+        when(muscleRepositoryPort.findBySlugIn(List.of("unknown-muscle"))).thenReturn(List.of());
 
         // When / Then
         assertThatThrownBy(() -> exerciseService.createExercise(request))
@@ -285,10 +285,10 @@ class ExerciseServiceTest {
                 List.of(),
                 null);
 
-        when(exerciseRepository.findBySlugAndActiveTrue(slug)).thenReturn(Optional.of(exercise));
-        when(exerciseRepository.existsBySlug(request.slug())).thenReturn(false);
-        when(muscleRepository.findBySlugIn(List.of("chest-upper"))).thenReturn(List.of(muscle));
-        when(exerciseRepository.saveExercise(exercise)).thenReturn(exercise);
+        when(exerciseRepositoryPort.findBySlugAndActiveTrue(slug)).thenReturn(Optional.of(exercise));
+        when(exerciseRepositoryPort.existsBySlug(request.slug())).thenReturn(false);
+        when(muscleRepositoryPort.findBySlugIn(List.of("chest-upper"))).thenReturn(List.of(muscle));
+        when(exerciseRepositoryPort.saveExercise(exercise)).thenReturn(exercise);
         when(assetUrlProviderPort.exerciseGifUrl(exercise.getMediaObjectKey()))
                 .thenReturn("https://example.com/exercises/test.gif");
         when(exerciseMapper.toDetailDTO(eq(exercise), any())).thenReturn(detailDTO);
@@ -302,7 +302,7 @@ class ExerciseServiceTest {
         assertThat(exercise.getSlug()).isEqualTo("updated-bench-press");
         assertThat(exercise.getExerciseMuscles()).hasSize(1);
 
-        verify(exerciseRepository).saveExercise(exercise);
+        verify(exerciseRepositoryPort).saveExercise(exercise);
     }
 
     @Test
@@ -312,7 +312,7 @@ class ExerciseServiceTest {
         var request = new ExerciseRequestDTO(
                 "Bench Press", "bench-press", "Description", null, Category.STRENGTH, Difficulty.INTERMEDIATE, null);
 
-        when(exerciseRepository.findBySlugAndActiveTrue("bench-press")).thenReturn(Optional.empty());
+        when(exerciseRepositoryPort.findBySlugAndActiveTrue("bench-press")).thenReturn(Optional.empty());
 
         // When / Then
         assertThatThrownBy(() -> exerciseService.updateExercise("bench-press", request))
@@ -329,8 +329,8 @@ class ExerciseServiceTest {
         var request = new ExerciseRequestDTO(
                 "Bench Press", "taken-slug", "Description", null, Category.STRENGTH, Difficulty.INTERMEDIATE, null);
 
-        when(exerciseRepository.findBySlugAndActiveTrue("bench-press")).thenReturn(Optional.of(exercise));
-        when(exerciseRepository.existsBySlug("taken-slug")).thenReturn(true);
+        when(exerciseRepositoryPort.findBySlugAndActiveTrue("bench-press")).thenReturn(Optional.of(exercise));
+        when(exerciseRepositoryPort.existsBySlug("taken-slug")).thenReturn(true);
 
         // When / Then
         assertThatThrownBy(() -> exerciseService.updateExercise("bench-press", request))
@@ -342,13 +342,13 @@ class ExerciseServiceTest {
     @DisplayName("Should soft-delete exercise when slug exists")
     void deleteExercise_shouldSoftDeleteWhenSlugExists() {
         // Given
-        when(exerciseRepository.softDeleteBySlug("bench-press")).thenReturn(1);
+        when(exerciseRepositoryPort.softDeleteBySlug("bench-press")).thenReturn(1);
 
         // When
         exerciseService.deleteExercise("bench-press");
 
         // Then
-        verify(exerciseRepository).softDeleteBySlug("bench-press");
+        verify(exerciseRepositoryPort).softDeleteBySlug("bench-press");
     }
 
     @Test
@@ -377,9 +377,9 @@ class ExerciseServiceTest {
                 List.of(),
                 null);
 
-        when(exerciseRepository.existsBySlug(request.slug())).thenReturn(false);
+        when(exerciseRepositoryPort.existsBySlug(request.slug())).thenReturn(false);
         when(exerciseMapper.toEntity(request)).thenReturn(exercise);
-        when(exerciseRepository.saveExercise(exercise)).thenReturn(exercise);
+        when(exerciseRepositoryPort.saveExercise(exercise)).thenReturn(exercise);
         when(assetUrlProviderPort.exerciseGifUrl(exercise.getMediaObjectKey()))
                 .thenReturn("https://example.com/exercises/test.gif");
         when(exerciseMapper.toDetailDTO(eq(exercise), any())).thenReturn(detailDTO);
@@ -409,7 +409,7 @@ class ExerciseServiceTest {
 
         var exercise = ExerciseBuilder.anExercise(FAKER).build();
 
-        when(exerciseRepository.existsBySlug(request.slug())).thenReturn(false);
+        when(exerciseRepositoryPort.existsBySlug(request.slug())).thenReturn(false);
         when(exerciseMapper.toEntity(request)).thenReturn(exercise);
 
         // When / Then
@@ -422,7 +422,7 @@ class ExerciseServiceTest {
     @DisplayName("Should throw ResourceNotFoundException when deleting missing exercise")
     void deleteExercise_shouldThrowExceptionWhenExerciseDoesNotExist() {
         // Given
-        when(exerciseRepository.softDeleteBySlug("bench-press")).thenReturn(0);
+        when(exerciseRepositoryPort.softDeleteBySlug("bench-press")).thenReturn(0);
 
         // When / Then
         assertThatThrownBy(() -> exerciseService.deleteExercise("bench-press"))

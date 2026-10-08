@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class MuscleServiceImpl implements MuscleServicePort {
+public class MuscleService implements MuscleServicePort {
 
     private final MuscleRepositoryPort muscleRepository;
     private final MuscleMapper muscleMapper;
@@ -49,7 +49,7 @@ public class MuscleServiceImpl implements MuscleServicePort {
         log.info("Fetching muscle by slug={}", slug);
 
         var muscle = muscleRepository.findBySlug(slug).orElseThrow(() -> {
-            log.warn("Muscle not found with id={}", slug);
+            log.warn("Muscle not found with slug={}", slug);
             return new ResourceNotFoundException("Muscle with slug " + slug + " not found");
         });
 
