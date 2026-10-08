@@ -316,6 +316,8 @@ class StatsRepositoryTest extends AbstractIntegrationTest {
                         "unstimulated-muscle",
                         BodyRegion.OTHER,
                         null,
+                        null,
+                        null,
                         0.0));
     }
 
@@ -369,6 +371,8 @@ class StatsRepositoryTest extends AbstractIntegrationTest {
                         "Zero Strength Muscle",
                         "zero-strength-muscle",
                         BodyRegion.BACK,
+                        null,
+                        null,
                         null,
                         0.0));
     }
