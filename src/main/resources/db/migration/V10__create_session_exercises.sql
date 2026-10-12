@@ -5,8 +5,8 @@ CREATE TABLE session_exercises
     exercise_id UUID NOT NULL,
     position    INT NOT NULL,
     notes       TEXT,
-    created_at  TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at  TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    created_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
 
     CONSTRAINT pk_session_exercises PRIMARY KEY(id),
     CONSTRAINT fk_session_exercises_session_workout FOREIGN KEY(session_id) REFERENCES workout_sessions(id),

@@ -3,7 +3,7 @@ CREATE TABLE tokens
     jti        UUID                        NOT NULL DEFAULT uuidv7(),
     family_id  UUID                        NOT NULL,
     revoked    BOOLEAN                     NOT NULL DEFAULT FALSE,
-    expires_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
     user_id    UUID                        NOT NULL,
 
     CONSTRAINT pk_tokens PRIMARY KEY (jti),

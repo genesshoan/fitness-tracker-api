@@ -8,8 +8,8 @@ CREATE TABLE session_sets
     duration_seconds INT,
     distance_km DOUBLE PRECISION,
     completed BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
 
     CONSTRAINT pk_session_sets PRIMARY KEY(id),
     CONSTRAINT fk_session_sets_session_exercises FOREIGN KEY (session_exercise_id) REFERENCES session_exercises(id)

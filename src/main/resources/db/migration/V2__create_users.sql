@@ -1,8 +1,8 @@
 CREATE TABLE users
 (
     id            UUID                        NOT NULL DEFAULT uuidv7(),
-    created_at    TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at    TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    created_at    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     username      VARCHAR(255)                NOT NULL,
     email         VARCHAR(255)                NOT NULL,
     password_hash VARCHAR(255)                NOT NULL,

@@ -7,8 +7,8 @@ CREATE TABLE workout_sessions
     started_at    TIMESTAMP WITH TIME ZONE NOT NULL,
     completed_at TIMESTAMP WITH TIME ZONE,
     notes        TEXT,
-    created_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+    created_at   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at   TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
 
     CONSTRAINT pk_workout_sessions PRIMARY KEY (id),
     CONSTRAINT fk_workout_sessions_user FOREIGN KEY(user_id) REFERENCES users(id)
