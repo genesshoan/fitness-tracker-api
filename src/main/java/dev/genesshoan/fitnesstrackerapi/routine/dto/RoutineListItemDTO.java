@@ -1,6 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.routine.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -17,5 +17,5 @@ public record RoutineListItemDTO(
         @Schema(description = "The number of exercises in the routine", example = "5")
         Long exerciseCount,
 
-        @Schema(description = "The date and time the routine was last updated", example = "2024-01-01T12:00:00")
-        LocalDateTime updatedAt) {}
+        @Schema(description = "The date and time the routine was last updated", example = "2024-01-01T12:00:00Z")
+        Instant updatedAt) {}

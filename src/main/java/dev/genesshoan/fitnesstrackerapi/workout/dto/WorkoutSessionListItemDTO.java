@@ -1,7 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.workout.dto;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineListItemDTO;
@@ -16,7 +15,7 @@ public record WorkoutSessionListItemDTO(
         SessionStatus status,
 
         @Schema(description = "Date and time when the session was created")
-        LocalDateTime createdAt,
+        Instant createdAt,
 
         @Schema(description = "Date and time when the session was completed")
         Instant completedAt,
