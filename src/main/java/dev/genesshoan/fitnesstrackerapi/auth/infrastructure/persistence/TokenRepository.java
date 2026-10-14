@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.auth;
+package dev.genesshoan.fitnesstrackerapi.auth.infrastructure.persistence;
 
 import java.util.UUID;
 

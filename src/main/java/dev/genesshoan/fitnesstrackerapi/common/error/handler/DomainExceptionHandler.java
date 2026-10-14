@@ -219,4 +219,51 @@ public class DomainExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem);
     }
+
+    /**
+     * Handles invalid or expired verification code scenarios.
+     *
+     * Typical cases:
+     * - Email verification code is wrong
+     * - Code has expired
+     * - Code was already consumed
+     *
+     * @param ex      invalid code exception from service layer
+     * @param request current HTTP request
+     * @return 400 Bad Request ProblemDetail response
+     */
+    @ExceptionHandler(InvalidCodeException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidCode(InvalidCodeException ex, HttpServletRequest request) {
+        log.warn(
+                "Invalid verification code: {} {} -> {}",
+                request.getMethod(),
+                request.getRequestURI(),
+                ex.getMessage());
+
+        ProblemDetail problem =
+                errorResponse(HttpStatus.BAD_REQUEST, "Invalid verification code", ex.getMessage(), null, request);
+
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    /**
+     * Handles email not verified scenarios.
+     *
+     * Typical cases:
+     * - User attempted to log in without verifying their email address
+     *
+     * @param ex      email not verified exception from service layer
+     * @param request current HTTP request
+     * @return 400 Bad Request ProblemDetail response
+     */
+    @ExceptionHandler(EmailNotVerifiedException.class)
+    public ResponseEntity<ProblemDetail> handleEmailNotVerified(
+            EmailNotVerifiedException ex, HttpServletRequest request) {
+        log.warn("Email not verified: {} {} -> {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+
+        ProblemDetail problem =
+                errorResponse(HttpStatus.BAD_REQUEST, "Email not verified", ex.getMessage(), null, request);
+
+        return ResponseEntity.badRequest().body(problem);
+    }
 }

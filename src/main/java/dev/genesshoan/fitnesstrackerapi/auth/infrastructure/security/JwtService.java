@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.auth.service;
+package dev.genesshoan.fitnesstrackerapi.auth.infrastructure.security;
 
 import java.time.Instant;
 import java.util.Base64;
