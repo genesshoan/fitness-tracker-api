@@ -4,7 +4,7 @@ spring:
 
   mail:
     host: ${MAIL_HOST}
-    port: ${MAIL_PORT:587}
+    port: ${MAIL_PORT}
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
     properties:
@@ -68,6 +68,11 @@ app:
     path-style: ${STORAGE_PATH_STYLE:true}
     presigned-url-expiration: ${STORAGE_PRESIGNED_URL_EXPIRATION:1h}
 
+  verification:
+    code-length: ${CODE_LENGTH}
+    expiration: ${CODE_EXPIRATION}
+    max-attempts: ${CODE_MAX_ATTEMPTS}
+    secret: ${VERIFICATION_HMAC_SECRET}
 
   mail:
     from: ${MAIL_FROM}

@@ -1,13 +1,14 @@
 CREATE TABLE users
 (
-    id            UUID                        NOT NULL DEFAULT uuidv7(),
-    created_at    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    username      VARCHAR(255)                NOT NULL,
-    email         VARCHAR(255)                NOT NULL,
-    password_hash VARCHAR(255)                NOT NULL,
-    role          VARCHAR(255)                NOT NULL,
-    timezone      VARCHAR(50)                 NOT NULL,
+    id                  UUID                     NOT NULL DEFAULT uuidv7(),
+    created_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    username            VARCHAR(255)             NOT NULL,
+    email               VARCHAR(255)             NOT NULL,
+    password_hash       VARCHAR(255)             NOT NULL,
+    role                VARCHAR(255)             NOT NULL,
+    email_verified      BOOLEAN                  NOT NULL DEFAULT FALSE,
+    timezone            VARCHAR(50)              NOT NULL,
     profile_picture_key VARCHAR(512),
 
     CONSTRAINT pk_users PRIMARY KEY (id),

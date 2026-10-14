@@ -1,31 +1,25 @@
-package dev.genesshoan.fitnesstrackerapi.auth.service;
+package dev.genesshoan.fitnesstrackerapi.auth.application.service;
 
-import java.time.DateTimeException;
-import java.time.ZoneId;
 import java.util.UUID;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import dev.genesshoan.fitnesstrackerapi.auth.TokenRepository;
 import dev.genesshoan.fitnesstrackerapi.auth.domain.Token;
-import dev.genesshoan.fitnesstrackerapi.auth.dto.LoginRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.auth.dto.RegisterRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.auth.dto.TokenResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.persistence.TokenRepository;
+import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.security.JwtService;
+import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.TokenResponse;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.EmailNotVerifiedException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidCredentialsException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidJwtException;
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyExistsException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
 import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
-import dev.genesshoan.fitnesstrackerapi.user.domain.Role;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
-import dev.genesshoan.fitnesstrackerapi.user.mapper.UserMapper;
 import io.jsonwebtoken.MalformedJwtException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,59 +34,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @AllArgsConstructor
-public class AuthService {
+public class SessionService {
 
     private final TokenRepository tokenRepository;
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final UserMapper userMapper;
     private final AuthenticationManager authenticationManager;
-
-    /**
-     * Registers a new user and returns a token pair.
-     *
-     * Validates that the username and email are not already taken,
-     * encodes the password, persists the user, and issues an access
-     * token and a refresh token.
-     *
-     * @param dto the registration request containing username, email and password
-     * @return a {@link TokenResponseDTO} with the access token and refresh token
-     * @throws ResourceAlreadyExistsException if the username or email is already
-     *                                        registered
-     */
-    @Transactional
-    public TokenResponseDTO register(RegisterRequestDTO dto) {
-        log.info("Registration attempt. email={}, username={}", dto.email(), dto.username());
-
-        if (userRepository.existsByUsername(dto.username())) {
-            log.warn("Registration failed: username already exists. username={}", dto.username());
-
-            throw new ResourceAlreadyExistsException("Username already exists");
-        }
-
-        if (userRepository.existsByEmail(dto.email())) {
-            log.warn("Registration failed: email already exists. email={}", dto.email());
-
-            throw new ResourceAlreadyExistsException("Email already exists");
-        }
-
-        try {
-            ZoneId.of(dto.timezone());
-        } catch (DateTimeException e) {
-            throw new BadRequestException("Invalid time zone");
-        }
-
-        var user = userMapper.toEntity(dto);
-        user.setRole(Role.USER);
-        user.setPasswordHash(passwordEncoder.encode(dto.password()));
-
-        var savedUser = userRepository.save(user);
-
-        log.info("User registered successfully. userId={}, email={}", savedUser.getId(), savedUser.getEmail());
-
-        return generateAndPersistTokens(savedUser, UUID.randomUUID());
-    }
 
     /**
      * Authenticates a user by email and password and returns a token pair.
@@ -101,24 +48,28 @@ public class AuthService {
      * If authentication succeeds, issues a new access token and refresh token.
      *
      * @param dto the login request containing email and password
-     * @return a {@link TokenResponseDTO} with the access token and refresh token
+     * @return a {@link TokenResponse} with the access token and refresh token
      * @throws ResourceNotFoundException if the user is not found after
      *                                   authentication
      */
     @Transactional
-    public TokenResponseDTO login(LoginRequestDTO dto) {
-        log.info("Login attempt. email={}", dto.email());
+    public TokenResponse login(String email, String password) {
+        log.info("Login attempt. email={}", email);
 
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(dto.email(), dto.password()));
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
         } catch (AuthenticationException e) {
             throw new InvalidCredentialsException("Invalid email or password");
         }
 
-        var user = userRepository.findByEmail(dto.email()).orElseThrow(() -> {
-            log.warn("Login failed: user not found. email={}", dto.email());
+        var user = userRepository.findByEmail(email).orElseThrow(() -> {
+            log.warn("Login failed: user not found. email={}", email);
             return new ResourceNotFoundException("User not found");
         });
+
+        if (!user.isEmailVerified()) {
+            throw new EmailNotVerifiedException("Email address has not been verified");
+        }
 
         log.info("Login successful. userId={}, email={}", user.getId(), user.getEmail());
 
@@ -139,7 +90,7 @@ public class AuthService {
      *
      * @param authHeader the Authorization header containing the Bearer refresh
      *                   token
-     * @return a {@link TokenResponseDTO} with the new access token and refresh
+     * @return a {@link TokenResponse} with the new access token and refresh
      *         token
      * @throws BadRequestException       if the Authorization header is missing or
      *                                   malformed
@@ -150,9 +101,7 @@ public class AuthService {
      *                                   not found
      */
     @Transactional
-    public TokenResponseDTO refreshToken(String authHeader) {
-        String incomingRefreshToken = extractBearerToken(authHeader);
-
+    public TokenResponse refreshToken(String incomingRefreshToken) {
         UUID oldTokenId = jwtService.extractJti(incomingRefreshToken);
         UUID familyId = jwtService.extractFamilyId(incomingRefreshToken);
 
@@ -211,9 +160,7 @@ public class AuthService {
      *                                   not found
      */
     @Transactional
-    public void logout(String authHeader) {
-        String incomingRefreshToken = extractBearerToken(authHeader);
-
+    public void logout(String incomingRefreshToken) {
         var user = extractUserFromToken(incomingRefreshToken);
         UUID familyId = jwtService.extractFamilyId(incomingRefreshToken);
 
@@ -226,12 +173,12 @@ public class AuthService {
 
     /**
      * Generates a new access token and refresh token for the given user,
-     * persists the refresh token, and returns both as a {@link TokenResponseDTO}.
+     * persists the refresh token, and returns both as a {@link TokenResponse}.
      *
      * @param user the authenticated user
-     * @return a {@link TokenResponseDTO} with the access token and refresh token
+     * @return a {@link TokenResponse} with the access token and refresh token
      */
-    private TokenResponseDTO generateAndPersistTokens(User user, UUID familyId) {
+    private TokenResponse generateAndPersistTokens(User user, UUID familyId) {
         var tokenEntity = tokenRepository.save(Token.builder()
                 .familyId(familyId)
                 .user(user)
@@ -243,22 +190,7 @@ public class AuthService {
         var accessToken = jwtService.generateToken(userDetails);
         var refreshToken = jwtService.generateRefreshToken(userDetails, tokenEntity.getJti(), familyId);
 
-        return new TokenResponseDTO(accessToken, refreshToken);
-    }
-
-    /**
-     * Extracts and validates the Bearer token from the Authorization header.
-     *
-     * @param authHeader the Authorization header value
-     * @return the raw JWT string without the Bearer prefix
-     * @throws BadRequestException if the header is null or does not start with
-     *                             "Bearer "
-     */
-    private String extractBearerToken(String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new BadRequestException("Missing Bearer Token");
-        }
-        return authHeader.substring(7);
+        return new TokenResponse(accessToken, refreshToken);
     }
 
     /**

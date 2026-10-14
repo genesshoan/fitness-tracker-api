@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.auth;
+package dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web;
 
 import jakarta.validation.Valid;
 
@@ -14,10 +14,16 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import dev.genesshoan.fitnesstrackerapi.auth.dto.LoginRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.auth.dto.RegisterRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.auth.dto.TokenResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.auth.service.AuthService;
+import dev.genesshoan.fitnesstrackerapi.auth.application.command.RegisterCommand;
+import dev.genesshoan.fitnesstrackerapi.auth.application.service.RegistrationService;
+import dev.genesshoan.fitnesstrackerapi.auth.application.service.SessionService;
+import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.LoginRequest;
+import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.MessageResponse;
+import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.RegisterRequest;
+import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.ResendVerificationEmailRequest;
+import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.TokenResponse;
+import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.VerifyEmailRequest;
+import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -58,12 +64,13 @@ public class AuthController {
      * Service that handles authentication logic, including:
      * token generation, validation, rotation, and revocation.
      */
-    private final AuthService authService;
+    private final SessionService sessionService;
+
+    private final RegistrationService registrationService;
 
     @Operation(
             summary = "Register a new user",
-            description =
-                    "Creates a new user account, encodes password securely, and returns JWT access and refresh tokens.",
+            description = "Creates a new user account, encodes password securely, and sends a verification email.",
             security = {})
     @ApiResponses(
             value = {
@@ -73,7 +80,7 @@ public class AuthController {
                         content =
                                 @Content(
                                         mediaType = "application/json",
-                                        schema = @Schema(implementation = TokenResponseDTO.class))),
+                                        schema = @Schema(implementation = MessageResponse.class))),
                 @ApiResponse(
                         responseCode = "400",
                         description = "Invalid request data",
@@ -90,9 +97,57 @@ public class AuthController {
                                         schema = @Schema(implementation = ProblemDetail.class)))
             })
     @PostMapping("/register")
-    public ResponseEntity<TokenResponseDTO> register(@Valid @RequestBody RegisterRequestDTO dto) {
+    public ResponseEntity<MessageResponse> register(@Valid @RequestBody RegisterRequest dto) {
+        RegisterCommand command = new RegisterCommand(dto.username(), dto.password(), dto.email(), dto.timezone());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(dto));
+        registrationService.register(command);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new MessageResponse("Please check your email to verify your account"));
+    }
+
+    @Operation(
+            summary = "Verify email address",
+            description = "Verifies a user's email address using a verification token.",
+            security = {})
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "204", description = "Email address successfully verified"),
+                @ApiResponse(
+                        responseCode = "400",
+                        description = "Invalid request data or verification token",
+                        content =
+                                @Content(
+                                        mediaType = "application/problem+json",
+                                        schema = @Schema(implementation = ProblemDetail.class)))
+            })
+    @PostMapping("verify-email")
+    public ResponseEntity<Void> verifyEmail(@Valid @RequestBody VerifyEmailRequest dto) {
+        registrationService.verifyEmail(dto.token());
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Verify email address",
+            description = "Verifies a user's email address using a verification token.",
+            security = {})
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "204", description = "Email address successfully verified"),
+                @ApiResponse(
+                        responseCode = "400",
+                        description = "Invalid request data or verification token",
+                        content =
+                                @Content(
+                                        mediaType = "application/problem+json",
+                                        schema = @Schema(implementation = ProblemDetail.class)))
+            })
+    @PostMapping("resend-verification")
+    public ResponseEntity<Void> resendVerificationEmail(@Valid @RequestBody ResendVerificationEmailRequest dto) {
+        registrationService.resendVerificationEmail(dto.email());
+
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(
@@ -107,7 +162,7 @@ public class AuthController {
                         content =
                                 @Content(
                                         mediaType = "application/json",
-                                        schema = @Schema(implementation = TokenResponseDTO.class))),
+                                        schema = @Schema(implementation = TokenResponse.class))),
                 @ApiResponse(
                         responseCode = "401",
                         description = "Invalid credentials",
@@ -117,9 +172,8 @@ public class AuthController {
                                         schema = @Schema(implementation = ProblemDetail.class)))
             })
     @PostMapping("/login")
-    public ResponseEntity<TokenResponseDTO> login(@Valid @RequestBody LoginRequestDTO dto) {
-
-        return ResponseEntity.ok(authService.login(dto));
+    public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest dto) {
+        return ResponseEntity.ok(sessionService.login(dto.email(), dto.password()));
     }
 
     @Operation(
@@ -133,7 +187,7 @@ public class AuthController {
                         content =
                                 @Content(
                                         mediaType = "application/json",
-                                        schema = @Schema(implementation = TokenResponseDTO.class))),
+                                        schema = @Schema(implementation = TokenResponse.class))),
                 @ApiResponse(
                         responseCode = "401",
                         description = "Invalid or expired refresh token",
@@ -143,17 +197,23 @@ public class AuthController {
                                         schema = @Schema(implementation = ProblemDetail.class)))
             })
     @PostMapping("/refresh")
-    public ResponseEntity<TokenResponseDTO> refresh(
+    public ResponseEntity<TokenResponse> refresh(
             @Parameter(description = "Bearer refresh token") @RequestHeader(HttpHeaders.AUTHORIZATION)
                     String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new BadRequestException("Missing Bearer Token");
+        }
 
-        return ResponseEntity.ok(authService.refreshToken(authHeader));
+        String bearerToken = authHeader.substring(7);
+
+        return ResponseEntity.ok(sessionService.refreshToken(bearerToken));
     }
 
     @Operation(
             summary = "Logout user",
             description =
-                    "Revokes all refresh tokens belonging to the same token family. Access token remains valid until expiration.")
+                    "Revokes all refresh tokens belonging to the same token family. Access token remains valid until"
+                            + " expiration.")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "204", description = "Logout successful"),
@@ -169,7 +229,14 @@ public class AuthController {
     public ResponseEntity<Void> logout(
             @Parameter(description = "Bearer refresh token") @RequestHeader(HttpHeaders.AUTHORIZATION)
                     String authHeader) {
-        authService.logout(authHeader);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new BadRequestException("Missing Bearer Token");
+        }
+
+        String bearerToken = authHeader.substring(7);
+
+        sessionService.logout(bearerToken);
+
         return ResponseEntity.noContent().build();
     }
 }

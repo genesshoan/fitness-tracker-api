@@ -3,11 +3,20 @@ package dev.genesshoan.fitnesstrackerapi.user.domain;
 import jakarta.persistence.*;
 
 import dev.genesshoan.fitnesstrackerapi.common.domain.BaseEntity;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+/**
+ * Core user entity representing a registered application user.
+ *
+ * <p>
+ * Stores essential user account information including authentication
+ * credentials, profile details, and verification status. Users are
+ * associated with roles that control their access to application features.
+ */
 @Entity
 @Setter
 @Getter
@@ -33,6 +42,10 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean emailVerified = false;
 
     @Column(nullable = false, length = 50)
     private String timezone;
