@@ -27,4 +27,16 @@ public interface UserRepository extends JpaRepository<User, UUID> {
         WHERE u.id = :id
         """)
     int markEmailVerified(@Param("id") UUID id);
+
+    @Query("""
+            SELECT NEW dev.genesshoan.fitnesstrackerapi.user.application.UserTokenData(
+                u.id,
+                u.username,
+                u.role,
+                u.emailVerified
+            )
+            FROM User u
+            WHERE u.email = :email
+        """)
+    Optional<UserTokenData> findTokenDataByEmail(@Param("email") String email);
 }

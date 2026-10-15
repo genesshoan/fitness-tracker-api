@@ -1,9 +1,7 @@
 package dev.genesshoan.fitnesstrackerapi.auth.application.service;
 
-import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -11,38 +9,36 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import dev.genesshoan.fitnesstrackerapi.auth.application.result.IssuedToken;
-import dev.genesshoan.fitnesstrackerapi.auth.domain.VerificationCode;
 import dev.genesshoan.fitnesstrackerapi.auth.domain.VerificationPurpose;
+import dev.genesshoan.fitnesstrackerapi.auth.domain.VerificationToken;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.config.VerificationProperties;
-import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.persistence.VerificationCodeRepository;
-import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.security.CodeHasher;
+import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.persistence.VerificationTokenRepository;
+import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.security.OpaqueTokens;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Service responsible for issuing and managing verification tokens for email verification.
+ * Service responsible for issuing and managing verification codes.
  *
  * <p>
- * Handles the complete lifecycle of verification tokens including:
+ * Handles the complete lifecycle of verification codes including:
  * <ul>
- * <li>Generating secure, random token strings</li>
+ * <li>Generating cryptographically secure random codes</li>
  * <li>Creating verification code records in the database</li>
- * <li>Invalidating existing active tokens for the same user and purpose</li>
- * <li>Validating and consuming tokens for email verification</li>
+ * <li>Invalidating existing active codes for the same subject and purpose</li>
+ * <li>Validating and consuming codes upon successful verification</li>
+ * <li>Tracking verification attempts and enforcing attempt limits</li>
  * </ul>
  *
  * <p>
  * Uses HMAC-based hashing to store verification codes securely, preventing
- * storage of plain text codes and providing tamper protection.
+ * storage of plain-text codes and protecting against unauthorized code recovery.
  */
 @Service
 @RequiredArgsConstructor
 public class VerificationTokenService {
 
-    private static final SecureRandom RANDOM = new SecureRandom();
-
     private final VerificationProperties properties;
-    private final CodeHasher codeHasher;
-    private final VerificationCodeRepository repository;
+    private final VerificationTokenRepository repository;
     private final Clock clock;
 
     /**
@@ -62,13 +58,13 @@ public class VerificationTokenService {
         Instant now = clock.instant();
         repository.invalidateActive(subjectId, purpose, now);
 
-        String token = generate();
-        Instant expiresAt = now.plus(properties.tokenExpiration());
+        String token = OpaqueTokens.generate();
+        Instant expiresAt = now.plus(properties.emailVerificationExpiration());
 
-        repository.save(VerificationCode.builder()
+        repository.save(VerificationToken.builder()
                 .subjectId(subjectId)
                 .purpose(purpose)
-                .hash(codeHasher.hashToken(purpose, token))
+                .hash(OpaqueTokens.sha256(token))
                 .createdAt(now)
                 .expiresAt(expiresAt)
                 .build());
@@ -94,7 +90,7 @@ public class VerificationTokenService {
      */
     @Transactional
     public Optional<UUID> consume(VerificationPurpose purpose, String token) {
-        byte[] hash = codeHasher.hashToken(purpose, token);
+        byte[] hash = OpaqueTokens.sha256(token);
 
         var found = repository.findByHashAndPurpose(hash, purpose);
 
@@ -103,11 +99,5 @@ public class VerificationTokenService {
         }
 
         return Optional.of(found.get().getSubjectId());
-    }
-
-    private String generate() {
-        byte[] bytes = new byte[32];
-        RANDOM.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 }

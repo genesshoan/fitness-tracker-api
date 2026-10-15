@@ -1,25 +1,24 @@
 package dev.genesshoan.fitnesstrackerapi.auth.infrastructure.security;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 import javax.crypto.SecretKey;
 
 import jakarta.annotation.PostConstruct;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.config.JwtProperties;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidJwtException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Service responsible for generating, signing, parsing and validating JWT
@@ -48,18 +47,12 @@ import io.jsonwebtoken.security.Keys;
  * during application startup.
  */
 @Service
+@RequiredArgsConstructor
 public class JwtService {
 
-    @Value("${application.security.jwt.secret}")
-    private String secretKeyBase64;
-
-    @Value("${application.security.jwt.expiration}")
-    private long jwtExpiration;
-
-    @Value("${application.security.jwt.refresh-token.expiration}")
-    private long refreshExpiration;
-
+    private final JwtProperties jwtProperties;
     private SecretKey secretKey;
+    private Clock clock;
 
     /**
      * Initializes the HMAC signing key from a Base64-encoded secret.
@@ -67,65 +60,21 @@ public class JwtService {
      */
     @PostConstruct
     private void init() {
-        byte[] keyBytes = Base64.getDecoder().decode(secretKeyBase64);
+        byte[] keyBytes = Base64.getDecoder().decode(jwtProperties.secret());
         secretKey = Keys.hmacShaKeyFor(keyBytes);
-    }
-
-    /**
-     * Generates a signed JWT access token containing user identity and roles.
-     *
-     * @param userDetails authenticated user principal
-     * @return signed JWT access token
-     */
-    public String generateToken(UserDetails userDetails) {
-        return buildAccessToken(userDetails);
-    }
-
-    /**
-     * Generates a signed JWT refresh token used for session continuation.
-     *
-     * @param userDetails authenticated user principal
-     * @param jti         unique token identifier (used for DB tracking and reuse
-     *                    detection)
-     * @param familyId    session identifier grouping multiple refresh tokens
-     * @return signed JWT refresh token
-     */
-    public String generateRefreshToken(UserDetails userDetails, UUID jti, UUID familyId) {
-        return buildRefreshToken(userDetails, jti, familyId);
     }
 
     /**
      * Builds an access token containing username and roles.
      */
-    private String buildAccessToken(UserDetails userDetails) {
-        Instant now = Instant.now();
-
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .toList();
+    public String buildAccessToken(String username, List<String> authorities) {
+        Instant now = clock.instant();
 
         return Jwts.builder()
-                .subject(userDetails.getUsername())
-                .claim("roles", roles)
+                .subject(username)
+                .claim("authorities", authorities)
                 .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plusMillis(jwtExpiration)))
-                .signWith(secretKey)
-                .compact();
-    }
-
-    /**
-     * Builds a refresh token containing minimal identity information plus
-     * session tracking metadata (jti and familyId).
-     */
-    private String buildRefreshToken(UserDetails userDetails, UUID jti, UUID familyId) {
-        Instant now = Instant.now();
-
-        return Jwts.builder()
-                .subject(userDetails.getUsername())
-                .id(jti.toString())
-                .claim("familyId", familyId.toString())
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plusMillis(refreshExpiration)))
+                .expiration(Date.from(now.plus(jwtProperties.accessTokenExpiration())))
                 .signWith(secretKey)
                 .compact();
     }
@@ -135,16 +84,6 @@ public class JwtService {
             throw new InvalidJwtException(errorMessage);
         }
         return value;
-    }
-
-    private UUID requireUuid(String value, String errorMessage) {
-        String v = require(value, errorMessage);
-
-        try {
-            return UUID.fromString(v);
-        } catch (IllegalArgumentException ex) {
-            throw new InvalidJwtException(errorMessage, ex);
-        }
     }
 
     /**
@@ -173,38 +112,5 @@ public class JwtService {
      */
     public String extractUsername(String token) {
         return require(parseToken(token).getSubject(), "Missing subject");
-    }
-
-    /**
-     * Extracts the JWT ID (jti) claim.
-     * <p>
-     * The jti uniquely identifies a token instance and is required
-     * for revocation, rotation, and reuse detection.
-     */
-    public UUID extractJti(String token) {
-        return requireUuid(parseToken(token).getId(), "Missing or invalid jti");
-    }
-
-    /**
-     * Extracts the refresh token family identifier.
-     * <p>
-     * The family id is used to group refresh tokens belonging
-     * to the same session chain (rotation tracking).
-     */
-    public UUID extractFamilyId(String token) {
-        return requireUuid(parseToken(token).get("familyId", String.class), "Missing or invalid familyId");
-    }
-
-    /**
-     * Calculates the expiration instant for a refresh token based on the
-     * configured refresh token lifetime.
-     *
-     * This method ensures that the expiration used in the database is consistent
-     * with the expiration embedded in the JWT.
-     *
-     * @return Instant representing the refresh token expiration time
-     */
-    public Instant getRefreshTokenExpirationInstant() {
-        return Instant.now().plusMillis(refreshExpiration);
     }
 }
