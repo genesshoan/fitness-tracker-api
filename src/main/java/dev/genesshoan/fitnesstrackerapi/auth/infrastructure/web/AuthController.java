@@ -1,29 +1,32 @@
 package dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web;
 
+import java.time.Duration;
+
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.genesshoan.fitnesstrackerapi.auth.application.command.RegisterCommand;
 import dev.genesshoan.fitnesstrackerapi.auth.application.service.RegistrationService;
 import dev.genesshoan.fitnesstrackerapi.auth.application.service.SessionService;
+import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.config.RefreshTokenProperties;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.LoginRequest;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.MessageResponse;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.RegisterRequest;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.ResendVerificationEmailRequest;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.TokenResponse;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.VerifyEmailRequest;
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -60,13 +63,11 @@ import lombok.RequiredArgsConstructor;
 @Tag(name = "Authentication", description = "JWT authentication, refresh token rotation, logout")
 public class AuthController {
 
-    /**
-     * Service that handles authentication logic, including:
-     * token generation, validation, rotation, and revocation.
-     */
     private final SessionService sessionService;
 
     private final RegistrationService registrationService;
+
+    private final RefreshTokenProperties refreshTokenProperties;
 
     @Operation(
             summary = "Register a new user",
@@ -173,7 +174,13 @@ public class AuthController {
             })
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest dto) {
-        return ResponseEntity.ok(sessionService.login(dto.email(), dto.password()));
+        var tokens = sessionService.login(dto.email(), dto.password());
+
+        var cookie = createRefreshCookie(tokens.refreshToken());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(new TokenResponse(tokens.accessToken()));
     }
 
     @Operation(
@@ -198,15 +205,14 @@ public class AuthController {
             })
     @PostMapping("/refresh")
     public ResponseEntity<TokenResponse> refresh(
-            @Parameter(description = "Bearer refresh token") @RequestHeader(HttpHeaders.AUTHORIZATION)
-                    String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new BadRequestException("Missing Bearer Token");
-        }
+            @Parameter(description = "Refresh token  cookie") @CookieValue("refresh_token") String refreshToken) {
+        var tokens = sessionService.refreshToken(refreshToken);
 
-        String bearerToken = authHeader.substring(7);
+        var cookie = createRefreshCookie(tokens.refreshToken());
 
-        return ResponseEntity.ok(sessionService.refreshToken(bearerToken));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(new TokenResponse(tokens.accessToken()));
     }
 
     @Operation(
@@ -227,16 +233,33 @@ public class AuthController {
             })
     @DeleteMapping("/logout")
     public ResponseEntity<Void> logout(
-            @Parameter(description = "Bearer refresh token") @RequestHeader(HttpHeaders.AUTHORIZATION)
-                    String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new BadRequestException("Missing Bearer Token");
-        }
+            @Parameter(description = "Refresh token cookie") @CookieValue("refresh_token") String refreshToken) {
+        sessionService.logout(refreshToken);
 
-        String bearerToken = authHeader.substring(7);
+        var cookie = clearRefreshCookie();
 
-        sessionService.logout(bearerToken);
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .build();
+    }
 
-        return ResponseEntity.noContent().build();
+    private ResponseCookie clearRefreshCookie() {
+        return ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .secure(refreshTokenProperties.cookieSecure())
+                .path("/api/v1/auth")
+                .sameSite("Lax")
+                .maxAge(Duration.ZERO)
+                .build();
+    }
+
+    private ResponseCookie createRefreshCookie(String refreshToken) {
+        return ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .secure(refreshTokenProperties.cookieSecure())
+                .path("/api/v1/auth")
+                .sameSite("Lax")
+                .maxAge(refreshTokenProperties.expiration())
+                .build();
     }
 }

@@ -1,5 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.user;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class UserService {
+public class UserService implements UserTokenDataQuery {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -106,5 +107,9 @@ public class UserService {
             log.warn("User not found for id {}", id);
             return new ResourceNotFoundException("User not found");
         });
+    }
+
+    public Optional<UserTokenData> findByEmail(String email) {
+        return userRepository.findTokenDataByEmail(email);
     }
 }
