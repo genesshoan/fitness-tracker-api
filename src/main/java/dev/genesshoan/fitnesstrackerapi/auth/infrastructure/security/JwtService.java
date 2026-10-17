@@ -12,8 +12,8 @@ import jakarta.annotation.PostConstruct;
 
 import org.springframework.stereotype.Service;
 
+import dev.genesshoan.fitnesstrackerapi.auth.application.exception.InvalidJwtException;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.config.JwtProperties;
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidJwtException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

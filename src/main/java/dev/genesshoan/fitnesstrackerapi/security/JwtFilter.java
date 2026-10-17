@@ -17,8 +17,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import dev.genesshoan.fitnesstrackerapi.auth.application.exception.InvalidJwtException;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.security.JwtService;
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidJwtException;
 import lombok.RequiredArgsConstructor;
 
 /**

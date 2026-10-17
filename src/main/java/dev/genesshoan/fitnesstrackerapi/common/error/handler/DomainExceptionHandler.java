@@ -83,29 +83,6 @@ public class DomainExceptionHandler {
     }
 
     /**
-     * Handles invalid JWT token scenarios.
-     *
-     * Typical cases:
-     * - Expired token
-     * - Malformed token
-     * - Invalid signature
-     * - Token reuse detection
-     *
-     * @param ex      JWT exception thrown during validation
-     * @param request current HTTP request
-     * @return 401 Unauthorized ProblemDetail response
-     */
-    @ExceptionHandler(InvalidJwtException.class)
-    public ResponseEntity<ProblemDetail> handleInvalidJwtException(InvalidJwtException ex, HttpServletRequest request) {
-        log.warn("JWT error: {} {} -> {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
-
-        ProblemDetail problem =
-                errorResponse(HttpStatus.UNAUTHORIZED, "Invalid or expired token", ex.getMessage(), null, request);
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
-    }
-
-    /**
      * Handles business-level bad request errors.
      *
      * Typical cases:
@@ -121,46 +98,6 @@ public class DomainExceptionHandler {
         log.warn("Bad request: {} {} -> {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ProblemDetail problem = errorResponse(HttpStatus.BAD_REQUEST, "Bad request", ex.getMessage(), null, request);
-
-        return ResponseEntity.badRequest().body(problem);
-    }
-
-    /**
-     * Handles business-level unauthorized request errors.
-     *
-     * Typical cases:
-     * - Wrong username or password
-     *
-     * @param ex      invalid credentials exception from service layer
-     * @param request current HTTP request
-     * @return 401 Unauthorized ProblemDetail response
-     */
-    @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<ProblemDetail> handleInvalidCredentials(
-            InvalidCredentialsException ex, HttpServletRequest request) {
-        ProblemDetail problem = errorResponse(HttpStatus.UNAUTHORIZED, "Unauthorized", ex.getMessage(), null, request);
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
-    }
-
-    /**
-     * Handles unauthorized request errors.
-     *
-     * @param ex      unauthorized exception from service layer
-     * @param request current HTTP request
-     * @return 403 Forbidden ProblemDetail response
-     */
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ProblemDetail> handleUnauthorized(UnauthorizedException ex, HttpServletRequest request) {
-        ProblemDetail problem = errorResponse(HttpStatus.FORBIDDEN, "Unauthorized", ex.getMessage(), null, request);
-
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problem);
-    }
-
-    @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<ProblemDetail> handleValidation(ValidationException ex, HttpServletRequest request) {
-        ProblemDetail problem =
-                errorResponse(HttpStatus.BAD_REQUEST, "Validation error", ex.getMessage(), ex.getErrors(), request);
 
         return ResponseEntity.badRequest().body(problem);
     }
@@ -220,49 +157,10 @@ public class DomainExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem);
     }
 
-    /**
-     * Handles invalid or expired verification code scenarios.
-     *
-     * Typical cases:
-     * - Email verification code is wrong
-     * - Code has expired
-     * - Code was already consumed
-     *
-     * @param ex      invalid code exception from service layer
-     * @param request current HTTP request
-     * @return 400 Bad Request ProblemDetail response
-     */
-    @ExceptionHandler(InvalidCodeException.class)
-    public ResponseEntity<ProblemDetail> handleInvalidCode(InvalidCodeException ex, HttpServletRequest request) {
-        log.warn(
-                "Invalid verification code: {} {} -> {}",
-                request.getMethod(),
-                request.getRequestURI(),
-                ex.getMessage());
-
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ProblemDetail> handleValidation(ValidationException ex, HttpServletRequest request) {
         ProblemDetail problem =
-                errorResponse(HttpStatus.BAD_REQUEST, "Invalid verification code", ex.getMessage(), null, request);
-
-        return ResponseEntity.badRequest().body(problem);
-    }
-
-    /**
-     * Handles email not verified scenarios.
-     *
-     * Typical cases:
-     * - User attempted to log in without verifying their email address
-     *
-     * @param ex      email not verified exception from service layer
-     * @param request current HTTP request
-     * @return 400 Bad Request ProblemDetail response
-     */
-    @ExceptionHandler(EmailNotVerifiedException.class)
-    public ResponseEntity<ProblemDetail> handleEmailNotVerified(
-            EmailNotVerifiedException ex, HttpServletRequest request) {
-        log.warn("Email not verified: {} {} -> {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
-
-        ProblemDetail problem =
-                errorResponse(HttpStatus.BAD_REQUEST, "Email not verified", ex.getMessage(), null, request);
+                errorResponse(HttpStatus.BAD_REQUEST, "Validation error", ex.getMessage(), ex.getErrors(), request);
 
         return ResponseEntity.badRequest().body(problem);
     }
