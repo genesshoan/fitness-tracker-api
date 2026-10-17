@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.common.error.exception;
+package dev.genesshoan.fitnesstrackerapi.auth.application.exception;
 
 public class InvalidJwtException extends RuntimeException {
 

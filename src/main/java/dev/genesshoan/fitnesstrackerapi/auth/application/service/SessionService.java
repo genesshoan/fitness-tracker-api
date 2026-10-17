@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.github.f4b6a3.uuid.UuidCreator;
+import dev.genesshoan.fitnesstrackerapi.auth.application.exception.EmailNotVerifiedException;
+import dev.genesshoan.fitnesstrackerapi.auth.application.exception.InvalidCredentialsException;
 import dev.genesshoan.fitnesstrackerapi.auth.application.exception.InvalidRefreshTokenException;
 import dev.genesshoan.fitnesstrackerapi.auth.application.exception.RefreshTokenReuseException;
 import dev.genesshoan.fitnesstrackerapi.auth.application.result.AuthTokens;
@@ -20,11 +22,9 @@ import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.persistence.RefreshT
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.security.JwtService;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.security.OpaqueTokens;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.TokenResponse;
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.EmailNotVerifiedException;
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidCredentialsException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
-import dev.genesshoan.fitnesstrackerapi.user.UserTokenData;
-import dev.genesshoan.fitnesstrackerapi.user.UserTokenDataQuery;
+import dev.genesshoan.fitnesstrackerapi.user.application.port.in.GetUserTokenDataUseCase;
+import dev.genesshoan.fitnesstrackerapi.user.application.port.in.result.UserTokenData;
 import dev.genesshoan.fitnesstrackerapi.user.domain.Role;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,23 +57,12 @@ import lombok.extern.slf4j.Slf4j;
 public class SessionService {
 
     private final RefreshTokenRepository tokenRepository;
-    private final UserTokenDataQuery userTokenDataQuery;
+    private final GetUserTokenDataUseCase getUserTokenDataUseCase;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenProperties refreshTokenProperties;
     private final Clock clock;
 
-    /**
-     * Authenticates a user by email and password and returns a token pair.
-     *
-     * Delegates credential verification to the {@link AuthenticationManager}.
-     * If authentication succeeds, issues a new access token and refresh token.
-     *
-     * @param dto the login request containing email and password
-     * @return a {@link TokenResponse} with the access token and refresh token
-     * @throws ResourceNotFoundException if the user is not found after
-     *                                   authentication
-     */
     /**
      * Authenticates a user by email and password and returns a token pair.
      *
@@ -104,7 +93,7 @@ public class SessionService {
             throw new InvalidCredentialsException("Invalid email or password");
         }
 
-        UserTokenData userData = userTokenDataQuery.findByEmail(email).orElseThrow(ResourceNotFoundException::new);
+        UserTokenData userData = getUserTokenDataUseCase.findByEmail(email).orElseThrow(ResourceNotFoundException::new);
 
         if (!userData.emailVerified()) {
             throw new EmailNotVerifiedException("Email address has not been verified");
@@ -142,37 +131,37 @@ public class SessionService {
      * @see #revokeById(UUID)
      * @see #revokeByFamily(UUID)
      */
-    @Transactional(noRollbackFor = RefreshTokenReuseException.class)
+    @Transactional(noRollbackFor = {RefreshTokenReuseException.class, InvalidRefreshTokenException.class})
     public AuthTokens refreshToken(String incomingRefreshToken) {
-        var tokenSubject = tokenRepository
+        var token = tokenRepository
                 .findByHash(OpaqueTokens.sha256(incomingRefreshToken))
                 .orElseThrow(InvalidRefreshTokenException::new);
 
-        log.info(
-                "Refresh token attempt. userId={}, tokenId={}", tokenSubject.getSubjectId(), tokenSubject.getTokenId());
+        log.info("Refresh token attempt. userId={}, tokenId={}", token.getUserId(), token.getId());
 
-        if (tokenSubject.getRevoked()) {
-            tokenRepository.revokeByFamily(tokenSubject.getTokenFamilyId());
+        if (token.isRevoked()) {
+            tokenRepository.revokeByFamily(token.getFamilyId());
 
             throw new RefreshTokenReuseException();
         }
 
-        if (!tokenSubject.getExpiresAt().isAfter(clock.instant())) {
+        if (!token.getExpiresAt().isAfter(clock.instant())) {
             throw new InvalidRefreshTokenException();
         }
 
-        tokenRepository.revokeById(tokenSubject.getTokenId());
+        var user = getUserTokenDataUseCase.findById(token.getUserId()).orElse(null);
 
-        var response = issueTokens(
-                tokenSubject.getUsername(),
-                tokenSubject.getSubjectId(),
-                getAuthorities(tokenSubject.getRole()),
-                tokenSubject.getTokenFamilyId());
+        if (user == null) {
+            tokenRepository.revokeByFamily(token.getFamilyId());
+            throw new InvalidRefreshTokenException();
+        }
 
-        log.info(
-                "Token refresh successful. userId={}, oldTokenId={}",
-                tokenSubject.getSubjectId(),
-                tokenSubject.getTokenId());
+        tokenRepository.revokeById(token.getId());
+
+        var response =
+                issueTokens(user.username(), token.getUserId(), getAuthorities(user.role()), token.getFamilyId());
+
+        log.info("Token refresh successful. userId={}, oldTokenId={}", token.getUserId(), token.getId());
 
         return response;
     }

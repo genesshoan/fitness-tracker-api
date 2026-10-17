@@ -88,8 +88,6 @@ public class RefreshToken extends IdentifiableEntity {
      * <p>Establishes a many-to-one relationship with the users table,
      * lazy-loaded to avoid unnecessary database queries when only metadata
      * is needed.
-     *
-     * @see dev.genesshoan.fitnesstrackerapi.user.domain.User
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)

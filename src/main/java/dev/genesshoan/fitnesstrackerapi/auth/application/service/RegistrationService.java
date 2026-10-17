@@ -3,22 +3,21 @@ package dev.genesshoan.fitnesstrackerapi.auth.application.service;
 import java.util.UUID;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import dev.genesshoan.fitnesstrackerapi.auth.application.command.RegisterCommand;
 import dev.genesshoan.fitnesstrackerapi.auth.application.event.VerificationEmailRequested;
+import dev.genesshoan.fitnesstrackerapi.auth.application.exception.InvalidCodeException;
 import dev.genesshoan.fitnesstrackerapi.auth.domain.VerificationPurpose;
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidCodeException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyExistsException;
-import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
-import dev.genesshoan.fitnesstrackerapi.user.domain.Role;
-import dev.genesshoan.fitnesstrackerapi.user.domain.User;
+import dev.genesshoan.fitnesstrackerapi.user.application.port.in.GetUserTokenDataUseCase;
+import dev.genesshoan.fitnesstrackerapi.user.application.port.in.RegisterUserUseCase;
+import dev.genesshoan.fitnesstrackerapi.user.application.port.in.VerifyUserEmailUseCase;
+import dev.genesshoan.fitnesstrackerapi.user.application.port.in.command.RegisterUserCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.exception.ConstraintViolationException;
 
 @Slf4j
 @Service
@@ -27,7 +26,9 @@ public class RegistrationService {
 
     private final VerificationTokenService verificationTokenService;
     private final ApplicationEventPublisher eventPublisher;
-    private final UserRepository userRepository;
+    private final RegisterUserUseCase registerUserUseCase;
+    private final VerifyUserEmailUseCase verifyUserEmailUseCase;
+    private final GetUserTokenDataUseCase getUserTokenDataUseCase;
     private final PasswordEncoder passwordEncoder;
 
     /**
@@ -46,41 +47,21 @@ public class RegistrationService {
     public void register(RegisterCommand command) {
         log.debug("Registration attempt. email={}, username={}", command.email(), command.username());
 
-        var user = User.builder()
-                .username(command.username())
-                .passwordHash(passwordEncoder.encode(command.password()))
-                .email(command.email())
-                .timezone(command.timezone())
-                .role(Role.USER)
-                .build();
+        UUID userId = registerUserUseCase.register(new RegisterUserCommand(
+                command.email(), command.username(), command.timezone(), passwordEncoder.encode(command.password())));
 
-        try {
-            user = userRepository.saveAndFlush(user);
-        } catch (DataIntegrityViolationException e) {
-            if (e.getCause() instanceof ConstraintViolationException cve) {
-                String constraint = cve.getConstraintName();
-                if (constraint != null && constraint.contains("email")) {
-                    throw new ResourceAlreadyExistsException("Email already exists", e);
-                }
-                if (constraint != null && constraint.contains("username")) {
-                    throw new ResourceAlreadyExistsException("Username already exists", e);
-                }
-            }
-            throw e;
-        }
+        log.info("User registered successfully. userId={}, email={}", userId, command.email());
 
-        log.info("User registered successfully. userId={}, email={}", user.getId(), user.getEmail());
-
-        issueAndPublishVerification(user);
+        issueAndPublishVerification(userId, command.username(), command.email());
     }
 
     /**
      * Verifies an email verification token and marks the user as verified.
      *
      * <p>
-     * <b>Returns:</b> <b>void</b> - the token is consumed and the user is marked as verified.
-     * <b>Throws:</b> <b>InvalidCodeException</b> if the token is invalid, expired, or already used.
-     * <b>Throws:</b> <b>ResourceAlreadyExistsException</b> if the user does not exist.
+     * The token is consumed and the user is marked as verified.
+     *
+     * @throws InvalidCodeException if the token is invalid, expired, or already used.
      */
     @Transactional
     public void verifyEmail(String token) {
@@ -89,7 +70,7 @@ public class RegistrationService {
                 .orElseThrow(
                         () -> new InvalidCodeException("Email verification token is invalid, expired or already use"));
 
-        if (userRepository.markEmailVerified(userId) == 0) {
+        if (!verifyUserEmailUseCase.markEmailVerified(userId)) {
             throw new InvalidCodeException(
                     "Email verification token was valid but the user no longer exists. userId=" + userId);
         }
@@ -107,22 +88,24 @@ public class RegistrationService {
      */
     @Transactional
     public void resendVerificationEmail(String email) {
-        userRepository
+        getUserTokenDataUseCase
                 .findByEmail(email)
-                .filter(user -> !user.isEmailVerified())
+                .filter(user -> !user.emailVerified())
                 .ifPresentOrElse(
-                        user -> issueAndPublishVerification(user),
+                        user -> issueAndPublishVerification(user.subjectId(), user.username(), email),
                         () -> log.info("Resend verification ignored: unknown or already verified account"));
     }
 
     /**
      * Issues a new verification token and publishes a verification email event.
      *
-     * @param user the user for whom to issue a verification token
+     * @param userId the user id
+     * @param username the user username
+     * @param email the user email
      */
-    private void issueAndPublishVerification(User user) {
-        var issued = verificationTokenService.issue(user.getId(), VerificationPurpose.EMAIL_VERIFICATION);
-        eventPublisher.publishEvent(new VerificationEmailRequested(
-                user.getUsername(), user.getEmail(), issued.token(), issued.expiresAt()));
+    private void issueAndPublishVerification(UUID userId, String username, String email) {
+        var issued = verificationTokenService.issue(userId, VerificationPurpose.EMAIL_VERIFICATION);
+        eventPublisher.publishEvent(
+                new VerificationEmailRequested(username, email, issued.token(), issued.expiresAt()));
     }
 }

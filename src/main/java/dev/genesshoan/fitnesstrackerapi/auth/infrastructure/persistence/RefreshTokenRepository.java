@@ -9,7 +9,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import dev.genesshoan.fitnesstrackerapi.auth.domain.RefreshToken;
-import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.persistence.projection.TokenSubject;
 
 /**
  * Repository for persistent refresh token management.
@@ -29,19 +28,11 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID
     boolean existsByIdAndRevokedFalse(UUID id);
 
     @Query("""
-            SELECT
-                u.username
-                r.id AS tokenId,
-                u.id AS subjectId,
-                u.role
-                r.familyId AS tokenFamilyId,
-                r.revoked
-                r.expiresAt
+            SELECT r
             FROM RefreshToken r
-            JOIN User u ON u.id = r.userId
             WHERE r.hash = :hash
         """)
-    Optional<TokenSubject> findByHash(@Param("hash") byte[] hash);
+    Optional<RefreshToken> findByHash(@Param("hash") byte[] hash);
 
     @Modifying
     @Query("""
@@ -51,6 +42,15 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID
             AND t.revoked = false
         """)
     int revokeById(@Param("id") UUID id);
+
+    @Modifying
+    @Query("""
+            UPDATE RefreshToken t
+            SET t.revoked = true
+            WHERE t.user_id = :userId
+            AND t.revoked = false
+        """)
+    void revokeByUserId(@Param("userId") UUID userId);
 
     @Modifying
     @Query(value = """
