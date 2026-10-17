@@ -15,6 +15,7 @@ import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.config.VerificationP
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.persistence.VerificationTokenRepository;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.security.OpaqueTokens;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service responsible for issuing and managing verification codes.
@@ -30,9 +31,10 @@ import lombok.RequiredArgsConstructor;
  * </ul>
  *
  * <p>
- * Uses HMAC-based hashing to store verification codes securely, preventing
+ * Uses SHA-256 hashing to store verification codes securely, preventing
  * storage of plain-text codes and protecting against unauthorized code recovery.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class VerificationTokenService {
@@ -55,6 +57,7 @@ public class VerificationTokenService {
      */
     @Transactional
     public IssuedToken issue(UUID subjectId, VerificationPurpose purpose) {
+        log.info("Issuing verification token for subject={} purpose={}", subjectId, purpose);
         Instant now = clock.instant();
         repository.invalidateActive(subjectId, purpose, now);
 
@@ -69,6 +72,7 @@ public class VerificationTokenService {
                 .expiresAt(expiresAt)
                 .build());
 
+        log.info("Verification token issued for subject={}. Expires at {}", subjectId, expiresAt);
         return new IssuedToken(token, expiresAt);
     }
 
@@ -90,6 +94,7 @@ public class VerificationTokenService {
      */
     @Transactional
     public Optional<UUID> consume(VerificationPurpose purpose, String token) {
+        log.info("Consuming verification token for purpose={}", purpose);
         byte[] hash = OpaqueTokens.sha256(token);
 
         var found = repository.findByHashAndPurpose(hash, purpose);
@@ -98,6 +103,7 @@ public class VerificationTokenService {
             return Optional.empty();
         }
 
+        log.info("Verification token consumed successfully for subject={}", found.get().getSubjectId());
         return Optional.of(found.get().getSubjectId());
     }
 }

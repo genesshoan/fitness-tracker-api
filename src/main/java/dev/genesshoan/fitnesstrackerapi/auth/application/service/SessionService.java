@@ -188,7 +188,9 @@ public class SessionService {
      */
     @Transactional
     public void logout(String incomingRefreshToken) {
+        log.info("Logout attempt");
         tokenRepository.revokeByHash(OpaqueTokens.sha256(incomingRefreshToken));
+        log.info("Logout completed. Refresh token family revoked by hash.");
     }
 
     /**
@@ -210,6 +212,7 @@ public class SessionService {
      * @see JwtService#buildAccessToken(String, List)
      */
     private AuthTokens issueTokens(String username, UUID userId, List<String> authorities, UUID familyId) {
+        log.info("Issuing new tokens for user: {}, familyId: {}", username, familyId);
         var refreshToken = OpaqueTokens.generate();
 
         tokenRepository.save(RefreshToken.builder()

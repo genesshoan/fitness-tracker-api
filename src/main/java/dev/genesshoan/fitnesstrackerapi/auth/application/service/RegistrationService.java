@@ -61,19 +61,23 @@ public class RegistrationService {
      * <p>
      * The token is consumed and the user is marked as verified.
      *
+     * @param token the raw verification token string
      * @throws InvalidCodeException if the token is invalid, expired, or already used.
      */
     @Transactional
     public void verifyEmail(String token) {
+        log.info("Verifying email token");
         UUID userId = verificationTokenService
                 .consume(VerificationPurpose.EMAIL_VERIFICATION, token)
                 .orElseThrow(
-                        () -> new InvalidCodeException("Email verification token is invalid, expired or already use"));
+                        () -> new InvalidCodeException("Email verification token is invalid, expired or already used"));
 
         if (!verifyUserEmailUseCase.markEmailVerified(userId)) {
             throw new InvalidCodeException(
                     "Email verification token was valid but the user no longer exists. userId=" + userId);
         }
+
+        log.info("Email verified successfully. userId={}", userId);
     }
 
     /**
