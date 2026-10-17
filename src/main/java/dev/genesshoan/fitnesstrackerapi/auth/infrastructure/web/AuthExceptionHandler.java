@@ -14,6 +14,7 @@ import dev.genesshoan.fitnesstrackerapi.auth.application.exception.EmailNotVerif
 import dev.genesshoan.fitnesstrackerapi.auth.application.exception.IncorrectPasswordException;
 import dev.genesshoan.fitnesstrackerapi.auth.application.exception.InvalidCodeException;
 import dev.genesshoan.fitnesstrackerapi.auth.application.exception.InvalidCredentialsException;
+import dev.genesshoan.fitnesstrackerapi.auth.application.exception.InvalidJwtException;
 import dev.genesshoan.fitnesstrackerapi.auth.application.exception.InvalidRefreshTokenException;
 import dev.genesshoan.fitnesstrackerapi.auth.application.exception.RefreshTokenReuseException;
 import lombok.RequiredArgsConstructor;
@@ -81,6 +82,18 @@ public class AuthExceptionHandler {
                         HttpStatus.BAD_REQUEST,
                         "Current password is incorrect",
                         "Provided password is incorrect",
+                        null,
+                        request));
+    }
+
+    @ExceptionHandler(InvalidJwtException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidJwt(InvalidJwtException ex, HttpServletRequest request) {
+        logRejection("Invalid JWT", ex, request);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(errorResponse(
+                        HttpStatus.UNAUTHORIZED,
+                        "Invalid verification token",
+                        "Invalid or expired verification token",
                         null,
                         request));
     }

@@ -103,7 +103,9 @@ public class VerificationTokenService {
             return Optional.empty();
         }
 
-        log.info("Verification token consumed successfully for subject={}", found.get().getSubjectId());
+        log.info(
+                "Verification token consumed successfully for subject={}",
+                found.get().getSubjectId());
         return Optional.of(found.get().getSubjectId());
     }
 }
