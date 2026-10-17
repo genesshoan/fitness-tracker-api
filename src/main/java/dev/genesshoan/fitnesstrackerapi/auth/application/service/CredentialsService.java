@@ -1,5 +1,14 @@
 package dev.genesshoan.fitnesstrackerapi.auth.application.service;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.util.UUID;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import dev.genesshoan.fitnesstrackerapi.auth.application.event.PasswordChanged;
 import dev.genesshoan.fitnesstrackerapi.auth.application.exception.IncorrectPasswordException;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.persistence.RefreshTokenRepository;
@@ -7,15 +16,8 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestExcepti
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.user.application.port.in.GetUserCredentialsUseCase;
 import dev.genesshoan.fitnesstrackerapi.user.application.port.in.UpdatePasswordHashUseCase;
-import java.time.Clock;
-import java.time.Instant;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
