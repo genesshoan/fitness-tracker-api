@@ -12,7 +12,6 @@ import dev.genesshoan.fitnesstrackerapi.auth.application.event.VerificationEmail
 import dev.genesshoan.fitnesstrackerapi.auth.application.exception.InvalidCodeException;
 import dev.genesshoan.fitnesstrackerapi.auth.domain.VerificationPurpose;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyExistsException;
-import dev.genesshoan.fitnesstrackerapi.user.application.port.in.GetUserTokenDataUseCase;
 import dev.genesshoan.fitnesstrackerapi.user.application.port.in.RegisterUserUseCase;
 import dev.genesshoan.fitnesstrackerapi.user.application.port.in.VerifyUserEmailUseCase;
 import dev.genesshoan.fitnesstrackerapi.user.application.port.in.command.RegisterUserCommand;
@@ -28,7 +27,6 @@ public class RegistrationService {
     private final ApplicationEventPublisher eventPublisher;
     private final RegisterUserUseCase registerUserUseCase;
     private final VerifyUserEmailUseCase verifyUserEmailUseCase;
-    private final GetUserTokenDataUseCase getUserTokenDataUseCase;
     private final PasswordEncoder passwordEncoder;
 
     /**
@@ -92,11 +90,10 @@ public class RegistrationService {
      */
     @Transactional
     public void resendVerificationEmail(String email) {
-        getUserTokenDataUseCase
-                .findByEmail(email)
-                .filter(user -> !user.emailVerified())
+        verifyUserEmailUseCase
+                .findUnverifiedByEmail(email)
                 .ifPresentOrElse(
-                        user -> issueAndPublishVerification(user.subjectId(), user.username(), email),
+                        user -> issueAndPublishVerification(user.id(), user.username(), email),
                         () -> log.info("Resend verification ignored: unknown or already verified account"));
     }
 

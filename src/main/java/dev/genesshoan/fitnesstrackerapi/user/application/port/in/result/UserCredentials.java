@@ -1,6 +1,7 @@
 package dev.genesshoan.fitnesstrackerapi.user.application.port.in.result;
 
 import dev.genesshoan.fitnesstrackerapi.user.domain.Role;
+import java.util.UUID;
 
 /**
  * The data the authentication module needs to verify a login attempt.
@@ -11,9 +12,16 @@ import dev.genesshoan.fitnesstrackerapi.user.domain.Role;
  * @param passwordHash the encoded password hash
  * @param role         the user's role, used to build the granted authorities
  */
-public record UserCredentials(String username, String email, String passwordHash, Role role) {
+public record UserCredentials(
+        UUID id, String email, String username, String passwordHash, boolean emailVerified, Role role) {
+
     @Override
     public String toString() {
-        return "UserCredentials[email=" + email + ", passwordHash=***, role=" + role + "]";
+        return "UserCredentials[id=" + id
+                + ", username=" + username
+                + ", email=***"
+                + ", passwordHash=***"
+                + ", emailVerified=" + emailVerified
+                + ", role=" + role + "]";
     }
 }

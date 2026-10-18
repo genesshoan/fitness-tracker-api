@@ -1,10 +1,11 @@
 package dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web;
 
+import java.util.UUID;
+
 import jakarta.validation.Valid;
 
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import dev.genesshoan.fitnesstrackerapi.auth.application.service.CredentialsService;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.PasswordChangeRequest;
-import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
+import dev.genesshoan.fitnesstrackerapi.common.annotation.CurrentUserId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -60,8 +61,8 @@ public class CredentialsController {
             })
     @PatchMapping("/password")
     public ResponseEntity<Void> changePassword(
-            @AuthenticationPrincipal UserDetailsImpl principal, @Valid @RequestBody PasswordChangeRequest dto) {
-        credentialsService.changePassword(principal.getId(), dto.oldPassword(), dto.newPassword());
+            @CurrentUserId UUID userId, @Valid @RequestBody PasswordChangeRequest dto) {
+        credentialsService.changePassword(userId, dto.oldPassword(), dto.newPassword());
 
         return ResponseEntity.noContent().build();
     }

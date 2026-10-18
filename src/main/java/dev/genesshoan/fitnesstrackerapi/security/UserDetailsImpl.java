@@ -5,16 +5,20 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import dev.genesshoan.fitnesstrackerapi.user.domain.User;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserDetailsImpl implements UserDetails {
 
-    private final User user;
+    private final UUID userId;
+    private final String identifier;
+    private final String email;
+    private final String username;
+    private final String passwordHash;
+    private final boolean emailVerified;
+    private final Collection<? extends GrantedAuthority> authorities;
 
     @Override
     public boolean isAccountNonExpired() {
@@ -38,24 +42,43 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+        return List.copyOf(authorities);
     }
 
     @Override
     public String getPassword() {
-        return user.getPasswordHash();
+        return passwordHash;
     }
 
     @Override
     public String getUsername() {
-        return user.getEmail();
+        return identifier;
     }
 
     public UUID getId() {
-        return user.getId();
+        return userId;
     }
 
-    public User getUser() {
-        return user;
+    public String getEmail() {
+        return email;
+    }
+
+    public String getDisplayUsername() {
+        return username;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    @Override
+    public String toString() {
+        return "UserDetailsImpl[id=" + userId
+                + ", identifier=" + identifier
+                + ", username=" + username
+                + ", email=***"
+                + ", passwordHash=***"
+                + ", emailVerified=" + emailVerified
+                + ", authorities=" + authorities + "]";
     }
 }
