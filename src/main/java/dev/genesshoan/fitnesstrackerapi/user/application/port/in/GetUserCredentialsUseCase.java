@@ -22,6 +22,14 @@ public interface GetUserCredentialsUseCase {
     Optional<UserCredentials> findByEmail(String email);
 
     /**
+     * Finds a user's credentials by email.
+     *
+     * @param email the user's email address
+     * @return the user's credentials, or empty if no user has that email
+     */
+    Optional<UserCredentials> findByIdentifier(String identifier);
+
+    /**
      * Finds the credentials of a user.
      *
      * @param id the user id

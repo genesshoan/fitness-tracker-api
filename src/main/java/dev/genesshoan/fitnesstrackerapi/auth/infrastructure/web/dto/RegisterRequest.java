@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import dev.genesshoan.fitnesstrackerapi.common.validation.ValidTimezone;
+import dev.genesshoan.fitnesstrackerapi.common.annotation.ValidTimezone;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Request for user registration")

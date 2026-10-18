@@ -3,16 +3,21 @@ package dev.genesshoan.fitnesstrackerapi.auth.infrastructure.security;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import javax.crypto.SecretKey;
 
 import jakarta.annotation.PostConstruct;
 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import dev.genesshoan.fitnesstrackerapi.auth.application.exception.InvalidJwtException;
+import dev.genesshoan.fitnesstrackerapi.auth.application.result.TokenData;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.config.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -67,23 +72,17 @@ public class JwtService {
     /**
      * Builds an access token containing username and roles.
      */
-    public String buildAccessToken(String username, List<String> authorities) {
+    public String buildAccessToken(UUID id, List<String> authorities) {
         Instant now = clock.instant();
 
         return Jwts.builder()
-                .subject(username)
+                .subject(id.toString())
                 .claim("authorities", authorities)
+                .issuer("FitnessTrackerApp")
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(jwtProperties.accessTokenExpiration())))
                 .signWith(secretKey)
                 .compact();
-    }
-
-    private String require(String value, String errorMessage) {
-        if (value == null || value.isBlank()) {
-            throw new InvalidJwtException(errorMessage);
-        }
-        return value;
     }
 
     /**
@@ -92,25 +91,45 @@ public class JwtService {
      * @param token JWT string
      * @return parsed claims
      */
-    private Claims parseToken(String token) {
+    public TokenData parseToken(String token) {
         try {
-            return Jwts.parser()
+            Claims claims = Jwts.parser()
                     .verifyWith(secretKey)
+                    .requireIssuer("FitnessTrackerApp")
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
-        } catch (JwtException ex) {
+
+            String sub = claims.getSubject();
+            if (sub == null) throw new InvalidJwtException("Missing subject");
+
+            Date exp = claims.getExpiration();
+            if (exp == null) throw new InvalidJwtException("Missing expiration");
+
+            return new TokenData(
+                    UUID.fromString(claims.getSubject()),
+                    extractAuthorities(claims),
+                    claims.getIssuedAt(),
+                    claims.getExpiration());
+        } catch (JwtException | IllegalArgumentException | NullPointerException ex) {
             throw new InvalidJwtException("Invalid or expired token", ex);
         }
     }
 
-    /**
-     * Extracts the username (subject) from the JWT.
-     * <p>
-     * This value is required for authentication context.
-     * If missing, the token is considered invalid.
-     */
-    public String extractUsername(String token) {
-        return require(parseToken(token).getSubject(), "Missing subject");
+    private Collection<? extends GrantedAuthority> extractAuthorities(Claims claims) {
+        Object value = claims.get("authorities");
+
+        if (!(value instanceof List<?> roles) || !roles.stream().allMatch(String.class::isInstance)) {
+            throw new InvalidJwtException("Invalid roles claim");
+        }
+
+        try {
+            return roles.stream()
+                    .map(String.class::cast)
+                    .map(SimpleGrantedAuthority::new)
+                    .toList();
+        } catch (IllegalArgumentException ex) {
+            throw new InvalidJwtException("Invalid roles claim", ex);
+        }
     }
 }

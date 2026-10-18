@@ -6,7 +6,9 @@ import java.util.UUID;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,9 +25,8 @@ import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.security.JwtService;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.security.OpaqueTokens;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.TokenResponse;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
-import dev.genesshoan.fitnesstrackerapi.user.application.port.in.GetUserTokenDataUseCase;
-import dev.genesshoan.fitnesstrackerapi.user.application.port.in.result.UserTokenData;
-import dev.genesshoan.fitnesstrackerapi.user.domain.Role;
+import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
+import dev.genesshoan.fitnesstrackerapi.user.application.port.in.GetRefreshUserDataUseCase;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,7 +58,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SessionService {
 
     private final RefreshTokenRepository tokenRepository;
-    private final GetUserTokenDataUseCase getUserTokenDataUseCase;
+    private final GetRefreshUserDataUseCase getRefreshUserDataUseCase;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenProperties refreshTokenProperties;
@@ -75,7 +76,7 @@ public class SessionService {
      *
      * @param email    the user's email address for authentication
      * @param password the user's password for authentication
-     * @return a {@link TokenResponse} with the access token and refresh token
+     * @return a {@link AuthTokens} with the access token and refresh token
      * @throws InvalidCredentialsException if the email or password is invalid
      * @throws EmailNotVerifiedException   if the user's email is not verified
      * @throws ResourceNotFoundException   if the user is not found after authentication
@@ -87,25 +88,28 @@ public class SessionService {
     public AuthTokens login(String email, String password) {
         log.info("Login attempt. email={}", email);
 
+        Authentication authenticated;
+
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+            authenticated =
+                    authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
         } catch (AuthenticationException e) {
             throw new InvalidCredentialsException("Invalid email or password");
         }
 
-        UserTokenData userData = getUserTokenDataUseCase.findByEmail(email).orElseThrow(ResourceNotFoundException::new);
+        var authenticatedUser = (UserDetailsImpl) authenticated.getPrincipal();
 
-        if (!userData.emailVerified()) {
+        if (!authenticatedUser.isEmailVerified()) {
             throw new EmailNotVerifiedException("Email address has not been verified");
         }
 
-        log.info("Login successful. userId={}, email={}", userData.subjectId(), email);
+        var authorities = authenticatedUser.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
 
-        return issueTokens(
-                userData.username(),
-                userData.subjectId(),
-                getAuthorities(userData.role()),
-                UuidCreator.getTimeOrderedEpoch());
+        log.info("Login successful. userId={}, email={}", authenticatedUser.getId(), email);
+
+        return issueTokens(authenticatedUser.getId(), authorities, UuidCreator.getTimeOrderedEpoch());
     }
 
     /**
@@ -149,17 +153,16 @@ public class SessionService {
             throw new InvalidRefreshTokenException();
         }
 
-        var user = getUserTokenDataUseCase.findById(token.getUserId()).orElse(null);
-
-        if (user == null) {
-            tokenRepository.revokeByFamily(token.getFamilyId());
-            throw new InvalidRefreshTokenException();
-        }
+        var user = getRefreshUserDataUseCase
+                .findRefreshDataById(token.getUserId())
+                .orElseThrow(() -> {
+                    tokenRepository.revokeByFamily(token.getFamilyId());
+                    return new InvalidRefreshTokenException();
+                });
 
         tokenRepository.revokeById(token.getId());
 
-        var response =
-                issueTokens(user.username(), token.getUserId(), getAuthorities(user.role()), token.getFamilyId());
+        var response = issueTokens(token.getUserId(), List.of("ROLE_" + user.role()), token.getFamilyId());
 
         log.info("Token refresh successful. userId={}, oldTokenId={}", token.getUserId(), token.getId());
 
@@ -201,7 +204,6 @@ public class SessionService {
      * hashes it for storage, and persists the {@link RefreshToken} entity.
      * The access token is generated via {@link JwtService}.
      *
-     * @param username     the user's username for the access token
      * @param userId       the user's UUID identifier
      * @param authorities  the user's authorities/roles for the access token
      * @param familyId     the token family ID for grouping related tokens
@@ -211,8 +213,8 @@ public class SessionService {
      * @see OpaqueTokens#sha256(String)
      * @see JwtService#buildAccessToken(String, List)
      */
-    private AuthTokens issueTokens(String username, UUID userId, List<String> authorities, UUID familyId) {
-        log.info("Issuing new tokens for user: {}, familyId: {}", username, familyId);
+    private AuthTokens issueTokens(UUID userId, List<String> authorities, UUID familyId) {
+        log.info("Issuing new tokens for user: {}, familyId: {}", userId, familyId);
         var refreshToken = OpaqueTokens.generate();
 
         tokenRepository.save(RefreshToken.builder()
@@ -222,11 +224,7 @@ public class SessionService {
                 .expiresAt(clock.instant().plus(refreshTokenProperties.expiration()))
                 .build());
 
-        var accessToken = jwtService.buildAccessToken(username, authorities);
+        var accessToken = jwtService.buildAccessToken(userId, authorities);
         return new AuthTokens(accessToken, refreshToken);
-    }
-
-    private List<String> getAuthorities(Role role) {
-        return List.of("ROLE_" + role.name());
     }
 }

@@ -11,13 +11,12 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import dev.genesshoan.fitnesstrackerapi.auth.application.exception.InvalidJwtException;
+import dev.genesshoan.fitnesstrackerapi.auth.application.result.TokenData;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.security.JwtService;
 import lombok.RequiredArgsConstructor;
 
@@ -42,7 +41,6 @@ import lombok.RequiredArgsConstructor;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserDetailsService userDetailsService;
 
     /**
      * Intercepts each HTTP request once per request lifecycle.
@@ -73,22 +71,19 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String jwtToken = header.substring(7);
 
-        String username;
+        TokenData token;
 
         try {
-            username = jwtService.extractUsername(jwtToken);
+            token = jwtService.parseToken(jwtToken);
         } catch (InvalidJwtException e) {
             SecurityContextHolder.clearContext();
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Set authentication only if context is empty
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
             UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    new UsernamePasswordAuthenticationToken(token.subject(), null, token.authorities());
 
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
