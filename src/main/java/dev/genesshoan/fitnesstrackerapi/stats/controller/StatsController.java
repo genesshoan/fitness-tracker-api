@@ -7,14 +7,13 @@ import java.util.UUID;
 
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
+import dev.genesshoan.fitnesstrackerapi.common.annotation.CurrentUserId;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPointsDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.MonthlyVolumeDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityResponseDTO;
@@ -86,9 +85,9 @@ public class StatsController {
     })
     @GetMapping(value = "/volume", params = "sessionId")
     public ResponseEntity<SessionVolumeDTO> getSessionVolume(
-            @AuthenticationPrincipal UserDetailsImpl principal,
+            @CurrentUserId UUID userId,
             @Parameter(description = "Workout session id", required = true) @RequestParam UUID sessionId) {
-        return ResponseEntity.ok(statsService.calculateSessionVolume(sessionId, principal.getId()));
+        return ResponseEntity.ok(statsService.calculateSessionVolume(sessionId, userId));
     }
 
     /**
@@ -129,7 +128,7 @@ public class StatsController {
             value = "/volume",
             params = {"from", "to"})
     public ResponseEntity<SessionVolumeDTO> getVolume(
-            @AuthenticationPrincipal UserDetailsImpl principal,
+            @CurrentUserId UUID userId,
             @Parameter(
                             description = "Inclusive start date in the user's timezone",
                             required = true,
@@ -142,8 +141,7 @@ public class StatsController {
                             example = "2026-01-31")
                     @RequestParam
                     LocalDate to) {
-        return ResponseEntity.ok(statsService.calculateVolume(
-                principal.getId(), from, to, principal.getUser().getTimezone()));
+        return ResponseEntity.ok(statsService.calculateVolume(userId, from, to));
     }
 
     /**
@@ -182,7 +180,7 @@ public class StatsController {
     })
     @GetMapping("/volume/monthly")
     public ResponseEntity<List<MonthlyVolumeDTO>> getMonthlyVolume(
-            @AuthenticationPrincipal UserDetailsImpl principal,
+            @CurrentUserId UUID userId,
             @Parameter(
                             description = "Inclusive start date in the user's timezone",
                             required = true,
@@ -195,8 +193,7 @@ public class StatsController {
                             example = "2026-12-31")
                     @RequestParam
                     LocalDate to) {
-        return ResponseEntity.ok(statsService.getMonthlyVolume(
-                principal.getId(), from, to, principal.getUser().getTimezone()));
+        return ResponseEntity.ok(statsService.getMonthlyVolume(userId, from, to));
     }
 
     @Operation(
@@ -241,9 +238,9 @@ public class StatsController {
     })
     @GetMapping("/1rm")
     public ResponseEntity<OneRepMaxDTO> getOneRepMax(
-            @AuthenticationPrincipal UserDetailsImpl principal,
+            @CurrentUserId UUID userId,
             @Parameter(description = "Exercise id", required = true) @RequestParam UUID exerciseId) {
-        return ResponseEntity.ok(statsService.getOneRepMax(principal.getId(), exerciseId));
+        return ResponseEntity.ok(statsService.getOneRepMax(userId, exerciseId));
     }
 
     @Operation(
@@ -270,9 +267,8 @@ public class StatsController {
                                 schema = @Schema(implementation = ProblemDetail.class)))
     })
     @GetMapping("/streak")
-    public ResponseEntity<StreakDTO> getCurrentStreak(@AuthenticationPrincipal UserDetailsImpl principal) {
-        return ResponseEntity.ok(statsService.getCurrentStreak(
-                principal.getId(), Instant.now(), principal.getUser().getTimezone()));
+    public ResponseEntity<StreakDTO> getCurrentStreak(@CurrentUserId UUID userId) {
+        return ResponseEntity.ok(statsService.getCurrentStreak(userId, Instant.now()));
     }
 
     @Operation(
@@ -317,7 +313,7 @@ public class StatsController {
     })
     @GetMapping("/progress")
     public ResponseEntity<ExerciseProgressPointsDTO> getExerciseProgress(
-            @AuthenticationPrincipal UserDetailsImpl principal,
+            @CurrentUserId UUID userId,
             @Parameter(description = "Exercise id", required = true) @RequestParam UUID exerciseId,
             @Parameter(
                             description = "Inclusive start of the date range in ISO-8601 format",
@@ -331,8 +327,7 @@ public class StatsController {
                             example = "2026-02-01T00:00:00Z")
                     @RequestParam
                     Instant to) {
-        return ResponseEntity.ok(statsService.getExerciseProgress(
-                principal.getId(), exerciseId, from, to, principal.getUser().getTimezone()));
+        return ResponseEntity.ok(statsService.getExerciseProgress(userId, exerciseId, from, to));
     }
 
     @Operation(
@@ -371,7 +366,7 @@ public class StatsController {
     })
     @GetMapping("/muscle-intensity")
     public ResponseEntity<MuscleIntensityResponseDTO> getMuscleIntensity(
-            @AuthenticationPrincipal UserDetailsImpl principal,
+            @CurrentUserId UUID userId,
             @Parameter(
                             description = "Inclusive start of the date range in the user's timezone",
                             required = true,
@@ -384,7 +379,6 @@ public class StatsController {
                             example = "2026-09-30")
                     @RequestParam
                     LocalDate to) {
-        return ResponseEntity.ok(statsService.getMuscleIntensity(
-                principal.getId(), from, to, principal.getUser().getTimezone()));
+        return ResponseEntity.ok(statsService.getMuscleIntensity(userId, from, to));
     }
 }

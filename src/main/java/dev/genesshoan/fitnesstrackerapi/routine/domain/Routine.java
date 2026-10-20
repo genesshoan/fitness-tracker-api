@@ -1,20 +1,18 @@
 package dev.genesshoan.fitnesstrackerapi.routine.domain;
 
 import java.util.List;
+import java.util.UUID;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 import dev.genesshoan.fitnesstrackerapi.common.domain.BaseEntity;
-import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -49,10 +47,7 @@ public class Routine extends BaseEntity {
     @Builder.Default
     private boolean active = true;
 
-    /** The user who owns this routine. */
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    private UUID userId;
 
     /** Exercises in this routine, ordered by their one-based position. */
     @OneToMany(mappedBy = "routine", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

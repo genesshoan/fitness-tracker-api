@@ -44,6 +44,7 @@ import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MuscleIntens
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.OneRepMaxProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.RankedSetProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.VolumeSetProjection;
+import dev.genesshoan.fitnesstrackerapi.user.application.port.in.GetUserTimeZoneUseCase;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
 import dev.genesshoan.fitnesstrackerapi.workout.repository.WorkoutSessionRepository;
@@ -64,6 +65,7 @@ public class StatsService {
     private final StatsRepository statsRepository;
     private final WorkoutSessionRepository workoutSessionRepository;
     private final ExerciseRepository exerciseRepository;
+    private final GetUserTimeZoneUseCase getUserTimeZoneUseCase;
 
     private final ExerciseMetricsMapper exerciseMetricsMapper;
     private final AchievementMapper achievementMapper;
@@ -72,13 +74,13 @@ public class StatsService {
      * Calculates the current and longest consecutive workout-day streak.
      *
      * @param userId the user whose sessions are considered
-     * @param referenceInstant the instant treated as "today"
      * @param userTimezone the user's IANA timezone
      * @return streak counts and the most recent active local date
      */
-    public StreakDTO getCurrentStreak(UUID userId, Instant referenceInstant, String userTimezone) {
+    public StreakDTO getCurrentStreak(UUID userId, Instant referenceInstant) {
 
-        ZoneId userZoneId = ZoneId.of(userTimezone);
+        ZoneId userZoneId =
+                getUserTimeZoneUseCase.getUserTimezoneById(userId).orElseThrow(ResourceNotFoundException::new);
 
         List<LocalDate> activeDaysAscending =
                 statsRepository.getTrainedDatesBeforeAsc(userId, referenceInstant).stream()
@@ -124,17 +126,18 @@ public class StatsService {
      * @return chronological monthly volume entries; months without volume are omitted
      * @throws BadRequestException if {@code from} is after {@code to}
      */
-    public List<MonthlyVolumeDTO> getMonthlyVolume(UUID userId, LocalDate from, LocalDate to, String userTimezone) {
+    public List<MonthlyVolumeDTO> getMonthlyVolume(UUID userId, LocalDate from, LocalDate to) {
 
         if (from.isAfter(to)) {
             throw new BadRequestException("The start date cannot be after the end date");
         }
 
-        ZoneId userZoneId = ZoneId.of(userTimezone);
-        Instant fromInclusive = from.atStartOfDay(userZoneId).toInstant();
-        Instant toExclusive = to.plusDays(1).atStartOfDay(userZoneId).toInstant();
+        ZoneId userTimezone =
+                getUserTimeZoneUseCase.getUserTimezoneById(userId).orElseThrow(ResourceNotFoundException::new);
+        Instant fromInclusive = from.atStartOfDay(userTimezone).toInstant();
+        Instant toExclusive = to.plusDays(1).atStartOfDay(userTimezone).toInstant();
 
-        return statsRepository.getMonthlyVolume(userId, fromInclusive, toExclusive, userTimezone).stream()
+        return statsRepository.getMonthlyVolume(userId, fromInclusive, toExclusive, userTimezone.toString()).stream()
                 .map(projection -> new MonthlyVolumeDTO(projection.month(), projection.volumeKg()))
                 .toList();
     }
@@ -149,15 +152,16 @@ public class StatsService {
      * @return total volume in kilogram-repetitions
      * @throws BadRequestException if {@code from} is after {@code to}
      */
-    public SessionVolumeDTO calculateVolume(UUID userId, LocalDate from, LocalDate to, String userTimezone) {
+    public SessionVolumeDTO calculateVolume(UUID userId, LocalDate from, LocalDate to) {
 
         if (from.isAfter(to)) {
             throw new BadRequestException("The start date cannot be after the end date");
         }
 
-        ZoneId userZoneId = ZoneId.of(userTimezone);
-        Instant fromInclusive = from.atStartOfDay(userZoneId).toInstant();
-        Instant toExclusive = to.plusDays(1).atStartOfDay(userZoneId).toInstant();
+        ZoneId userTimezone =
+                getUserTimeZoneUseCase.getUserTimezoneById(userId).orElseThrow(ResourceNotFoundException::new);
+        Instant fromInclusive = from.atStartOfDay(userTimezone).toInstant();
+        Instant toExclusive = to.plusDays(1).atStartOfDay(userTimezone).toInstant();
 
         return new SessionVolumeDTO(statsRepository.getVolume(userId, fromInclusive, toExclusive));
     }
@@ -199,8 +203,7 @@ public class StatsService {
      * @throws BadRequestException if {@code from} is after {@code to}
      * @throws ResourceNotFoundException if the exercise does not exist
      */
-    public ExerciseProgressPointsDTO getExerciseProgress(
-            UUID userId, UUID exerciseId, Instant from, Instant to, String userTimezone) {
+    public ExerciseProgressPointsDTO getExerciseProgress(UUID userId, UUID exerciseId, Instant from, Instant to) {
 
         if (from.isAfter(to)) {
             throw new BadRequestException("The start date cannot be after the end date");
@@ -210,12 +213,13 @@ public class StatsService {
             throw new ResourceNotFoundException("Exercise not found");
         }
 
-        ZoneId userZoneId = ZoneId.of(userTimezone);
+        ZoneId userTimezone =
+                getUserTimeZoneUseCase.getUserTimezoneById(userId).orElseThrow(ResourceNotFoundException::new);
 
         List<ExerciseProgressPointDTO> progress =
                 statsRepository.getExerciseProgressPoints(userId, exerciseId, from, to).stream()
                         .map(p -> new ExerciseProgressPointDTO(
-                                p.instant().atZone(userZoneId).toLocalDate(),
+                                p.instant().atZone(userTimezone).toLocalDate(),
                                 p.weightKg(),
                                 p.reps(),
                                 p.estimatedOneRepMax()))
@@ -242,16 +246,16 @@ public class StatsService {
      * @return every muscle with metadata and a relative intensity score
      * @throws BadRequestException if {@code from} is after {@code to}
      */
-    public MuscleIntensityResponseDTO getMuscleIntensity(
-            UUID userId, LocalDate from, LocalDate to, String userTimezone) {
+    public MuscleIntensityResponseDTO getMuscleIntensity(UUID userId, LocalDate from, LocalDate to) {
 
         if (from.isAfter(to)) {
             throw new BadRequestException("The start date cannot be after the end date");
         }
 
-        ZoneId userZoneId = ZoneId.of(userTimezone);
-        Instant fromInclusive = from.atStartOfDay(userZoneId).toInstant();
-        Instant toExclusive = to.plusDays(1).atStartOfDay(userZoneId).toInstant();
+        ZoneId userTimezone =
+                getUserTimeZoneUseCase.getUserTimezoneById(userId).orElseThrow(ResourceNotFoundException::new);
+        Instant fromInclusive = from.atStartOfDay(userTimezone).toInstant();
+        Instant toExclusive = to.plusDays(1).atStartOfDay(userTimezone).toInstant();
 
         Map<UUID, List<MuscleIntensityProjection>> projectionsByMuscle =
                 statsRepository.getMuscleIntensity(userId, fromInclusive, toExclusive).stream()
