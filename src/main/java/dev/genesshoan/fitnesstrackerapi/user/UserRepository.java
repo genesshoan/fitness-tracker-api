@@ -101,4 +101,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
                 AND emailVerified = false
         """)
     Optional<PendingVerificationUser> findUnverifiedByEmail(@Param("email") String email);
+
+    Optional<String> findTimezoneById(UUID id);
 }

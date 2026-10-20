@@ -1,5 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.user;
 
+import java.time.ZoneId;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -12,6 +13,7 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyEx
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.user.application.port.in.GetRefreshUserDataUseCase;
 import dev.genesshoan.fitnesstrackerapi.user.application.port.in.GetUserCredentialsUseCase;
+import dev.genesshoan.fitnesstrackerapi.user.application.port.in.GetUserTimeZoneUseCase;
 import dev.genesshoan.fitnesstrackerapi.user.application.port.in.RegisterUserUseCase;
 import dev.genesshoan.fitnesstrackerapi.user.application.port.in.UpdatePasswordHashUseCase;
 import dev.genesshoan.fitnesstrackerapi.user.application.port.in.VerifyUserEmailUseCase;
@@ -37,7 +39,8 @@ public class UserService
                 GetUserCredentialsUseCase,
                 RegisterUserUseCase,
                 UpdatePasswordHashUseCase,
-                VerifyUserEmailUseCase {
+                VerifyUserEmailUseCase,
+                GetUserTimeZoneUseCase {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
@@ -179,6 +182,14 @@ public class UserService
         }
 
         return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Optional<ZoneId> getUserTimezoneById(UUID userId) {
+        return userRepository.findTimezoneById(userId).map(ZoneId::of);
     }
 
     private User findUserById(UUID id) {

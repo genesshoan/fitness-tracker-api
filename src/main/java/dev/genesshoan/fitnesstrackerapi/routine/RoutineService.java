@@ -28,7 +28,6 @@ import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineListItemDTO;
 import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.routine.mapper.RoutineMapper;
-import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -53,9 +52,9 @@ public class RoutineService {
      * @param pageable pagination parameters
      * @return a page of routine list items with exercise counts
      */
-    public Page<RoutineListItemDTO> getRoutinesByUserId(User user, Pageable pageable) {
-        log.info("Getting routines for user: {} with pageable: {}", user.getId(), pageable);
-        return routineRepository.findAllByUserIdAndActiveTrueWithExerciseCount(user.getId(), pageable);
+    public Page<RoutineListItemDTO> getRoutinesByUserId(UUID userId, Pageable pageable) {
+        log.info("Getting routines for user: {} with pageable: {}", userId, pageable);
+        return routineRepository.findAllByUserIdAndActiveTrueWithExerciseCount(userId, pageable);
     }
 
     /**
@@ -65,9 +64,9 @@ public class RoutineService {
      * @param user      the user requesting the routine
      * @return the routine response
      */
-    public RoutineResponseDTO getRoutineById(UUID routineId, User user) {
-        log.info("Getting routine by id: {} for user: {}", routineId, user.getId());
-        return toResponseDTO(findAndValidateRoutine(routineId, user));
+    public RoutineResponseDTO getRoutineById(UUID routineId, UUID userId) {
+        log.info("Getting routine by id: {} for user: {}", routineId, userId);
+        return toResponseDTO(findAndValidateRoutine(routineId, userId));
     }
 
     /**
@@ -78,11 +77,11 @@ public class RoutineService {
      * @return the created routine
      */
     @Transactional
-    public RoutineResponseDTO createRoutine(RoutineRequestDTO dto, User user) {
-        log.info("Creating routine with name: {} for user: {}", dto.name(), user.getId());
+    public RoutineResponseDTO createRoutine(RoutineRequestDTO dto, UUID userId) {
+        log.info("Creating routine with name: {} for user: {}", dto.name(), userId);
 
-        if (routineRepository.existsByNameAndUserIdAndActiveTrue(dto.name(), user.getId())) {
-            log.warn("Routine with name '{}' already exists for user: {}", dto.name(), user.getId());
+        if (routineRepository.existsByNameAndUserIdAndActiveTrue(dto.name(), userId)) {
+            log.warn("Routine with name '{}' already exists for user: {}", dto.name(), userId);
             throw new ResourceAlreadyExistsException(
                     "A routine with the name '" + dto.name() + "' already exists for this user");
         }
@@ -90,7 +89,7 @@ public class RoutineService {
         var routine = Routine.builder()
                 .name(dto.name())
                 .description(dto.description())
-                .user(user)
+                .userId(userId)
                 .exercises(new ArrayList<>())
                 .build();
 
@@ -117,14 +116,14 @@ public class RoutineService {
      * @return the updated routine
      */
     @Transactional
-    public RoutineResponseDTO updateRoutine(UUID routineId, RoutineRequestDTO dto, User user) {
-        log.info("Updating routine: {} for user: {}", routineId, user.getId());
+    public RoutineResponseDTO updateRoutine(UUID routineId, RoutineRequestDTO dto, UUID userId) {
+        log.info("Updating routine: {} for user: {}", routineId, userId);
 
-        var routine = findAndValidateRoutine(routineId, user);
+        var routine = findAndValidateRoutine(routineId, userId);
 
         if (!dto.name().equals(routine.getName())
-                && routineRepository.existsByNameAndUserIdAndActiveTrue(dto.name(), user.getId())) {
-            log.warn("Routine with name '{}' already exists for user: {}", dto.name(), user.getId());
+                && routineRepository.existsByNameAndUserIdAndActiveTrue(dto.name(), userId)) {
+            log.warn("Routine with name '{}' already exists for user: {}", dto.name(), userId);
             throw new ResourceAlreadyExistsException(
                     "A routine with the name '" + dto.name() + "' already exists for this user");
         }
@@ -148,10 +147,10 @@ public class RoutineService {
      * @param user      the user deleting the routine
      */
     @Transactional
-    public void deleteRoutine(UUID routineId, User user) {
-        log.info("Deleting routine: {} for user: {}", routineId, user.getId());
+    public void deleteRoutine(UUID routineId, UUID userId) {
+        log.info("Deleting routine: {} for user: {}", routineId, userId);
         // TODO: Prevent deletion when an active workout session exists.
-        var routine = findAndValidateRoutine(routineId, user);
+        var routine = findAndValidateRoutine(routineId, userId);
         routine.setActive(false);
         log.info("Routine deactivated: {}", routineId);
     }
@@ -167,10 +166,10 @@ public class RoutineService {
      */
     @Transactional
     public RoutineResponseDTO addRoutineExercise(
-            UUID routineId, int position, RoutineExerciseRequestDTO dto, User user) {
-        log.info("Adding exercise to routine: {}, position: {}, for user: {}", routineId, position, user.getId());
+            UUID routineId, int position, RoutineExerciseRequestDTO dto, UUID userId) {
+        log.info("Adding exercise to routine: {}, position: {}, for user: {}", routineId, position, userId);
 
-        var routine = findAndValidateRoutine(routineId, user);
+        var routine = findAndValidateRoutine(routineId, userId);
 
         var exercise = exerciseRepository.findById(dto.exerciseId()).orElseThrow(() -> {
             log.warn("Exercise not found: {}", dto.exerciseId());
@@ -208,10 +207,10 @@ public class RoutineService {
      * @param user      the user owning the routine
      */
     @Transactional
-    public void deleteRoutineExercise(UUID routineId, int position, User user) {
-        log.info("Deleting exercise at position: {} from routine: {} for user: {}", position, routineId, user.getId());
+    public void deleteRoutineExercise(UUID routineId, int position, UUID userId) {
+        log.info("Deleting exercise at position: {} from routine: {} for user: {}", position, routineId, userId);
         // TODO: Prevent deletion when an active workout session exists.
-        var routine = findAndValidateRoutine(routineId, user);
+        var routine = findAndValidateRoutine(routineId, userId);
 
         var routineExercise = routine.getExercises().stream()
                 .filter(re -> re.getPosition() == position)
@@ -244,10 +243,10 @@ public class RoutineService {
      */
     @Transactional
     public RoutineResponseDTO updateRoutineExercise(
-            UUID routineId, int position, RoutineExerciseRequestDTO dto, User user) {
-        log.info("Updating exercise at position: {} from routine: {} for user: {}", position, routineId, user.getId());
+            UUID routineId, int position, RoutineExerciseRequestDTO dto, UUID userId) {
+        log.info("Updating exercise at position: {} from routine: {} for user: {}", position, routineId, userId);
 
-        var routine = findAndValidateRoutine(routineId, user);
+        var routine = findAndValidateRoutine(routineId, userId);
 
         var exercise = exerciseRepository.findById(dto.exerciseId()).orElseThrow(() -> {
             log.warn("Exercise not found: {}", dto.exerciseId());
@@ -388,15 +387,15 @@ public class RoutineService {
      * @return the routine
      * @throws ResourceNotFoundException if the routine is not found or not owned by the user
      */
-    private Routine findAndValidateRoutine(UUID routineId, User user) {
-        log.debug("Finding and validating routine: {} for user: {}", routineId, user.getId());
+    private Routine findAndValidateRoutine(UUID routineId, UUID userId) {
+        log.debug("Finding and validating routine: {} for user: {}", routineId, userId);
         Routine routine = routineRepository.findByIdAndActiveTrue(routineId).orElseThrow(() -> {
             log.warn("Routine not found: {}", routineId);
             return new ResourceNotFoundException("Routine not found");
         });
 
-        if (!routine.getUser().getId().equals(user.getId())) {
-            log.warn("User: {} does not have permission to access routine: {}", user.getId(), routineId);
+        if (!routine.getUserId().equals(userId)) {
+            log.warn("User: {} does not have permission to access routine: {}", userId, routineId);
             throw new ResourceNotFoundException("Routine not found");
         }
 

@@ -10,7 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,11 +21,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import dev.genesshoan.fitnesstrackerapi.common.annotation.CurrentUserId;
 import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineExerciseRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineListItemDTO;
 import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -83,8 +82,8 @@ public class RoutineController {
     })
     @GetMapping
     public ResponseEntity<Page<RoutineListItemDTO>> getRoutines(
-            @AuthenticationPrincipal UserDetailsImpl principal, @ParameterObject Pageable pageable) {
-        return ResponseEntity.ok(routineService.getRoutinesByUserId(principal.getUser(), pageable));
+            @CurrentUserId UUID userId, @ParameterObject Pageable pageable) {
+        return ResponseEntity.ok(routineService.getRoutinesByUserId(userId, pageable));
     }
 
     /**
@@ -127,9 +126,8 @@ public class RoutineController {
     })
     @GetMapping("/{routineId}")
     public ResponseEntity<RoutineResponseDTO> getRoutine(
-            @Parameter(description = "Routine id") @PathVariable UUID routineId,
-            @AuthenticationPrincipal UserDetailsImpl principal) {
-        return ResponseEntity.ok(routineService.getRoutineById(routineId, principal.getUser()));
+            @Parameter(description = "Routine id") @PathVariable UUID routineId, @CurrentUserId UUID userId) {
+        return ResponseEntity.ok(routineService.getRoutineById(routineId, userId));
     }
 
     /**
@@ -179,9 +177,8 @@ public class RoutineController {
     })
     @PostMapping
     public ResponseEntity<RoutineResponseDTO> createRoutine(
-            @Valid @RequestBody RoutineRequestDTO requestDTO, @AuthenticationPrincipal UserDetailsImpl principal) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(routineService.createRoutine(requestDTO, principal.getUser()));
+            @Valid @RequestBody RoutineRequestDTO requestDTO, @CurrentUserId UUID userId) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(routineService.createRoutine(requestDTO, userId));
     }
 
     /**
@@ -241,8 +238,8 @@ public class RoutineController {
     public ResponseEntity<RoutineResponseDTO> updateRoutine(
             @Parameter(description = "Routine id") @PathVariable UUID routineId,
             @Valid @RequestBody RoutineRequestDTO requestDTO,
-            @AuthenticationPrincipal UserDetailsImpl principal) {
-        return ResponseEntity.ok(routineService.updateRoutine(routineId, requestDTO, principal.getUser()));
+            @CurrentUserId UUID userId) {
+        return ResponseEntity.ok(routineService.updateRoutine(routineId, requestDTO, userId));
     }
 
     /**
@@ -280,9 +277,8 @@ public class RoutineController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{routineId}")
     public ResponseEntity<Void> deleteRoutine(
-            @Parameter(description = "Routine id") @PathVariable UUID routineId,
-            @AuthenticationPrincipal UserDetailsImpl principal) {
-        routineService.deleteRoutine(routineId, principal.getUser());
+            @Parameter(description = "Routine id") @PathVariable UUID routineId, @CurrentUserId UUID userId) {
+        routineService.deleteRoutine(routineId, userId);
         return ResponseEntity.noContent().build();
     }
 
@@ -340,9 +336,8 @@ public class RoutineController {
             @Parameter(description = "Routine id") @PathVariable UUID routineId,
             @Parameter(description = "Position to insert the exercise at") @PathVariable @Min(1) Integer position,
             @Valid @RequestBody RoutineExerciseRequestDTO requestDTO,
-            @AuthenticationPrincipal UserDetailsImpl principal) {
-        return ResponseEntity.ok(
-                routineService.addRoutineExercise(routineId, position, requestDTO, principal.getUser()));
+            @CurrentUserId UUID userId) {
+        return ResponseEntity.ok(routineService.addRoutineExercise(routineId, position, requestDTO, userId));
     }
 
     /**
@@ -385,8 +380,8 @@ public class RoutineController {
     public ResponseEntity<Void> deleteRoutineExercise(
             @Parameter(description = "Routine id") @PathVariable UUID routineId,
             @Parameter(description = "Position of the exercise to remove") @PathVariable @Min(1) Integer position,
-            @AuthenticationPrincipal UserDetailsImpl principal) {
-        routineService.deleteRoutineExercise(routineId, position, principal.getUser());
+            @CurrentUserId UUID userId) {
+        routineService.deleteRoutineExercise(routineId, position, userId);
         return ResponseEntity.noContent().build();
     }
 
@@ -444,8 +439,7 @@ public class RoutineController {
             @Parameter(description = "Routine id") @PathVariable UUID routineId,
             @Parameter(description = "Position of the exercise to update") @PathVariable @Min(1) Integer position,
             @Valid @RequestBody RoutineExerciseRequestDTO requestDTO,
-            @AuthenticationPrincipal UserDetailsImpl principal) {
-        return ResponseEntity.ok(
-                routineService.updateRoutineExercise(routineId, position, requestDTO, principal.getUser()));
+            @CurrentUserId UUID userId) {
+        return ResponseEntity.ok(routineService.updateRoutineExercise(routineId, position, requestDTO, userId));
     }
 }
