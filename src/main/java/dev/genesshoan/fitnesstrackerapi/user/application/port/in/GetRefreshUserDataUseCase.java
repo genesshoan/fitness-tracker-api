@@ -1,8 +1,9 @@
 package dev.genesshoan.fitnesstrackerapi.user.application.port.in;
 
-import dev.genesshoan.fitnesstrackerapi.user.application.port.in.result.RefreshUserData;
 import java.util.Optional;
 import java.util.UUID;
+
+import dev.genesshoan.fitnesstrackerapi.user.application.port.in.result.RefreshUserData;
 
 /**
  * Read-only view of the user data that other modules need in order to issue tokens.

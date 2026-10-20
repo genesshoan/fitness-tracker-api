@@ -1,6 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.user.mapper;
 
-import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.RegisterRequest;
+import dev.genesshoan.fitnesstrackerapi.user.application.port.in.command.RegisterUserCommand;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import dev.genesshoan.fitnesstrackerapi.user.dto.UserResponseDTO;
 import org.mapstruct.Builder;
@@ -16,7 +16,8 @@ public interface UserMapper {
     @Mapping(target = "passwordHash", ignore = true)
     @Mapping(target = "role", ignore = true)
     @Mapping(target = "profilePictureKey", ignore = true)
-    User toEntity(RegisterRequest dto);
+    @Mapping(target = "emailVerified", ignore = true)
+    User toEntity(RegisterUserCommand command);
 
     @Mapping(target = "profilePictureUrl", ignore = true)
     UserResponseDTO toResponseDTO(User user);

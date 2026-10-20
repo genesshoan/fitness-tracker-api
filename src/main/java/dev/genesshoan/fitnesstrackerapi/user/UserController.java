@@ -1,21 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.user;
 
-import jakarta.validation.Valid;
-
-import org.springframework.http.ProblemDetail;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-
-import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
-import dev.genesshoan.fitnesstrackerapi.user.dto.ChangePasswordRequestDTO;
+import dev.genesshoan.fitnesstrackerapi.common.annotation.CurrentUserId;
 import dev.genesshoan.fitnesstrackerapi.user.dto.ChangeUsernameRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.user.dto.ProfilePictureResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.user.dto.UserResponseDTO;
@@ -26,7 +11,19 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @Validated
 @RestController
@@ -65,43 +62,9 @@ public class UserController {
                                 schema = @Schema(implementation = ProblemDetail.class)))
     })
     @GetMapping("/me")
-    public ResponseEntity<UserResponseDTO> getProfile(@AuthenticationPrincipal UserDetailsImpl principal) {
+    public ResponseEntity<UserResponseDTO> getProfile(@CurrentUserId UUID id) {
 
-        return ResponseEntity.ok(userService.getProfile(principal.getId()));
-    }
-
-    @Operation(summary = "Changes the user's password", description = "Changes the password of the authenticated user.")
-    @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "User's password changed successfully"),
-        @ApiResponse(
-                responseCode = "401",
-                description = "The old password does not matches the current user's password",
-                content =
-                        @Content(
-                                mediaType = "application/problem+json",
-                                schema = @Schema(implementation = ProblemDetail.class))),
-        @ApiResponse(
-                responseCode = "404",
-                description = "User not found",
-                content =
-                        @Content(
-                                mediaType = "application/problem+json",
-                                schema = @Schema(implementation = ProblemDetail.class))),
-        @ApiResponse(
-                responseCode = "400",
-                description = "The new password is the same as the current one",
-                content =
-                        @Content(
-                                mediaType = "application/problem+json",
-                                schema = @Schema(implementation = ProblemDetail.class))),
-    })
-    @PutMapping("/me/password")
-    public ResponseEntity<Void> changePassword(
-            @AuthenticationPrincipal UserDetailsImpl principal, @Valid @RequestBody ChangePasswordRequestDTO dto) {
-
-        userService.changePassword(principal.getId(), dto);
-
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(userService.getProfile(id));
     }
 
     @Operation(summary = "Changes the username", description = "Changes the username of the authenticated user.")
@@ -124,9 +87,9 @@ public class UserController {
     })
     @PutMapping("/me/username")
     public ResponseEntity<Void> changeUsername(
-            @AuthenticationPrincipal UserDetailsImpl principal, @Valid @RequestBody ChangeUsernameRequestDTO dto) {
+            @CurrentUserId UUID id, @Valid @RequestBody ChangeUsernameRequestDTO dto) {
 
-        userService.changeUsername(principal.getId(), dto);
+        userService.changeUsername(id, dto);
 
         return ResponseEntity.noContent().build();
     }
@@ -173,9 +136,9 @@ public class UserController {
     })
     @PutMapping(value = "/me/profile-picture", consumes = "multipart/form-data")
     public ResponseEntity<ProfilePictureResponseDTO> uploadProfilePicture(
-            @AuthenticationPrincipal UserDetailsImpl principal, @RequestPart("file") MultipartFile file) {
+            @CurrentUserId UUID id, @RequestPart("file") MultipartFile file) {
 
-        String url = profilePictureUseCase.uploadProfilePicture(principal.getId(), file);
+        String url = profilePictureUseCase.uploadProfilePicture(id, file);
         return ResponseEntity.ok(new ProfilePictureResponseDTO(url));
     }
 }
