@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.user.profilepicture.config;
+package dev.genesshoan.fitnesstrackerapi.user.infrastructure.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

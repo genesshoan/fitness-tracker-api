@@ -15,7 +15,7 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundE
 import dev.genesshoan.fitnesstrackerapi.progressrecord.dto.ProgressRecordRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.progressrecord.dto.ProgressRecordResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.progressrecord.mapper.ProgressRecordMapper;
-import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
+import dev.genesshoan.fitnesstrackerapi.user.infrastructure.persistence.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

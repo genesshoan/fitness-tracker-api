@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.user.profilepicture.processor;
+package dev.genesshoan.fitnesstrackerapi.user.application.service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -6,9 +6,9 @@ import java.io.InputStream;
 
 import org.springframework.stereotype.Component;
 
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidProfilePictureException;
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.ProfilePictureProcessingException;
-import dev.genesshoan.fitnesstrackerapi.user.profilepicture.config.ProfilePictureProperties;
+import dev.genesshoan.fitnesstrackerapi.user.application.exception.InvalidProfilePictureException;
+import dev.genesshoan.fitnesstrackerapi.user.application.exception.ProfilePictureProcessingException;
+import dev.genesshoan.fitnesstrackerapi.user.infrastructure.config.ProfilePictureProperties;
 import lombok.RequiredArgsConstructor;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.geometry.Positions;

@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.user.profilepicture.processor;
+package dev.genesshoan.fitnesstrackerapi.user.application.service;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

@@ -28,7 +28,7 @@ import dev.genesshoan.fitnesstrackerapi.routine.RoutineRepository;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.AchievementDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.service.StatsService;
-import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
+import dev.genesshoan.fitnesstrackerapi.user.infrastructure.persistence.UserRepository;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionExercise;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;

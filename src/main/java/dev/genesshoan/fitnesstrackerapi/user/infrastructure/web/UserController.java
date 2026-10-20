@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.user;
+package dev.genesshoan.fitnesstrackerapi.user.infrastructure.web;
 
 import java.util.UUID;
 
@@ -16,10 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import dev.genesshoan.fitnesstrackerapi.common.annotation.CurrentUserId;
-import dev.genesshoan.fitnesstrackerapi.user.dto.ChangeUsernameRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.user.dto.ProfilePictureResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.user.dto.UserResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.user.profilepicture.usecase.ProfilePictureUseCase;
+import dev.genesshoan.fitnesstrackerapi.user.application.service.ProfilePictureService;
+import dev.genesshoan.fitnesstrackerapi.user.application.service.UserService;
+import dev.genesshoan.fitnesstrackerapi.user.infrastructure.web.dto.ChangeUsernameRequest;
+import dev.genesshoan.fitnesstrackerapi.user.infrastructure.web.dto.ProfilePictureResponse;
+import dev.genesshoan.fitnesstrackerapi.user.infrastructure.web.dto.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -36,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
 
     private final UserService userService;
-    private final ProfilePictureUseCase profilePictureUseCase;
+    private final ProfilePictureService profilePictureService;
 
     @Operation(
             summary = "Returns the user's profile",
@@ -48,7 +49,7 @@ public class UserController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = UserResponseDTO.class))),
+                                schema = @Schema(implementation = UserResponse.class))),
         @ApiResponse(
                 responseCode = "401",
                 description = "User is not authenticated",
@@ -65,7 +66,7 @@ public class UserController {
                                 schema = @Schema(implementation = ProblemDetail.class)))
     })
     @GetMapping("/me")
-    public ResponseEntity<UserResponseDTO> getProfile(@CurrentUserId UUID id) {
+    public ResponseEntity<UserResponse> getProfile(@CurrentUserId UUID id) {
 
         return ResponseEntity.ok(userService.getProfile(id));
     }
@@ -89,8 +90,7 @@ public class UserController {
                                 schema = @Schema(implementation = ProblemDetail.class)))
     })
     @PutMapping("/me/username")
-    public ResponseEntity<Void> changeUsername(
-            @CurrentUserId UUID id, @Valid @RequestBody ChangeUsernameRequestDTO dto) {
+    public ResponseEntity<Void> changeUsername(@CurrentUserId UUID id, @Valid @RequestBody ChangeUsernameRequest dto) {
 
         userService.changeUsername(id, dto);
 
@@ -107,7 +107,7 @@ public class UserController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = ProfilePictureResponseDTO.class))),
+                                schema = @Schema(implementation = ProfilePictureResponse.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "The uploaded file is invalid or the multipart part is missing",
@@ -138,10 +138,10 @@ public class UserController {
                                 schema = @Schema(implementation = ProblemDetail.class)))
     })
     @PutMapping(value = "/me/profile-picture", consumes = "multipart/form-data")
-    public ResponseEntity<ProfilePictureResponseDTO> uploadProfilePicture(
+    public ResponseEntity<ProfilePictureResponse> uploadProfilePicture(
             @CurrentUserId UUID id, @RequestPart("file") MultipartFile file) {
 
-        String url = profilePictureUseCase.uploadProfilePicture(id, file);
-        return ResponseEntity.ok(new ProfilePictureResponseDTO(url));
+        String url = profilePictureService.uploadProfilePicture(id, file);
+        return ResponseEntity.ok(new ProfilePictureResponse(url));
     }
 }
