@@ -1,7 +1,8 @@
 package dev.genesshoan.fitnesstrackerapi.user.application.port.in.result;
 
-import dev.genesshoan.fitnesstrackerapi.user.domain.Role;
 import java.util.UUID;
+
+import dev.genesshoan.fitnesstrackerapi.user.domain.Role;
 
 /**
  * The data the authentication module needs to verify a login attempt.

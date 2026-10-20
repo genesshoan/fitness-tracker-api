@@ -1,8 +1,9 @@
 package dev.genesshoan.fitnesstrackerapi.user.application.port.in;
 
-import dev.genesshoan.fitnesstrackerapi.user.application.port.in.result.PendingVerificationUser;
 import java.util.Optional;
 import java.util.UUID;
+
+import dev.genesshoan.fitnesstrackerapi.user.application.port.in.result.PendingVerificationUser;
 
 /**
  * Marks a user's email address as verified.
