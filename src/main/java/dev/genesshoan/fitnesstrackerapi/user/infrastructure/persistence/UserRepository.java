@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.user;
+package dev.genesshoan.fitnesstrackerapi.user.infrastructure.persistence;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -32,7 +32,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     int markEmailVerified(@Param("id") UUID id);
 
     @Query("""
-            SELECT NEW dev.genesshoan.fitnesstrackerapi.user.application.result.UserCredentials(
+            SELECT NEW dev.genesshoan.fitnesstrackerapi.user.application.port.in.result.UserCredentials(
                 u.id,
                 u.email,
                 u.username,
@@ -46,7 +46,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<UserCredentials> findCredentialsByEmail(@Param("email") String email);
 
     @Query("""
-            SELECT NEW dev.genesshoan.fitnesstrackerapi.user.application.result.UserCredentials(
+            SELECT NEW dev.genesshoan.fitnesstrackerapi.user.application.port.in.result.UserCredentials(
                 u.id,
                 u.email,
                 u.username,
@@ -61,7 +61,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<UserCredentials> findCredentialsByIdentifier(@Param("identifier") String identifier);
 
     @Query("""
-            SELECT NEW dev.genesshoan.fitnesstrackerapi.user.application.result.UserCredentials(
+            SELECT NEW dev.genesshoan.fitnesstrackerapi.user.application.port.in.result.UserCredentials(
                 u.id,
                 u.email,
                 u.username,
@@ -75,7 +75,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<UserCredentials> findCredentialsById(@Param("id") UUID id);
 
     @Query("""
-            SELECT NEW dev.genesshoan.fitnesstrackerapi.user.application.result.RefreshUserData(
+            SELECT NEW dev.genesshoan.fitnesstrackerapi.user.application.port.in.result.RefreshUserData(
                 u.role
             )
             FROM User u
@@ -92,7 +92,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     int updatePasswordHash(@Param("id") UUID id, @Param("passwordHash") String passwordHash);
 
     @Query("""
-            SELECT NEW dev.genesshoan.fitnesstrackerapi.user.application.result.PendingVerificationUser(
+            SELECT NEW dev.genesshoan.fitnesstrackerapi.user.application.port.in.result.PendingVerificationUser(
                 u.id,
                 u.username
             )

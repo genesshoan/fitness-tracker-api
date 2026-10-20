@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.common.error.exception;
+package dev.genesshoan.fitnesstrackerapi.user.application.exception;
 
 /**
  * Exception raised when a profile picture fails validation.

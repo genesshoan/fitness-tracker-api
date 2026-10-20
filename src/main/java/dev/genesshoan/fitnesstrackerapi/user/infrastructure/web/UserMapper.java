@@ -1,8 +1,8 @@
-package dev.genesshoan.fitnesstrackerapi.user.mapper;
+package dev.genesshoan.fitnesstrackerapi.user.infrastructure.web;
 
 import dev.genesshoan.fitnesstrackerapi.user.application.port.in.command.RegisterUserCommand;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
-import dev.genesshoan.fitnesstrackerapi.user.dto.UserResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.user.infrastructure.web.dto.UserResponse;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -20,5 +20,5 @@ public interface UserMapper {
     User toEntity(RegisterUserCommand command);
 
     @Mapping(target = "profilePictureUrl", ignore = true)
-    UserResponseDTO toResponseDTO(User user);
+    UserResponse toResponseDTO(User user);
 }

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.*;
+import dev.genesshoan.fitnesstrackerapi.user.application.exception.FileStorageException;
 import lombok.extern.slf4j.Slf4j;
 
 import static dev.genesshoan.fitnesstrackerapi.common.error.handler.ProblemDetailUtils.errorResponse;
@@ -121,47 +122,28 @@ public class DomainExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem);
     }
 
-    /**
-     * Handles invalid profile picture errors.
-     *
-     * @param ex      invalid profile picture exception from service layer
-     * @param request current HTTP request
-     * @return 400 Bad Request ProblemDetail response
-     */
-    @ExceptionHandler(InvalidProfilePictureException.class)
-    public ResponseEntity<ProblemDetail> handleInvalidProfilePicture(
-            InvalidProfilePictureException ex, HttpServletRequest request) {
-        ProblemDetail problem =
-                errorResponse(HttpStatus.BAD_REQUEST, "Invalid profile picture", ex.getMessage(), null, request);
-
-        return ResponseEntity.badRequest().body(problem);
-    }
-
-    /**
-     * Handles profile picture processing errors.
-     *
-     * @param ex      profile picture processing exception from service layer
-     * @param request current HTTP request
-     * @return 500 Internal Server Error ProblemDetail response
-     */
-    @ExceptionHandler(ProfilePictureProcessingException.class)
-    public ResponseEntity<ProblemDetail> handleProfilePictureProcessing(
-            ProfilePictureProcessingException ex, HttpServletRequest request) {
-        ProblemDetail problem = errorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Image processing error",
-                "The profile picture could not be processed",
-                null,
-                request);
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem);
-    }
-
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ProblemDetail> handleValidation(ValidationException ex, HttpServletRequest request) {
         ProblemDetail problem =
                 errorResponse(HttpStatus.BAD_REQUEST, "Validation error", ex.getMessage(), ex.getErrors(), request);
 
         return ResponseEntity.badRequest().body(problem);
+    }
+
+    /**
+     * Handles email sending errors.
+     *
+     * @param ex      email sending exception from service layer
+     * @param request current HTTP request
+     * @return 500 Internal Server Error ProblemDetail response
+     */
+    @ExceptionHandler(EmailSendingException.class)
+    public ResponseEntity<ProblemDetail> handleEmailSending(EmailSendingException ex, HttpServletRequest request) {
+        log.error("Email sending failed: {} {}", request.getMethod(), request.getRequestURI(), ex);
+
+        ProblemDetail problem = errorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR, "Email sending error", "The email could not be sent", null, request);
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem);
     }
 }

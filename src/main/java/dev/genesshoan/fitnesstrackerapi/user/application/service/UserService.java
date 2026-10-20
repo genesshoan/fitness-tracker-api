@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.user;
+package dev.genesshoan.fitnesstrackerapi.user.application.service;
 
 import java.time.ZoneId;
 import java.util.Optional;
@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyExistsException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
+import dev.genesshoan.fitnesstrackerapi.user.application.exception.UserRegistrationException;
 import dev.genesshoan.fitnesstrackerapi.user.application.port.in.GetRefreshUserDataUseCase;
 import dev.genesshoan.fitnesstrackerapi.user.application.port.in.GetUserCredentialsUseCase;
 import dev.genesshoan.fitnesstrackerapi.user.application.port.in.GetUserTimeZoneUseCase;
@@ -22,13 +23,13 @@ import dev.genesshoan.fitnesstrackerapi.user.application.port.in.result.PendingV
 import dev.genesshoan.fitnesstrackerapi.user.application.port.in.result.RefreshUserData;
 import dev.genesshoan.fitnesstrackerapi.user.application.port.in.result.UserCredentials;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
-import dev.genesshoan.fitnesstrackerapi.user.dto.ChangeUsernameRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.user.dto.UserResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.user.mapper.UserMapper;
-import dev.genesshoan.fitnesstrackerapi.user.profilepicture.usecase.ProfilePictureUseCase;
+import dev.genesshoan.fitnesstrackerapi.user.infrastructure.persistence.UserRepository;
+import dev.genesshoan.fitnesstrackerapi.user.infrastructure.web.UserMapper;
+import dev.genesshoan.fitnesstrackerapi.user.infrastructure.web.dto.ChangeUsernameRequest;
+import dev.genesshoan.fitnesstrackerapi.user.infrastructure.web.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.postgresql.util.PSQLException;
+import org.hibernate.exception.ConstraintViolationException;
 
 @Slf4j
 @Service
@@ -42,24 +43,27 @@ public class UserService
                 VerifyUserEmailUseCase,
                 GetUserTimeZoneUseCase {
 
+    private static final String UK_USER_EMAIL = "uk_user_email";
+    private static final String UK_USER_USERNAME = "uk_user_username";
+
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final ProfilePictureUseCase profilePictureUseCase;
+    private final ProfilePictureService profilePictureService;
 
     /**
      * Gets the user profile.
      *
      * @param id the user id
-     * @return a {@link UserResponseDTO} containing user's profile information
+     * @return a {@link UserResponse} containing user's profile information
      * @throws ResourceNotFoundException if the user does not exist
      */
-    public UserResponseDTO getProfile(UUID id) {
+    public UserResponse getProfile(UUID id) {
         var user = findUserById(id);
         var profile = userMapper.toResponseDTO(user);
-        return new UserResponseDTO(
+        return new UserResponse(
                 profile.email(),
                 profile.username(),
-                profilePictureUseCase.getProfilePictureUrl(user.getProfilePictureKey()));
+                profilePictureService.getProfilePictureUrl(user.getProfilePictureKey()));
     }
 
     /**
@@ -72,7 +76,7 @@ public class UserService
      *                                   username
      */
     @Transactional
-    public void changeUsername(UUID id, ChangeUsernameRequestDTO dto) {
+    public void changeUsername(UUID id, ChangeUsernameRequest dto) {
         var user = findUserById(id);
 
         if (dto.newUsername().equals(user.getUsername())) {
@@ -126,25 +130,16 @@ public class UserService
         try {
             userId = userRepository.saveAndFlush(user).getId();
         } catch (DataIntegrityViolationException e) {
-            Throwable cause = e.getMostSpecificCause();
-
-            if (cause instanceof PSQLException ex) {
-                var constraint = ex.getServerErrorMessage() != null
-                        ? ex.getServerErrorMessage().getConstraint()
-                        : null;
-
-                if (constraint != null) {
-                    if (constraint.equals("uk_user_email")) {
-                        throw new ResourceAlreadyExistsException("An account with this email already exists", e);
-                    }
-
-                    if (constraint.equals("uk_user_username")) {
-                        throw new ResourceAlreadyExistsException("An account with this username already exists", e);
-                    }
+            if (e.getCause() instanceof ConstraintViolationException cve) {
+                String constraint = cve.getConstraintName();
+                if (UK_USER_EMAIL.equalsIgnoreCase(constraint)) {
+                    throw new ResourceAlreadyExistsException("An account with this email already exists", e);
+                }
+                if (UK_USER_USERNAME.equalsIgnoreCase(constraint)) {
+                    throw new ResourceAlreadyExistsException("An account with this username already exists", e);
                 }
             }
-
-            throw new ResourceAlreadyExistsException("Unable to register user", e);
+            throw new UserRegistrationException("Unable to register user", e);
         }
 
         return userId;

@@ -1,9 +1,9 @@
-package dev.genesshoan.fitnesstrackerapi.user.dto;
+package dev.genesshoan.fitnesstrackerapi.user.infrastructure.web.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "User profile information response")
-public record UserResponseDTO(
+public record UserResponse(
         @Schema(description = "User email address", example = "user@mail.com")
         String email,
 

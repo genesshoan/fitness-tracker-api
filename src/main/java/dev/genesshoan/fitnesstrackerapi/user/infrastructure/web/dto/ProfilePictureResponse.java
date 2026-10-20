@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.user.dto;
+package dev.genesshoan.fitnesstrackerapi.user.infrastructure.web.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -8,4 +8,4 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @param url temporary URL for the processed profile picture
  */
 @Schema(description = "Profile picture access response")
-public record ProfilePictureResponseDTO(String url) {}
+public record ProfilePictureResponse(String url) {}
