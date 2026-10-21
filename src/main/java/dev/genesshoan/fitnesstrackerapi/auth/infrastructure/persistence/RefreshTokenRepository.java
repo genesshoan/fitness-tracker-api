@@ -47,7 +47,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID
     @Query("""
             UPDATE RefreshToken t
             SET t.revoked = true
-            WHERE t.user_id = :userId
+            WHERE t.userId = :userId
             AND t.revoked = false
         """)
     void revokeByUserId(@Param("userId") UUID userId);
@@ -56,7 +56,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID
     @Query(value = """
             UPDATE refresh_tokens
             SET revoked = true
-            WHERE familyId = (
+            WHERE family_id = (
                     SELECT family_id
                     FROM refresh_tokens
                     WHERE hash = :hash
