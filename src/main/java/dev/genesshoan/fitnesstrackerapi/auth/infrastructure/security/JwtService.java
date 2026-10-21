@@ -56,8 +56,8 @@ import lombok.RequiredArgsConstructor;
 public class JwtService {
 
     private final JwtProperties jwtProperties;
+    private final Clock clock;
     private SecretKey secretKey;
-    private Clock clock;
 
     /**
      * Initializes the HMAC signing key from a Base64-encoded secret.
