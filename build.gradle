@@ -67,6 +67,7 @@ dependencies {
 
     // Mail
     implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
