@@ -11,7 +11,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,9 +21,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import dev.genesshoan.fitnesstrackerapi.common.annotation.CurrentUserId;
 import dev.genesshoan.fitnesstrackerapi.progressrecord.dto.ProgressRecordRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.progressrecord.dto.ProgressRecordResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -71,12 +70,11 @@ public class ProgressRecordController {
     })
     @GetMapping
     public ResponseEntity<Page<ProgressRecordResponseDTO>> getProgressRecordsInDateRange(
-            @AuthenticationPrincipal UserDetailsImpl principal,
+            @CurrentUserId UUID userId,
             @Parameter(description = "Start date of the range") @RequestParam @NotNull LocalDate from,
             @Parameter(description = "End date of the range") @RequestParam @NotNull LocalDate to,
             @ParameterObject Pageable pageable) {
-        return ResponseEntity.ok(
-                progressRecordService.getProgressRecordsInDateRange(principal.getId(), from, to, pageable));
+        return ResponseEntity.ok(progressRecordService.getProgressRecordsInDateRange(userId, from, to, pageable));
     }
 
     @Operation(
@@ -115,11 +113,10 @@ public class ProgressRecordController {
     })
     @PostMapping
     public ResponseEntity<ProgressRecordResponseDTO> createProgressRecord(
-            @AuthenticationPrincipal UserDetailsImpl principal,
-            @Valid @RequestBody ProgressRecordRequestDTO requestDTO) {
+            @CurrentUserId UUID userId, @Valid @RequestBody ProgressRecordRequestDTO requestDTO) {
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(progressRecordService.createProgressRecord(principal.getId(), requestDTO));
+                .body(progressRecordService.createProgressRecord(userId, requestDTO));
     }
 
     @Operation(
@@ -157,8 +154,7 @@ public class ProgressRecordController {
                                 schema = @Schema(implementation = ProblemDetail.class)))
     })
     @DeleteMapping("/{id}")
-    public void deleteProgressRecord(
-            @AuthenticationPrincipal UserDetailsImpl principal, @PathVariable @NotNull UUID id) {
-        progressRecordService.deleteProgressRecord(id, principal.getId());
+    public void deleteProgressRecord(@CurrentUserId UUID userId, @PathVariable @NotNull UUID id) {
+        progressRecordService.deleteProgressRecord(id, userId);
     }
 }
