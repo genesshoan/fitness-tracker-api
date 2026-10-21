@@ -85,11 +85,9 @@ public class RefreshToken extends IdentifiableEntity {
     /**
      * The user ID that this refresh token belongs to.
      *
-     * <p>Establishes a many-to-one relationship with the users table,
-     * lazy-loaded to avoid unnecessary database queries when only metadata
-     * is needed.
+     * <p>Stored as a plain identifier instead of an entity association, so the token
+     * can be read without loading the user.
      */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
+    @Column(nullable = false)
     private UUID userId;
 }
