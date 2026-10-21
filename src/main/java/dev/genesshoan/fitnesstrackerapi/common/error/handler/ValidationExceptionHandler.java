@@ -13,6 +13,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestCookieException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -142,6 +143,37 @@ public class ValidationExceptionHandler {
                 HttpStatus.BAD_REQUEST,
                 "Missing request parameter",
                 String.format("Required parameter '%s' is missing", ex.getParameterName()),
+                null,
+                request);
+
+        return ResponseEntity.badRequest().body(problemDetail);
+    }
+
+    /**
+     * Handles {@link MissingRequestCookieException} thrown when a required request cookie
+     * is missing.
+     *
+     * <p>The session endpoints read the refresh token from a cookie, so a request without
+     * it is a client error and not a server failure.
+     *
+     * @param ex the exception containing details about the missing cookie
+     * @param request the current HTTP request
+     * @return a {@link ResponseEntity} with 400 Bad Request status and details
+     *         about the missing cookie
+     */
+    @ExceptionHandler(MissingRequestCookieException.class)
+    public ResponseEntity<ProblemDetail> handleMissingRequestCookieException(
+            MissingRequestCookieException ex, HttpServletRequest request) {
+        log.warn(
+                "Missing cookie: {} {} -> cookie '{}' is required",
+                request.getMethod(),
+                request.getRequestURI(),
+                ex.getCookieName());
+
+        ProblemDetail problemDetail = errorResponse(
+                HttpStatus.BAD_REQUEST,
+                "Missing request cookie",
+                String.format("Required cookie '%s' is missing", ex.getCookieName()),
                 null,
                 request);
 
