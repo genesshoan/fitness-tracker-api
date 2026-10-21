@@ -33,6 +33,11 @@ spring:
     enabled: true
     locations: classpath:db/migration
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
 logging:
   level:
     org:
@@ -40,6 +45,8 @@ logging:
         SQL: WARN
 
 app:
+  name: Fitness Tracker
+
   auth:
     jwt:
       secret: ${SECRET_KEY}
@@ -51,6 +58,7 @@ app:
 
   verification:
     email-verification-expiration: ${VERIFICATION_EMAIL_EXPIRATION}
+    password-reset-expiration: ${PASSWORD_RESET_EXPIRATION}
 
   file:
     upload:
@@ -75,3 +83,5 @@ app:
   mail:
     from: ${MAIL_FROM}
     from-name: ${MAIL_FROM_NAME}
+    logo-url: ${MAIL_LOGO_URL}
+    frontend-url: ${FRONTEND_URL}
