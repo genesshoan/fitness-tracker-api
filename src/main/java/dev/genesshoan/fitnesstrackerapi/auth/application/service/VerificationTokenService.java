@@ -1,6 +1,7 @@
 package dev.genesshoan.fitnesstrackerapi.auth.application.service;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -51,6 +52,9 @@ public class VerificationTokenService {
      * then generates a cryptographically secure token, creates a verification code
      * record in the database, and returns the token with its expiration time.
      *
+     * <p>The expiration is resolved from the purpose, so each kind of token
+     * (email verification, password reset) can have its own lifetime.
+     *
      * @param subjectId the user identifier receiving the verification
      * @param purpose   the verification purpose (e.g. email verification)
      * @return issued token details including the token string and expiration
@@ -62,7 +66,7 @@ public class VerificationTokenService {
         repository.invalidateActive(subjectId, purpose, now);
 
         String token = OpaqueTokens.generate();
-        Instant expiresAt = now.plus(properties.emailVerificationExpiration());
+        Instant expiresAt = now.plus(expirationFor(purpose));
 
         repository.save(VerificationToken.builder()
                 .subjectId(subjectId)
@@ -107,5 +111,18 @@ public class VerificationTokenService {
                 "Verification token consumed successfully for subject={}",
                 found.get().getSubjectId());
         return Optional.of(found.get().getSubjectId());
+    }
+
+    /**
+     * Resolves the lifetime of a token based on its purpose.
+     *
+     * @param purpose the verification purpose
+     * @return the configured expiration for the purpose
+     */
+    private Duration expirationFor(VerificationPurpose purpose) {
+        return switch (purpose) {
+            case EMAIL_VERIFICATION -> properties.emailVerificationExpiration();
+            case PASSWORD_RESET -> properties.passwordResetExpiration();
+        };
     }
 }
