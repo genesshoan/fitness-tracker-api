@@ -10,7 +10,7 @@ CREATE TABLE verification_tokens
 
     CONSTRAINT pk_verification_tokens PRIMARY KEY (id),
     CONSTRAINT fk_verification_tokens_user
-        FOREIGN KEY (subject_id) REFERENCES users (id) ON DELETE CASCADE,
+        FOREIGN KEY (subject_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_verification_tokens_user_purpose
