@@ -35,6 +35,13 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
         """)
     Optional<WorkoutSession> findForUpdateWithExercises(@Param("id") UUID id, @Param("userId") UUID userId);
 
+    /**
+     * Locks the session and loads its exercises together with the catalog exercise of
+     * each one.
+     *
+     * <p>The sets of an exercise are not fetched, a collection bag cannot be fetched
+     * together with the exercises bag, so they are loaded lazily when they are read.
+     */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
         SELECT DISTINCT ws
@@ -44,7 +51,8 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
         WHERE ws.id = :id
             AND ws.user.id = :userId
         """)
-    Optional<WorkoutSession> findForUpdateWithExercisesAndSets(@Param("id") UUID id, @Param("userId") UUID userId);
+    Optional<WorkoutSession> findForUpdateWithExercisesAndCatalogExercise(
+            @Param("id") UUID id, @Param("userId") UUID userId);
 
     @Query("""
         SELECT DISTINCT ws

@@ -219,7 +219,7 @@ public class WorkoutSessionService {
         log.debug("Completing session workout: {} from user: {}", sessionId, userId);
 
         WorkoutSession session = getOrThrowResourceNotFound(
-                workoutSessionRepository.findForUpdateWithExercisesAndSets(sessionId, userId),
+                workoutSessionRepository.findForUpdateWithExercisesAndCatalogExercise(sessionId, userId),
                 "Workout session",
                 sessionId);
 
