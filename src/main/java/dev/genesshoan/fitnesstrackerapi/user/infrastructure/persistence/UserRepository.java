@@ -102,5 +102,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
         """)
     Optional<PendingVerificationUser> findUnverifiedByEmail(@Param("email") String email);
 
-    Optional<String> findTimezoneById(UUID id);
+    @Query("""
+            SELECT u.timezone
+            FROM User u
+            WHERE u.id = :id
+        """)
+    Optional<String> findTimezoneById(@Param("id") UUID id);
 }
