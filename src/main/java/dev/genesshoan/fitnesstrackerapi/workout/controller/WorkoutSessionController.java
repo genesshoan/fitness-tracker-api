@@ -9,7 +9,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
+import dev.genesshoan.fitnesstrackerapi.common.annotation.CurrentUserId;
 import dev.genesshoan.fitnesstrackerapi.workout.WorkoutSessionService;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.NotesUpdateRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionListItemDTO;
@@ -72,8 +71,8 @@ public class WorkoutSessionController {
     })
     @GetMapping
     public ResponseEntity<Page<WorkoutSessionListItemDTO>> getSessions(
-            @AuthenticationPrincipal UserDetailsImpl principal, @ParameterObject Pageable pageable) {
-        return ResponseEntity.ok(workoutSessionService.getAllWorkoutSessions(principal.getId(), pageable));
+            @CurrentUserId UUID userId, @ParameterObject Pageable pageable) {
+        return ResponseEntity.ok(workoutSessionService.getAllWorkoutSessions(userId, pageable));
     }
 
     @Operation(summary = "Get session by id", description = "Retrieve a session by its id")
@@ -109,9 +108,8 @@ public class WorkoutSessionController {
     })
     @GetMapping("/{sessionId}")
     public ResponseEntity<WorkoutSessionResponseDTO> getSession(
-            @AuthenticationPrincipal UserDetailsImpl principal,
-            @Parameter(description = "Workout session id") @PathVariable UUID sessionId) {
-        return ResponseEntity.ok(workoutSessionService.getWorkoutSessionById(sessionId, principal.getId()));
+            @CurrentUserId UUID userId, @Parameter(description = "Workout session id") @PathVariable UUID sessionId) {
+        return ResponseEntity.ok(workoutSessionService.getWorkoutSessionById(sessionId, userId));
     }
 
     @Operation(
@@ -149,10 +147,9 @@ public class WorkoutSessionController {
     })
     @PostMapping
     public ResponseEntity<WorkoutSessionResponseDTO> createWorkoutSessionFromScratch(
-            @AuthenticationPrincipal UserDetailsImpl principal,
-            @Valid @RequestBody WorkoutSessionRequestDTO requestDTO) {
+            @CurrentUserId UUID userId, @Valid @RequestBody WorkoutSessionRequestDTO requestDTO) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(workoutSessionService.createWorkoutSessionFromScratch(requestDTO, principal.getId()));
+                .body(workoutSessionService.createWorkoutSessionFromScratch(requestDTO, userId));
     }
 
     @Operation(
@@ -197,10 +194,9 @@ public class WorkoutSessionController {
     })
     @PostMapping("/from-routine/{routineId}")
     public ResponseEntity<WorkoutSessionResponseDTO> createWorkoutSessionFromRoutine(
-            @AuthenticationPrincipal UserDetailsImpl principal,
-            @Parameter(description = "Routine id") @PathVariable UUID routineId) {
+            @CurrentUserId UUID userId, @Parameter(description = "Routine id") @PathVariable UUID routineId) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(workoutSessionService.createWorkoutSessionFromRoutine(routineId, principal.getId()));
+                .body(workoutSessionService.createWorkoutSessionFromRoutine(routineId, userId));
     }
 
     @Operation(
@@ -240,10 +236,10 @@ public class WorkoutSessionController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PatchMapping("/{sessionId}/notes")
     public void updateSessionNotes(
-            @AuthenticationPrincipal UserDetailsImpl principal,
+            @CurrentUserId UUID userId,
             @Parameter(description = "Workout session id") @PathVariable UUID sessionId,
             @Valid @RequestBody NotesUpdateRequestDTO requestDTO) {
-        workoutSessionService.updateWorkoutSessionNotes(sessionId, principal.getId(), requestDTO);
+        workoutSessionService.updateWorkoutSessionNotes(sessionId, userId, requestDTO);
     }
 
     @Operation(
@@ -288,9 +284,8 @@ public class WorkoutSessionController {
     })
     @PatchMapping("/{sessionId}/finish")
     public ResponseEntity<WorkoutSessionResponseDTO> completeWorkoutSession(
-            @AuthenticationPrincipal UserDetailsImpl principal,
-            @Parameter(description = "Workout session id") @PathVariable UUID sessionId) {
-        return ResponseEntity.ok(workoutSessionService.completeWorkoutSession(sessionId, principal.getId()));
+            @CurrentUserId UUID userId, @Parameter(description = "Workout session id") @PathVariable UUID sessionId) {
+        return ResponseEntity.ok(workoutSessionService.completeWorkoutSession(sessionId, userId));
     }
 
     @Operation(summary = "Delete workout session", description = "Delete workout session for the authenticated user")
@@ -321,8 +316,7 @@ public class WorkoutSessionController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{sessionId}")
     public void deleteWorkoutSession(
-            @AuthenticationPrincipal UserDetailsImpl principal,
-            @Parameter(description = "Workout session id") @PathVariable UUID sessionId) {
-        workoutSessionService.deleteWorkoutSession(sessionId, principal.getId());
+            @CurrentUserId UUID userId, @Parameter(description = "Workout session id") @PathVariable UUID sessionId) {
+        workoutSessionService.deleteWorkoutSession(sessionId, userId);
     }
 }

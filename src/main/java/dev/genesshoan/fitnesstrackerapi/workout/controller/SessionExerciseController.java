@@ -8,7 +8,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -18,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
+import dev.genesshoan.fitnesstrackerapi.common.annotation.CurrentUserId;
 import dev.genesshoan.fitnesstrackerapi.workout.WorkoutSessionService;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.NotesUpdateRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.PositionRequestDTO;
@@ -86,11 +85,11 @@ public class SessionExerciseController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     public ResponseEntity<SessionExerciseAddedResponseDTO> addSessionExercise(
-            @AuthenticationPrincipal UserDetailsImpl principal,
+            @CurrentUserId UUID userId,
             @Parameter(description = "Workout session id") @PathVariable UUID sessionId,
             @Valid @RequestBody SessionExerciseRequestDTO requestDTO) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(workoutSessionService.addNewSessionExercise(sessionId, principal.getId(), requestDTO));
+                .body(workoutSessionService.addNewSessionExercise(sessionId, userId, requestDTO));
     }
 
     @Operation(
@@ -130,11 +129,11 @@ public class SessionExerciseController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PatchMapping("/{sessionExerciseId}/notes")
     public void updateSessionExerciseNotes(
-            @AuthenticationPrincipal UserDetailsImpl principal,
+            @CurrentUserId UUID userId,
             @Parameter(description = "Workout session id") @PathVariable UUID sessionId,
             @Parameter(description = "Session exercise id") @PathVariable UUID sessionExerciseId,
             @Valid @RequestBody NotesUpdateRequestDTO requestDTO) {
-        workoutSessionService.updateSessionExerciseNotes(sessionId, sessionExerciseId, principal.getId(), requestDTO);
+        workoutSessionService.updateSessionExerciseNotes(sessionId, sessionExerciseId, userId, requestDTO);
     }
 
     @Operation(
@@ -181,12 +180,12 @@ public class SessionExerciseController {
     })
     @PatchMapping("/{sessionExerciseId}/position")
     public ResponseEntity<List<SessionExercisePositionDTO>> updateSessionExercisePosition(
-            @AuthenticationPrincipal UserDetailsImpl principal,
+            @CurrentUserId UUID userId,
             @Parameter(description = "Workout session id") @PathVariable UUID sessionId,
             @Parameter(description = "Session exercise id") @PathVariable UUID sessionExerciseId,
             @Valid @RequestBody PositionRequestDTO requestDTO) {
-        return ResponseEntity.ok(workoutSessionService.updateSessionExercisePosition(
-                sessionId, sessionExerciseId, principal.getId(), requestDTO));
+        return ResponseEntity.ok(
+                workoutSessionService.updateSessionExercisePosition(sessionId, sessionExerciseId, userId, requestDTO));
     }
 
     @Operation(
@@ -226,9 +225,9 @@ public class SessionExerciseController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{sessionExerciseId}")
     public void deleteSessionExercise(
-            @AuthenticationPrincipal UserDetailsImpl principal,
+            @CurrentUserId UUID userId,
             @Parameter(description = "Workout session id") @PathVariable UUID sessionId,
             @Parameter(description = "Session exercise id") @PathVariable UUID sessionExerciseId) {
-        workoutSessionService.deleteSessionExercise(sessionId, sessionExerciseId, principal.getId());
+        workoutSessionService.deleteSessionExercise(sessionId, sessionExerciseId, userId);
     }
 }
