@@ -9,12 +9,15 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.genesshoan.fitnesstrackerapi.common.error.handler.ProblemDetailUtils;
@@ -37,8 +40,13 @@ import lombok.RequiredArgsConstructor;
  * <p>
  * Security model:
  * <ul>
- * <li>/api/v1/auth/** → public endpoints (login, register, refresh,
- * logout)</li>
+ * <li>/api/v1/auth/register, /verify-email, /resend-verification, /login,
+ * /forgot-password and /reset-password → public endpoints</li>
+ * <li>/api/v1/auth/refresh and /api/v1/auth/logout → cookie based session
+ * endpoints, they are authorized by the refresh token cookie and are protected
+ * against CSRF</li>
+ * <li>Every other /api/v1/auth/** endpoint (e.g. PATCH /api/v1/auth/password)
+ * → requires a valid JWT access token</li>
  * <li>Exercise catalog writes (POST/PUT/DELETE /api/v1/exercises/**) →
  * ADMIN role only</li>
  * <li>All other endpoints require authentication via JWT</li>
@@ -67,7 +75,7 @@ public class SecurityConfig {
      * <p>
      * Configures:
      * <ul>
-     * <li>CSRF disabled (stateless API)</li>
+     * <li>CSRF protection restricted to the cookie based session endpoints</li>
      * <li>Public and secured endpoints</li>
      * <li>Stateless session management</li>
      * <li>JWT filter integration before UsernamePasswordAuthenticationFilter</li>
@@ -79,11 +87,39 @@ public class SecurityConfig {
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.csrf(AbstractHttpConfigurer::disable)
+        return http.csrf(csrf -> csrf
+                        // The CSRF token is stored in a readable cookie and sent back in the
+                        // X-XSRF-TOKEN header. Only the endpoints that rely on the refresh token
+                        // cookie need it, the remaining ones are authorized by the Authorization
+                        // header, which a browser never attaches automatically.
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(new EagerCsrfTokenRequestHandler())
+                        .requireCsrfProtectionMatcher(cookieSessionEndpoints()))
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
-                        .requestMatchers("/api/v1/auth/**")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/register")
                         .permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/verify-email")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/resend-verification")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/login")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/forgot-password")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/reset-password")
+                        .permitAll()
+
+                        // Cookie based session endpoints, authorized by the refresh token cookie
+                        // and protected against CSRF
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/refresh")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/auth/logout")
+                        .permitAll()
+
+                        // Every other authentication endpoint requires a valid access token
+                        .requestMatchers("/api/v1/auth/**")
+                        .authenticated()
 
                         // Documentation
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs")
@@ -141,6 +177,20 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
+    }
+
+    /**
+     * Matches the session endpoints that rely on the refresh token cookie and
+     * therefore are the only ones exposed to cross site request forgery.
+     *
+     * @return the request matcher of the cookie based session endpoints
+     */
+    private static RequestMatcher cookieSessionEndpoints() {
+        PathPatternRequestMatcher.Builder builder = PathPatternRequestMatcher.withDefaults();
+
+        return new OrRequestMatcher(
+                builder.matcher(HttpMethod.POST, "/api/v1/auth/refresh"),
+                builder.matcher(HttpMethod.DELETE, "/api/v1/auth/logout"));
     }
 
     /**
