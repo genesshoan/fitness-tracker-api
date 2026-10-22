@@ -1,9 +1,11 @@
-package dev.genesshoan.fitnesstrackerapi.integration;
+package dev.genesshoan.fitnesstrackerapi.workout.controller;
 
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -14,9 +16,15 @@ import dev.genesshoan.fitnesstrackerapi.base.AbstractIntegrationTest;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
+import dev.genesshoan.fitnesstrackerapi.testdata.builder.SessionExerciseBuilder;
+import dev.genesshoan.fitnesstrackerapi.testdata.builder.SessionSetBuilder;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
+import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionExercise;
+import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
+import dev.genesshoan.fitnesstrackerapi.workout.repository.SessionExerciseRepository;
+import dev.genesshoan.fitnesstrackerapi.workout.repository.SessionSetRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -34,6 +42,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("Integration Tests - WorkoutSession Controller")
 class WorkoutSessionControllerIT extends AbstractIntegrationTest {
 
+    @Autowired
+    SessionExerciseRepository sessionExerciseRepository;
+
+    @Autowired
+    SessionSetRepository sessionSetRepository;
+
     private User user;
 
     @BeforeEach
@@ -42,7 +56,15 @@ class WorkoutSessionControllerIT extends AbstractIntegrationTest {
     }
 
     private RequestPostProcessor asUser(User targetUser) {
-        UserDetails userDetails = new UserDetailsImpl(targetUser);
+        UserDetails userDetails = new UserDetailsImpl(
+                targetUser.getId(),
+                targetUser.getEmail(),
+                targetUser.getEmail(),
+                targetUser.getUsername(),
+                targetUser.getPasswordHash(),
+                targetUser.isEmailVerified(),
+                List.of(new SimpleGrantedAuthority(
+                        "ROLE_" + targetUser.getRole().name())));
         return SecurityMockMvcRequestPostProcessors.user(userDetails);
     }
 
@@ -99,7 +121,7 @@ class WorkoutSessionControllerIT extends AbstractIntegrationTest {
 
         @BeforeEach
         void setUp() {
-            session = testEntityFactory.createAndPersistWorkoutSessionWithExercises(user, 2);
+            session = persistSessionWithExercises(user, 2);
         }
 
         @Test
@@ -443,5 +465,24 @@ class WorkoutSessionControllerIT extends AbstractIntegrationTest {
                         .content(completedSetBody)
                         .with(asUser(user)))
                 .andExpect(status().isBadRequest());
+    }
+
+    private WorkoutSession persistSessionWithExercises(User owner, int exerciseCount) {
+        WorkoutSession session = testEntityFactory.createAndPersistWorkoutSession(owner);
+        for (int i = 0; i < exerciseCount; i++) {
+            SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(testEntityFactory.faker())
+                    .forWorkoutSession(session)
+                    .forExercise(testEntityFactory.createAndPersistExercise())
+                    .build();
+            session.addExerciseAt(sessionExercise, session.getExercises().size() + 1);
+            sessionExerciseRepository.saveAndFlush(sessionExercise);
+            SessionSet sessionSet = SessionSetBuilder.aSessionSet(testEntityFactory.faker())
+                    .forSessionExercise(sessionExercise)
+                    .withSetNumber(sessionExercise.getSetCount() + 1)
+                    .build();
+            sessionExercise.addSet(sessionSet);
+            sessionSetRepository.saveAndFlush(sessionSet);
+        }
+        return session;
     }
 }

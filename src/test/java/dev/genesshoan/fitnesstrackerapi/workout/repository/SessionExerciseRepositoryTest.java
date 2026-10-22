@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.repository;
+package dev.genesshoan.fitnesstrackerapi.workout.repository;
 
 import java.util.UUID;
 
@@ -8,11 +8,12 @@ import dev.genesshoan.fitnesstrackerapi.base.AbstractPostgresTest;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.testdata.TestEntityFactory;
+import dev.genesshoan.fitnesstrackerapi.testdata.builder.SessionExerciseBuilder;
+import dev.genesshoan.fitnesstrackerapi.testdata.builder.SessionSetBuilder;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionExercise;
+import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
-import dev.genesshoan.fitnesstrackerapi.workout.repository.SessionExerciseRepository;
-import dev.genesshoan.fitnesstrackerapi.workout.repository.WorkoutSessionRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +28,9 @@ public class SessionExerciseRepositoryTest extends AbstractPostgresTest {
     WorkoutSessionRepository workoutSessionRepository;
 
     @Autowired
+    SessionSetRepository sessionSetRepository;
+
+    @Autowired
     TestEntityFactory testEntityFactory;
 
     @Test
@@ -37,8 +41,8 @@ public class SessionExerciseRepositoryTest extends AbstractPostgresTest {
         Routine routine = testEntityFactory.createAndPersistRoutine(user);
 
         WorkoutSession session = testEntityFactory.createAndPersistWorkoutSession(user, routine);
-        SessionExercise sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
-        testEntityFactory.createAndPersistSessionSet(sessionExercise);
+        SessionExercise sessionExercise = persistSessionExercise(session, exercise);
+        persistSessionSet(sessionExercise);
 
         var result = sessionExerciseRepository.findForUpdateWithWorkoutSessionAndExerciseAndSets(
                 sessionExercise.getId(), session.getId(), user.getId());
@@ -47,6 +51,7 @@ public class SessionExerciseRepositoryTest extends AbstractPostgresTest {
         assertThat(result.get().getWorkoutSession().getId()).isEqualTo(session.getId());
         assertThat(result.get().getWorkoutSession().getUser().getId()).isEqualTo(user.getId());
         assertThat(result.get().getExercise().getId()).isEqualTo(exercise.getId());
+        assertThat(result.get().getSets()).isNotEmpty();
     }
 
     @Test
@@ -58,8 +63,8 @@ public class SessionExerciseRepositoryTest extends AbstractPostgresTest {
         Routine routine = testEntityFactory.createAndPersistRoutine(owner);
 
         WorkoutSession session = testEntityFactory.createAndPersistWorkoutSession(owner, routine);
-        SessionExercise sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
-        testEntityFactory.createAndPersistSessionSet(sessionExercise);
+        SessionExercise sessionExercise = persistSessionExercise(session, exercise);
+        persistSessionSet(sessionExercise);
 
         var result = sessionExerciseRepository.findForUpdateWithWorkoutSessionAndExerciseAndSets(
                 sessionExercise.getId(), session.getId(), otherUser.getId());
@@ -84,8 +89,8 @@ public class SessionExerciseRepositoryTest extends AbstractPostgresTest {
         Routine routine = testEntityFactory.createAndPersistRoutine(user);
 
         WorkoutSession session = testEntityFactory.createAndPersistWorkoutSession(user, routine);
-        SessionExercise sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
-        testEntityFactory.createAndPersistSessionSet(sessionExercise);
+        SessionExercise sessionExercise = persistSessionExercise(session, exercise);
+        persistSessionSet(sessionExercise);
 
         var result = sessionExerciseRepository.findForUpdateWithWorkoutSessionAndSets(
                 sessionExercise.getId(), session.getId(), user.getId());
@@ -98,6 +103,33 @@ public class SessionExerciseRepositoryTest extends AbstractPostgresTest {
     }
 
     @Test
+    @DisplayName("Should return empty for findForUpdateWithWorkoutSessionAndSets when user differs")
+    void findForUpdateWithWorkoutSessionAndSets_ShouldReturnEmptyWhenUserDiffers() {
+        User owner = testEntityFactory.createAndPersistUser();
+        User otherUser = testEntityFactory.createAndPersistUser();
+        Exercise exercise = testEntityFactory.createAndPersistExercise();
+        Routine routine = testEntityFactory.createAndPersistRoutine(owner);
+
+        WorkoutSession session = testEntityFactory.createAndPersistWorkoutSession(owner, routine);
+        SessionExercise sessionExercise = persistSessionExercise(session, exercise);
+        persistSessionSet(sessionExercise);
+
+        var result = sessionExerciseRepository.findForUpdateWithWorkoutSessionAndSets(
+                sessionExercise.getId(), session.getId(), otherUser.getId());
+
+        assertThat(result).isNotPresent();
+    }
+
+    @Test
+    @DisplayName("Should return empty for findForUpdateWithWorkoutSessionAndSets when ids are missing")
+    void findForUpdateWithWorkoutSessionAndSets_ShouldReturnEmptyWhenIdsAreMissing() {
+        var result = sessionExerciseRepository.findForUpdateWithWorkoutSessionAndSets(
+                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+
+        assertThat(result).isNotPresent();
+    }
+
+    @Test
     @DisplayName("Should load workout session only when querying with findForUpdateWithWorkoutSession")
     void findForUpdateWithWorkoutSession_ShouldLoadOnlyWorkoutSession() {
         User user = testEntityFactory.createAndPersistUser();
@@ -105,7 +137,7 @@ public class SessionExerciseRepositoryTest extends AbstractPostgresTest {
         Routine routine = testEntityFactory.createAndPersistRoutine(user);
 
         WorkoutSession session = testEntityFactory.createAndPersistWorkoutSession(user, routine);
-        SessionExercise sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
+        SessionExercise sessionExercise = persistSessionExercise(session, exercise);
 
         var result = sessionExerciseRepository.findForUpdateWithWorkoutSession(
                 sessionExercise.getId(), session.getId(), user.getId());
@@ -124,11 +156,29 @@ public class SessionExerciseRepositoryTest extends AbstractPostgresTest {
         Routine routine = testEntityFactory.createAndPersistRoutine(owner);
 
         WorkoutSession session = testEntityFactory.createAndPersistWorkoutSession(owner, routine);
-        SessionExercise sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
+        SessionExercise sessionExercise = persistSessionExercise(session, exercise);
 
         var result = sessionExerciseRepository.findForUpdateWithWorkoutSession(
                 sessionExercise.getId(), session.getId(), otherUser.getId());
 
         assertThat(result).isNotPresent();
+    }
+
+    private SessionExercise persistSessionExercise(WorkoutSession session, Exercise exercise) {
+        SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(testEntityFactory.faker())
+                .forWorkoutSession(session)
+                .forExercise(exercise)
+                .build();
+        session.addExerciseAt(sessionExercise, session.getExercises().size() + 1);
+        return sessionExerciseRepository.saveAndFlush(sessionExercise);
+    }
+
+    private SessionSet persistSessionSet(SessionExercise sessionExercise) {
+        SessionSet sessionSet = SessionSetBuilder.aSessionSet(testEntityFactory.faker())
+                .forSessionExercise(sessionExercise)
+                .withSetNumber(sessionExercise.getSetCount() + 1)
+                .build();
+        sessionExercise.addSet(sessionSet);
+        return sessionSetRepository.saveAndFlush(sessionSet);
     }
 }

@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.repository;
+package dev.genesshoan.fitnesstrackerapi.workout.repository;
 
 import java.time.Instant;
 import java.util.Set;
@@ -19,9 +19,8 @@ import dev.genesshoan.fitnesstrackerapi.testdata.builder.WorkoutSessionBuilder;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionExercise;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
+import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
-import dev.genesshoan.fitnesstrackerapi.workout.repository.SessionSetRepository;
-import dev.genesshoan.fitnesstrackerapi.workout.repository.WorkoutSessionRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -45,10 +44,9 @@ public class SessionSetRepositoryTest extends AbstractPostgresTest {
         Exercise exercise =
                 testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker()));
         Routine routine = testEntityFactory.createAndPersistRoutine(
-                RoutineBuilder.aRoutine(testEntityFactory.faker()).forUser(user));
-        WorkoutSession session = workoutSessionRepository.saveAndFlush(
-                dev.genesshoan.fitnesstrackerapi.testdata.builder.WorkoutSessionBuilder.aWorkoutSession(
-                                testEntityFactory.faker())
+                RoutineBuilder.aRoutine(testEntityFactory.faker()).forUserId(user.getId()));
+        WorkoutSession session =
+                workoutSessionRepository.saveAndFlush(WorkoutSessionBuilder.aWorkoutSession(testEntityFactory.faker())
                         .forUser(user)
                         .withRoutine(routine)
                         .build());
@@ -92,10 +90,9 @@ public class SessionSetRepositoryTest extends AbstractPostgresTest {
         Exercise exercise =
                 testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker()));
         Routine routine = testEntityFactory.createAndPersistRoutine(
-                RoutineBuilder.aRoutine(testEntityFactory.faker()).forUser(owner));
-        WorkoutSession session = workoutSessionRepository.saveAndFlush(
-                dev.genesshoan.fitnesstrackerapi.testdata.builder.WorkoutSessionBuilder.aWorkoutSession(
-                                testEntityFactory.faker())
+                RoutineBuilder.aRoutine(testEntityFactory.faker()).forUserId(owner.getId()));
+        WorkoutSession session =
+                workoutSessionRepository.saveAndFlush(WorkoutSessionBuilder.aWorkoutSession(testEntityFactory.faker())
                         .forUser(owner)
                         .withRoutine(routine)
                         .build());
@@ -136,7 +133,7 @@ public class SessionSetRepositoryTest extends AbstractPostgresTest {
         Exercise exercise =
                 testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker()));
         Routine routine = testEntityFactory.createAndPersistRoutine(
-                RoutineBuilder.aRoutine(testEntityFactory.faker()).forUser(user));
+                RoutineBuilder.aRoutine(testEntityFactory.faker()).forUserId(user.getId()));
         WorkoutSession session =
                 workoutSessionRepository.saveAndFlush(WorkoutSessionBuilder.aWorkoutSession(testEntityFactory.faker())
                         .forUser(user)
@@ -169,6 +166,32 @@ public class SessionSetRepositoryTest extends AbstractPostgresTest {
     }
 
     @Test
+    @DisplayName("Should return zero max set number when the session exercise has no sets")
+    void findMaxSetNumberBySessionExerciseId_ShouldReturnZeroWhenNoSetsExist() {
+        User user = testEntityFactory.createAndPersistUser();
+        Exercise exercise =
+                testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker()));
+        Routine routine = testEntityFactory.createAndPersistRoutine(
+                RoutineBuilder.aRoutine(testEntityFactory.faker()).forUserId(user.getId()));
+        WorkoutSession session =
+                workoutSessionRepository.saveAndFlush(WorkoutSessionBuilder.aWorkoutSession(testEntityFactory.faker())
+                        .forUser(user)
+                        .withRoutine(routine)
+                        .build());
+
+        SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(testEntityFactory.faker())
+                .forWorkoutSession(session)
+                .forExercise(exercise)
+                .build();
+        session.addExerciseAt(sessionExercise, 1);
+        workoutSessionRepository.saveAndFlush(session);
+
+        int maxSetNumber = sessionSetRepository.findMaxSetNumberBySessionExerciseId(sessionExercise.getId());
+
+        assertThat(maxSetNumber).isZero();
+    }
+
+    @Test
     @DisplayName("Should return last set metrics for exercise from completed sessions")
     void findLastSetsByExerciseIdAndUserId_ShouldReturnLastSetMetrics() {
         User user = testEntityFactory.createAndPersistUser();
@@ -178,8 +201,8 @@ public class SessionSetRepositoryTest extends AbstractPostgresTest {
         WorkoutSession completedSession =
                 workoutSessionRepository.saveAndFlush(WorkoutSessionBuilder.aWorkoutSession(testEntityFactory.faker())
                         .forUser(user)
-                        .withStatus(dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus.COMPLETED)
-                        .withCompletedAt(Instant.now().minusSeconds(3600))
+                        .withStatus(SessionStatus.COMPLETED)
+                        .withCompletedAt(Instant.parse("2025-01-01T10:00:00Z"))
                         .build());
 
         SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(testEntityFactory.faker())
@@ -243,8 +266,8 @@ public class SessionSetRepositoryTest extends AbstractPostgresTest {
         WorkoutSession completedSession =
                 workoutSessionRepository.saveAndFlush(WorkoutSessionBuilder.aWorkoutSession(testEntityFactory.faker())
                         .forUser(owner)
-                        .withStatus(dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus.COMPLETED)
-                        .withCompletedAt(Instant.now().minusSeconds(3600))
+                        .withStatus(SessionStatus.COMPLETED)
+                        .withCompletedAt(Instant.parse("2025-01-01T10:00:00Z"))
                         .build());
 
         SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(testEntityFactory.faker())
@@ -276,7 +299,7 @@ public class SessionSetRepositoryTest extends AbstractPostgresTest {
         Exercise exercise =
                 testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker()));
         Routine routine = testEntityFactory.createAndPersistRoutine(
-                RoutineBuilder.aRoutine(testEntityFactory.faker()).forUser(user));
+                RoutineBuilder.aRoutine(testEntityFactory.faker()).forUserId(user.getId()));
         WorkoutSession session =
                 workoutSessionRepository.saveAndFlush(WorkoutSessionBuilder.aWorkoutSession(testEntityFactory.faker())
                         .forUser(user)
