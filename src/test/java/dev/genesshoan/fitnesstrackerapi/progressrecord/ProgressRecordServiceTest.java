@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.unit;
+package dev.genesshoan.fitnesstrackerapi.progressrecord;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,16 +13,13 @@ import org.springframework.data.domain.Pageable;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyExistsException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
-import dev.genesshoan.fitnesstrackerapi.progressrecord.ProgressRecord;
-import dev.genesshoan.fitnesstrackerapi.progressrecord.ProgressRecordRepository;
-import dev.genesshoan.fitnesstrackerapi.progressrecord.ProgressRecordService;
 import dev.genesshoan.fitnesstrackerapi.progressrecord.dto.ProgressRecordRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.progressrecord.dto.ProgressRecordResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.progressrecord.mapper.ProgressRecordMapper;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.ProgressRecordBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.UserBuilder;
-import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
+import dev.genesshoan.fitnesstrackerapi.user.infrastructure.persistence.UserRepository;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -81,6 +78,8 @@ public class ProgressRecordServiceTest {
                 .build();
 
         requestDTO = new ProgressRecordRequestDTO(RECORDED_AT, WEIGHT_KG, BODY_FAT_PERCENTAGE);
+
+        responseDTO = new ProgressRecordResponseDTO(PROGRESS_RECORD_ID, RECORDED_AT, WEIGHT_KG, BODY_FAT_PERCENTAGE);
     }
 
     @Nested
@@ -132,8 +131,8 @@ public class ProgressRecordServiceTest {
         @Test
         @DisplayName("Should throw BadRequestException when the start date is after the end date")
         void shouldThroWhenDatesAreInverted() {
-            LocalDate from = LocalDate.now().plusDays(30);
-            LocalDate to = LocalDate.now();
+            LocalDate from = LocalDate.of(2026, 9, 24);
+            LocalDate to = LocalDate.of(2026, 8, 25);
 
             assertThatThrownBy(() -> progressRecordService.getProgressRecordsInDateRange(
                             USER_ID, from, to, mock(Pageable.class)))

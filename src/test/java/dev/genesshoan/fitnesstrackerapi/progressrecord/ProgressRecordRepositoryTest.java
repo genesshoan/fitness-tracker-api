@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.repository;
+package dev.genesshoan.fitnesstrackerapi.progressrecord;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -10,8 +10,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import dev.genesshoan.fitnesstrackerapi.base.AbstractPostgresTest;
-import dev.genesshoan.fitnesstrackerapi.progressrecord.ProgressRecord;
-import dev.genesshoan.fitnesstrackerapi.progressrecord.ProgressRecordRepository;
 import dev.genesshoan.fitnesstrackerapi.testdata.TestEntityFactory;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.ProgressRecordBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.UserBuilder;
@@ -129,6 +127,32 @@ public class ProgressRecordRepositoryTest extends AbstractPostgresTest {
                             USER_ID_1, LocalDate.of(2026, 8, 19), LocalDate.of(2026, 8, 27), Pageable.unpaged());
 
             assertThat(result.getContent()).extracting(ProgressRecord::getId).doesNotContain(PG_ID_4, PG_ID_5, PG_ID_6);
+        }
+    }
+
+    @Nested
+    @DisplayName("existsByIdAndUserId")
+    class ExistsByIdAndUserId {
+
+        @Test
+        @DisplayName("Should return true when the record belongs to the user")
+        void shouldReturnTrueWhenTheRecordBelongsToTheUser() {
+            assertThat(progressRecordRepository.existsByIdAndUserId(PG_ID_1, USER_ID_1))
+                    .isTrue();
+        }
+
+        @Test
+        @DisplayName("Should return false when the record belongs to another user")
+        void shouldReturnFalseWhenTheRecordBelongsToAnotherUser() {
+            assertThat(progressRecordRepository.existsByIdAndUserId(PG_ID_4, USER_ID_1))
+                    .isFalse();
+        }
+
+        @Test
+        @DisplayName("Should return false for an unknown record")
+        void shouldReturnFalseForAnUnknownRecord() {
+            assertThat(progressRecordRepository.existsByIdAndUserId(UUID.randomUUID(), USER_ID_1))
+                    .isFalse();
         }
     }
 
