@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.integration;
+package dev.genesshoan.fitnesstrackerapi.exercise;
 
 import java.util.List;
 

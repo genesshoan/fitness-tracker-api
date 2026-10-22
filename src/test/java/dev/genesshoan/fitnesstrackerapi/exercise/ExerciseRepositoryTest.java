@@ -1,14 +1,14 @@
-package dev.genesshoan.fitnesstrackerapi.repository;
+package dev.genesshoan.fitnesstrackerapi.exercise;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.PageRequest;
 
 import dev.genesshoan.fitnesstrackerapi.base.AbstractPostgresTest;
-import dev.genesshoan.fitnesstrackerapi.exercise.ExerciseRepository;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
@@ -291,5 +291,120 @@ public class ExerciseRepositoryTest extends AbstractPostgresTest {
 
         // Then
         assertThat(result).allMatch(Exercise::isActive);
+    }
+
+    @Test
+    @DisplayName("Should report whether the slug is already taken")
+    void existsBySlug_ShouldReportWhetherTheSlugIsTaken() {
+        // Given
+        var exercise = testEntityFactory.createAndPersistExercise();
+
+        // When / Then
+        assertThat(exerciseRepository.existsBySlug(exercise.getSlug())).isTrue();
+        assertThat(exerciseRepository.existsBySlug("non-existent-slug")).isFalse();
+    }
+
+    @Test
+    @DisplayName("Should deactivate the exercise when soft deleting by slug")
+    void softDeleteBySlug_ShouldDeactivateTheExercise() {
+        // Given
+        var exercise = testEntityFactory.createAndPersistExercise();
+
+        entityManager.flush();
+        entityManager.clear();
+
+        // When
+        int updated = exerciseRepository.softDeleteBySlug(exercise.getSlug());
+
+        // Then
+        assertThat(updated).isEqualTo(1);
+        assertThat(exerciseRepository.findBySlugAndActiveTrue(exercise.getSlug()))
+                .isNotPresent();
+    }
+
+    @Test
+    @DisplayName("Should update no rows when soft deleting an unknown or inactive slug")
+    void softDeleteBySlug_ShouldUpdateNoRowsWhenNoActiveExerciseMatches() {
+        // Given
+        var inactive = testEntityFactory.createAndPersistExercise(
+                ExerciseBuilder.anExercise(testEntityFactory.faker()).withActive(false));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        // When / Then
+        assertThat(exerciseRepository.softDeleteBySlug("non-existent-slug")).isZero();
+        assertThat(exerciseRepository.softDeleteBySlug(inactive.getSlug())).isZero();
+    }
+
+    @Test
+    @DisplayName("Should limit the number of search results")
+    void searchActive_ShouldRespectTheLimit() {
+        // Given
+        testEntityFactory.createAndPersistExercise(
+                ExerciseBuilder.anExercise(testEntityFactory.faker()).withName("Limit Alpha"));
+        testEntityFactory.createAndPersistExercise(
+                ExerciseBuilder.anExercise(testEntityFactory.faker()).withName("Limit Beta"));
+        testEntityFactory.createAndPersistExercise(
+                ExerciseBuilder.anExercise(testEntityFactory.faker()).withName("Limit Gamma"));
+
+        // When
+        var result = exerciseRepository.searchActive("limit", 2);
+
+        // Then
+        assertThat(result).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("Should treat LIKE metacharacters literally when searching")
+    void searchActive_ShouldTreatLikeMetacharactersLiterally() {
+        // Given
+        var withPercent =
+                testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker())
+                        .withName("100% Effort")
+                        .withSlug("100-percent-effort"));
+        var withUnderscore =
+                testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker())
+                        .withName("Snake_Case Move")
+                        .withSlug("snake-case-move"));
+        testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker())
+                .withName("Regular Move")
+                .withSlug("regular-move"));
+
+        // When
+        var percentResult = exerciseRepository.searchActive("\\%", 10);
+        var underscoreResult = exerciseRepository.searchActive("\\_", 10);
+
+        // Then
+        assertThat(percentResult).containsExactly(withPercent);
+        assertThat(underscoreResult).containsExactly(withUnderscore);
+    }
+
+    @Test
+    @DisplayName("Should return only the active exercises for the given ids")
+    void findAllByIdInAndActiveTrue_ShouldReturnOnlyActiveExercises() {
+        // Given
+        var active = testEntityFactory.createAndPersistExercise();
+        var inactive = testEntityFactory.createAndPersistExercise(
+                ExerciseBuilder.anExercise(testEntityFactory.faker()).withActive(false));
+
+        // When
+        var result = exerciseRepository.findAllByIdInAndActiveTrue(Set.of(active.getId(), inactive.getId()));
+
+        // Then
+        assertThat(result).containsExactly(active);
+    }
+
+    @Test
+    @DisplayName("Should return an exercise by id only when it is active")
+    void findByIdAndActiveTrue_ShouldReturnTheExerciseOnlyWhenActive() {
+        // Given
+        var active = testEntityFactory.createAndPersistExercise();
+        var inactive = testEntityFactory.createAndPersistExercise(
+                ExerciseBuilder.anExercise(testEntityFactory.faker()).withActive(false));
+
+        // When / Then
+        assertThat(exerciseRepository.findByIdAndActiveTrue(active.getId())).isPresent();
+        assertThat(exerciseRepository.findByIdAndActiveTrue(inactive.getId())).isNotPresent();
     }
 }
