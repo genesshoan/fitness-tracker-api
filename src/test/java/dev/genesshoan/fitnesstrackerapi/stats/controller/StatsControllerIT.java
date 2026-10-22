@@ -1,9 +1,10 @@
-package dev.genesshoan.fitnesstrackerapi.integration;
+package dev.genesshoan.fitnesstrackerapi.stats.controller;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -45,7 +46,14 @@ class StatsControllerIT extends AbstractIntegrationTest {
     }
 
     private RequestPostProcessor asUser(User targetUser) {
-        UserDetails userDetails = new UserDetailsImpl(targetUser);
+        UserDetails userDetails = new UserDetailsImpl(
+                targetUser.getId(),
+                targetUser.getEmail(),
+                targetUser.getEmail(),
+                targetUser.getUsername(),
+                targetUser.getPasswordHash(),
+                targetUser.isEmailVerified(),
+                List.of(new SimpleGrantedAuthority("ROLE_" + targetUser.getRole())));
         return SecurityMockMvcRequestPostProcessors.user(userDetails);
     }
 
@@ -122,6 +130,105 @@ class StatsControllerIT extends AbstractIntegrationTest {
                         .param("sessionId", otherSession.getId().toString())
                         .with(asUser(user)))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Should return the volume of the authenticated user's session")
+    void getSessionVolume_shouldReturn200WithVolume() throws Exception {
+        var exercise = testEntityFactory.createAndPersistExercise();
+        Instant completedAt = Instant.parse("2026-01-15T10:00:00Z");
+        WorkoutSession session = testEntityFactory.createAndPersistWorkoutSession(
+                WorkoutSessionBuilder.aWorkoutSession(testEntityFactory.faker())
+                        .forUser(user)
+                        .withStatus(SessionStatus.COMPLETED)
+                        .withStartedAt(completedAt.minusSeconds(3600))
+                        .withCompletedAt(completedAt));
+        var sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
+        testEntityFactory.createAndPersistSessionSet(SessionSetBuilder.aSessionSet(testEntityFactory.faker())
+                .forSessionExercise(sessionExercise)
+                .withCompleted(true)
+                .withReps(10)
+                .withWeightKg(50.0));
+
+        mockMvc.perform(get("/api/v1/stats/volume")
+                        .param("sessionId", session.getId().toString())
+                        .with(asUser(user)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.volumeKg").value(500.0));
+    }
+
+    @Test
+    @DisplayName("Should return the estimated one rep max for an exercise")
+    void getOneRepMax_shouldReturn200WithEstimatedOneRepMax() throws Exception {
+        var exercise = testEntityFactory.createAndPersistExercise();
+        Instant completedAt = Instant.parse("2026-01-15T10:00:00Z");
+        WorkoutSession session = testEntityFactory.createAndPersistWorkoutSession(
+                WorkoutSessionBuilder.aWorkoutSession(testEntityFactory.faker())
+                        .forUser(user)
+                        .withStatus(SessionStatus.COMPLETED)
+                        .withStartedAt(completedAt.minusSeconds(3600))
+                        .withCompletedAt(completedAt));
+        var sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
+        testEntityFactory.createAndPersistSessionSet(SessionSetBuilder.aSessionSet(testEntityFactory.faker())
+                .forSessionExercise(sessionExercise)
+                .withCompleted(true)
+                .withReps(5)
+                .withWeightKg(100.0));
+
+        mockMvc.perform(get("/api/v1/stats/1rm")
+                        .param("exerciseId", exercise.getId().toString())
+                        .with(asUser(user)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.exerciseId").value(exercise.getId().toString()))
+                .andExpect(jsonPath("$.estimatedOneRepMax").value(116.66666666666667));
+    }
+
+    @Test
+    @DisplayName("Should return 404 when requesting the one rep max of an unknown exercise")
+    void getOneRepMax_shouldReturn404WhenExerciseDoesNotExist() throws Exception {
+        mockMvc.perform(get("/api/v1/stats/1rm")
+                        .param("exerciseId", UUID.randomUUID().toString())
+                        .with(asUser(user)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Should return 401 when requesting the one rep max unauthenticated")
+    void getOneRepMax_shouldReturn401WhenUnauthenticated() throws Exception {
+        mockMvc.perform(get("/api/v1/stats/1rm")
+                        .param("exerciseId", UUID.randomUUID().toString()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Should return the current streak of the authenticated user")
+    void getCurrentStreak_shouldReturn200WithStreak() throws Exception {
+        var exercise = testEntityFactory.createAndPersistExercise();
+        Instant completedAt = Instant.now().minusSeconds(60);
+        WorkoutSession session = testEntityFactory.createAndPersistWorkoutSession(
+                WorkoutSessionBuilder.aWorkoutSession(testEntityFactory.faker())
+                        .forUser(user)
+                        .withStatus(SessionStatus.COMPLETED)
+                        .withStartedAt(completedAt.minusSeconds(3600))
+                        .withCompletedAt(completedAt));
+        var sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
+        testEntityFactory.createAndPersistSessionSet(SessionSetBuilder.aSessionSet(testEntityFactory.faker())
+                .forSessionExercise(sessionExercise)
+                .withCompleted(true)
+                .withReps(10)
+                .withWeightKg(50.0));
+
+        mockMvc.perform(get("/api/v1/stats/streak").with(asUser(user)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currentStreak").value(1))
+                .andExpect(jsonPath("$.longestStreak").value(1))
+                .andExpect(jsonPath("$.lastActiveDay").isNotEmpty());
+    }
+
+    @Test
+    @DisplayName("Should return 401 when requesting the streak unauthenticated")
+    void getCurrentStreak_shouldReturn401WhenUnauthenticated() throws Exception {
+        mockMvc.perform(get("/api/v1/stats/streak")).andExpect(status().isUnauthorized());
     }
 
     @Test

@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.repository;
+package dev.genesshoan.fitnesstrackerapi.stats.repository;
 
 import java.time.Instant;
 import java.util.List;
@@ -15,7 +15,6 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
 import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.BodyRegion;
 import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.Muscle;
-import dev.genesshoan.fitnesstrackerapi.stats.repository.StatsRepository;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MonthlyVolumeProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MuscleIntensityProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.VolumeSetProjection;
@@ -175,6 +174,25 @@ class StatsRepositoryTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should return no volume sets for a session that is not completed")
+    void getSetsForVolume_shouldIgnoreSessionsThatAreNotCompleted() {
+        User user = testEntityFactory.createAndPersistUser();
+        Exercise exercise = testEntityFactory.createAndPersistExercise();
+        Instant startedAt = Instant.parse("2026-09-10T10:00:00Z");
+        WorkoutSession session =
+                persistSession(user, SessionStatus.IN_PROGRESS, startedAt, startedAt.plusSeconds(3600));
+        SessionExercise sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
+        testEntityFactory.createAndPersistSessionSet(SessionSetBuilder.aSessionSet(testEntityFactory.faker())
+                .forSessionExercise(sessionExercise)
+                .withWeightKg(50.0)
+                .withReps(10)
+                .withCompleted(true));
+
+        assertThat(statsRepository.getSetsForVolume(session.getId(), user.getId()))
+                .isEmpty();
+    }
+
+    @Test
     @DisplayName("Should aggregate completed volume by local calendar month")
     void getMonthlyVolume_shouldAggregateByMonthAndTimezone() {
         User user = testEntityFactory.createAndPersistUser();
@@ -218,6 +236,34 @@ class StatsRepositoryTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should return zero volume when no completed set qualifies")
+    void getVolume_shouldReturnZeroWhenNoSetsQualify() {
+        assertThat(statsRepository.getVolume(
+                        UUID.randomUUID(),
+                        Instant.parse("2026-01-01T00:00:00Z"),
+                        Instant.parse("2026-02-01T00:00:00Z")))
+                .isZero();
+    }
+
+    @Test
+    @DisplayName("Should ignore another user's sets when aggregating volume")
+    void getVolume_shouldIgnoreAnotherUsersSets() {
+        User owner = testEntityFactory.createAndPersistUser();
+        User otherUser = testEntityFactory.createAndPersistUser();
+        Exercise exercise = testEntityFactory.createAndPersistExercise();
+        Instant completedAt = Instant.parse("2026-01-15T10:00:00Z");
+        WorkoutSession session = persistCompletedSession(owner, completedAt.minusSeconds(100), completedAt);
+        SessionExercise sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
+        persistSet(sessionExercise, 1, 8, 75.0, null, null, true);
+
+        assertThat(statsRepository.getVolume(
+                        otherUser.getId(),
+                        Instant.parse("2026-01-01T00:00:00Z"),
+                        Instant.parse("2026-02-01T00:00:00Z")))
+                .isZero();
+    }
+
+    @Test
     @DisplayName("Should return the highest estimated one rep max")
     void getSetForOneRepMax_shouldReturnHighestValue() {
         User user = testEntityFactory.createAndPersistUser();
@@ -245,6 +291,23 @@ class StatsRepositoryTest extends AbstractIntegrationTest {
     @DisplayName("Should return empty one rep max when no qualifying sets exist")
     void getSetForOneRepMax_shouldReturnEmptyWhenNoSetsExist() {
         assertThat(statsRepository.getSetForOneRepMax(UUID.randomUUID(), UUID.randomUUID()))
+                .isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should return empty one rep max when every set is incomplete")
+    void getSetForOneRepMax_shouldReturnEmptyWhenSetsAreIncomplete() {
+        User user = testEntityFactory.createAndPersistUser();
+        Exercise exercise = testEntityFactory.createAndPersistExercise();
+        WorkoutSession session = persistCompletedSession(user, Instant.now().minusSeconds(100), Instant.now());
+        SessionExercise sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
+        testEntityFactory.createAndPersistSessionSet(SessionSetBuilder.aSessionSet(testEntityFactory.faker())
+                .forSessionExercise(sessionExercise)
+                .withWeightKg(100.0)
+                .withReps(5)
+                .withCompleted(false));
+
+        assertThat(statsRepository.getSetForOneRepMax(user.getId(), exercise.getId()))
                 .isEmpty();
     }
 
