@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.unit;
+package dev.genesshoan.fitnesstrackerapi.exercise;
 
 import java.util.Collections;
 import java.util.List;
@@ -8,16 +8,17 @@ import java.util.UUID;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyExistsException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
+import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPage;
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPageRequest;
-import dev.genesshoan.fitnesstrackerapi.exercise.ExerciseRepository;
-import dev.genesshoan.fitnesstrackerapi.exercise.ExerciseService;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseDetailDTO;
+import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseListItemDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseMuscleRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseRequestDTO;
+import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseSearchResultDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.mapper.ExerciseMapper;
 import dev.genesshoan.fitnesstrackerapi.exercise.muscle.MuscleRepository;
 import dev.genesshoan.fitnesstrackerapi.exercise.muscle.domain.Muscle;
@@ -416,5 +417,182 @@ class ExerciseServiceTest {
         assertThatThrownBy(() -> exerciseService.deleteExercise("bench-press"))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Exercise with slug bench-press not found");
+    }
+
+    @Test
+    @DisplayName("Should map the fetched exercises to list items and expose the next cursor")
+    void getAllExercises_shouldMapExercisesToListItemsAndExposeNextCursor() {
+        // Given
+        var first = ExerciseBuilder.anExercise(FAKER).withSlug("first-exercise").build();
+        var second =
+                ExerciseBuilder.anExercise(FAKER).withSlug("second-exercise").build();
+
+        var firstItem = new ExerciseListItemDTO(
+                first.getId(), first.getName(), first.getSlug(), first.getCategory(), first.getDifficulty());
+
+        CursorPageRequest<UUID> request = new CursorPageRequest<>(null, 1);
+
+        when(exerciseRepository.findByFiltersAndActiveTrue(any(), any(), any(), any(), any()))
+                .thenReturn(List.of(first, second));
+        when(exerciseMapper.toItemDTO(first)).thenReturn(firstItem);
+
+        // When
+        CursorPage<ExerciseListItemDTO, UUID> page = exerciseService.getAllExercises(request, null, null, null);
+
+        // Then
+        assertThat(page.page()).containsExactly(firstItem);
+        assertThat(page.hasNext()).isTrue();
+        assertThat(page.nextCursor()).contains(first.getId());
+    }
+
+    @Test
+    @DisplayName("Should return the matching exercises with the query highlighted in the name")
+    void searchExercises_shouldReturnMatchingExercisesWithHighlightedName() {
+        // Given
+        var exercise = ExerciseBuilder.anExercise(FAKER)
+                .withName("Barbell Bench Press")
+                .withSlug("barbell-bench-press")
+                .build();
+
+        when(exerciseRepository.searchActive("barbell", 10)).thenReturn(List.of(exercise));
+
+        // When
+        var result = exerciseService.searchExercises("barbell", 10);
+
+        // Then
+        assertThat(result.results())
+                .containsExactly(new ExerciseSearchResultDTO(
+                        exercise.getId(),
+                        "Barbell Bench Press",
+                        "barbell-bench-press",
+                        exercise.getCategory(),
+                        "<b>Barbell</b> Bench Press"));
+    }
+
+    @Test
+    @DisplayName("Should return an empty result when no exercise matches the query")
+    void searchExercises_shouldReturnEmptyResultsWhenNothingMatches() {
+        // Given
+        when(exerciseRepository.searchActive("press", 10)).thenReturn(List.of());
+
+        // When
+        var result = exerciseService.searchExercises("press", 10);
+
+        // Then
+        assertThat(result.results()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should trim the query before searching")
+    void searchExercises_shouldTrimTheQueryBeforeSearching() {
+        // Given
+        when(exerciseRepository.searchActive("press", 5)).thenReturn(List.of());
+
+        // When
+        exerciseService.searchExercises("  press  ", 5);
+
+        // Then
+        verify(exerciseRepository).searchActive("press", 5);
+    }
+
+    @Test
+    @DisplayName("Should search with an empty query when the query is null")
+    void searchExercises_shouldSearchWithAnEmptyQueryWhenQueryIsNull() {
+        // Given
+        when(exerciseRepository.searchActive("", 5)).thenReturn(List.of());
+
+        // When
+        var result = exerciseService.searchExercises(null, 5);
+
+        // Then
+        verify(exerciseRepository).searchActive("", 5);
+        assertThat(result.results()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should escape LIKE metacharacters in the search query")
+    void searchExercises_shouldEscapeLikeMetacharactersInTheQuery() {
+        // Given
+        when(exerciseRepository.searchActive("100\\% effort", 10)).thenReturn(List.of());
+        when(exerciseRepository.searchActive("a\\_b", 10)).thenReturn(List.of());
+
+        // When
+        exerciseService.searchExercises("100% effort", 10);
+        exerciseService.searchExercises("a_b", 10);
+
+        // Then
+        verify(exerciseRepository).searchActive("100\\% effort", 10);
+        verify(exerciseRepository).searchActive("a\\_b", 10);
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" ", "   "})
+    @DisplayName("Should throw BadRequestException when deleting with an invalid slug")
+    void deleteExercise_shouldThrowExceptionWhenSlugIsInvalid(String slug) {
+        // When / Then
+        assertThatThrownBy(() -> exerciseService.deleteExercise(slug))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Slug is required");
+
+        verifyNoInteractions(exerciseRepository);
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" ", "   "})
+    @DisplayName("Should throw BadRequestException when updating with an invalid slug")
+    void updateExercise_shouldThrowExceptionWhenSlugIsInvalid(String slug) {
+        // Given
+        var request = new ExerciseRequestDTO(
+                "Bench Press", "bench-press", "Description", null, Category.STRENGTH, Difficulty.INTERMEDIATE, null);
+
+        // When / Then
+        assertThatThrownBy(() -> exerciseService.updateExercise(slug, request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Slug is required");
+
+        verifyNoInteractions(exerciseRepository);
+    }
+
+    @Test
+    @DisplayName("Should create an exercise without muscle associations")
+    void createExercise_shouldCreateExerciseWithoutMuscles() {
+        // Given
+        var request = new ExerciseRequestDTO(
+                "Bicep Curl",
+                "bicep-curl",
+                "Made with a bicep curl bar",
+                List.of("Step 1"),
+                Category.STRENGTH,
+                Difficulty.INTERMEDIATE,
+                null);
+
+        var exercise = ExerciseBuilder.anExercise(FAKER).build();
+
+        var detailDTO = new ExerciseDetailDTO(
+                UUID.randomUUID(),
+                request.name(),
+                request.slug(),
+                request.description(),
+                request.instructions(),
+                request.category(),
+                request.difficulty(),
+                List.of(),
+                null);
+
+        when(exerciseRepository.existsBySlug(request.slug())).thenReturn(false);
+        when(exerciseMapper.toEntity(request)).thenReturn(exercise);
+        when(exerciseRepository.save(exercise)).thenReturn(exercise);
+        when(exerciseMapper.toDetailDTO(exercise)).thenReturn(detailDTO);
+
+        // When
+        var result = exerciseService.createExercise(request);
+
+        // Then
+        assertThat(result).isEqualTo(detailDTO);
+        assertThat(exercise.getExerciseMuscles()).isEmpty();
+
+        verifyNoInteractions(muscleRepository);
     }
 }

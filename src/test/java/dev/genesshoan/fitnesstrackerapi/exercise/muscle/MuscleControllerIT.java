@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.integration;
+package dev.genesshoan.fitnesstrackerapi.exercise.muscle;
 
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.transaction.annotation.Transactional;
