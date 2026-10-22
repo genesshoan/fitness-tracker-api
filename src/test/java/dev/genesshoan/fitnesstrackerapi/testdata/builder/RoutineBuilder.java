@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.RoutineExercise;
-import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import net.datafaker.Faker;
 
 public class RoutineBuilder {
@@ -15,7 +14,7 @@ public class RoutineBuilder {
     private String name;
     private String description;
     private boolean active = true;
-    private User user;
+    private UUID userId;
     private List<RoutineExercise> exercises = new ArrayList<>();
 
     public RoutineBuilder(Faker faker) {
@@ -49,8 +48,8 @@ public class RoutineBuilder {
         return this;
     }
 
-    public RoutineBuilder forUser(User user) {
-        this.user = user;
+    public RoutineBuilder forUserId(UUID userId) {
+        this.userId = userId;
         return this;
     }
 
@@ -68,8 +67,8 @@ public class RoutineBuilder {
     }
 
     public Routine build() {
-        if (user == null) {
-            throw new IllegalStateException("User must be set to Routine");
+        if (userId == null) {
+            throw new IllegalStateException("User id must be set to Routine");
         }
 
         Routine routine = Routine.builder()
@@ -77,7 +76,7 @@ public class RoutineBuilder {
                 .name(name)
                 .description(description)
                 .active(active)
-                .user(user)
+                .userId(userId)
                 .exercises(exercises)
                 .build();
 
