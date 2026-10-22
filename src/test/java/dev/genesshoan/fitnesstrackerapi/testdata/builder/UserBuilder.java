@@ -14,6 +14,7 @@ public class UserBuilder {
     private String passwordHash;
     private Role role = Role.USER;
     private String timezone;
+    private boolean emailVerified = false;
 
     public UserBuilder(Faker faker) {
         this.username = faker.name().firstName().toLowerCase() + "_"
@@ -59,6 +60,11 @@ public class UserBuilder {
         return this;
     }
 
+    public UserBuilder withEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
+        return this;
+    }
+
     public User build() {
         return User.builder()
                 .id(id)
@@ -67,6 +73,7 @@ public class UserBuilder {
                 .passwordHash(passwordHash)
                 .role(role)
                 .timezone(timezone)
+                .emailVerified(emailVerified)
                 .build();
     }
 }

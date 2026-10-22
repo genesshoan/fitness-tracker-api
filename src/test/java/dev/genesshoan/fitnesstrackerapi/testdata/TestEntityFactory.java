@@ -32,8 +32,8 @@ import dev.genesshoan.fitnesstrackerapi.testdata.builder.SessionExerciseBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.SessionSetBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.UserBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.WorkoutSessionBuilder;
-import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
+import dev.genesshoan.fitnesstrackerapi.user.infrastructure.persistence.UserRepository;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionExercise;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
@@ -127,13 +127,8 @@ public class TestEntityFactory {
      * The exercise is added at the end of the session (next available position).
      */
     public SessionExercise createAndPersistSessionExercise(WorkoutSession session, Exercise exercise) {
-        SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(faker)
-                .forWorkoutSession(session)
-                .forExercise(exercise)
-                .build();
-        session.addExerciseAt(sessionExercise, session.getExercises().size() + 1);
-        workoutSessionRepository.saveAndFlush(session);
-        return sessionExercise;
+        return createAndPersistSessionExercise(
+                session, exercise, session.getExercises().size() + 1);
     }
 
     /**
@@ -146,8 +141,10 @@ public class TestEntityFactory {
                 .withPosition(position)
                 .build();
         session.addExerciseAt(sessionExercise, position);
-        workoutSessionRepository.saveAndFlush(session);
-        return sessionExercise;
+
+        // The child is persisted on its own repository, merging the session would return a
+        // detached copy of the exercise and break the following calls.
+        return sessionExerciseRepository.saveAndFlush(sessionExercise);
     }
 
     /**
@@ -171,8 +168,10 @@ public class TestEntityFactory {
                 .withSetNumber(nextSetNumber)
                 .build();
         sessionExercise.addSet(sessionSet);
-        sessionExerciseRepository.saveAndFlush(sessionExercise);
-        return sessionSet;
+
+        // The set is persisted on its own repository, merging the session exercise would
+        // fail because it is a detached instance.
+        return sessionSetRepository.saveAndFlush(sessionSet);
     }
 
     /**
@@ -324,12 +323,12 @@ public class TestEntityFactory {
     }
 
     public Routine createAndPersistRoutine(User user) {
-        return createAndPersistRoutine(RoutineBuilder.aRoutine(faker).forUser(user));
+        return createAndPersistRoutine(RoutineBuilder.aRoutine(faker).forUserId(user.getId()));
     }
 
     public Routine createAndPersistRoutine(User user, String name) {
         return createAndPersistRoutine(
-                RoutineBuilder.aRoutine(faker).forUser(user).withName(name));
+                RoutineBuilder.aRoutine(faker).forUserId(user.getId()).withName(name));
     }
 
     public RoutineExercise createAndPersistRoutineExercise(RoutineExerciseBuilder builder) {
