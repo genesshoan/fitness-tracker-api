@@ -8,9 +8,11 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -82,4 +84,17 @@ public class RoutineExercise {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "exercise_id")
     private Exercise exercise;
+
+    /**
+     * Assigns the identifier when the assignment is built without one.
+     *
+     * <p>The assignment is created from the routine payload, so the identifier is
+     * generated right before it is persisted.
+     */
+    @PrePersist
+    void assignId() {
+        if (id == null) {
+            id = UuidCreator.getTimeOrderedEpoch();
+        }
+    }
 }
