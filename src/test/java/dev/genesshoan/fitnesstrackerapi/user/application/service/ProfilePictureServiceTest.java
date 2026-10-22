@@ -1,20 +1,16 @@
-package dev.genesshoan.fitnesstrackerapi.unit;
+package dev.genesshoan.fitnesstrackerapi.user.application.service;
 
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.mock.web.MockMultipartFile;
 
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.FileStorageException;
-import dev.genesshoan.fitnesstrackerapi.common.error.exception.InvalidProfilePictureException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.storage.ObjectStoragePort;
-import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
+import dev.genesshoan.fitnesstrackerapi.user.application.exception.FileStorageException;
+import dev.genesshoan.fitnesstrackerapi.user.application.exception.InvalidProfilePictureException;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
-import dev.genesshoan.fitnesstrackerapi.user.profilepicture.processor.ProcessedImage;
-import dev.genesshoan.fitnesstrackerapi.user.profilepicture.processor.ProfilePictureProcessor;
-import dev.genesshoan.fitnesstrackerapi.user.profilepicture.service.ProfilePictureService;
-import dev.genesshoan.fitnesstrackerapi.user.profilepicture.validator.ProfilePictureValidator;
+import dev.genesshoan.fitnesstrackerapi.user.infrastructure.persistence.UserRepository;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
