@@ -1,9 +1,10 @@
-package dev.genesshoan.fitnesstrackerapi.unit;
+package dev.genesshoan.fitnesstrackerapi.workout;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ValidationException;
+import dev.genesshoan.fitnesstrackerapi.common.mapper.ExerciseMetricsMapper;
 import dev.genesshoan.fitnesstrackerapi.exercise.ExerciseRepository;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
@@ -30,9 +32,8 @@ import dev.genesshoan.fitnesstrackerapi.testdata.builder.SessionExerciseBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.SessionSetBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.UserBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.WorkoutSessionBuilder;
-import dev.genesshoan.fitnesstrackerapi.user.UserRepository;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
-import dev.genesshoan.fitnesstrackerapi.workout.WorkoutSessionService;
+import dev.genesshoan.fitnesstrackerapi.user.infrastructure.persistence.UserRepository;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionExercise;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
@@ -53,6 +54,7 @@ import dev.genesshoan.fitnesstrackerapi.workout.mapper.WorkoutSessionMapper;
 import dev.genesshoan.fitnesstrackerapi.workout.repository.SessionExerciseRepository;
 import dev.genesshoan.fitnesstrackerapi.workout.repository.SessionSetRepository;
 import dev.genesshoan.fitnesstrackerapi.workout.repository.WorkoutSessionRepository;
+import dev.genesshoan.fitnesstrackerapi.workout.repository.projection.LastSetProjection;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -70,6 +72,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -111,6 +114,9 @@ class WorkoutSessionServiceTest {
     private SessionSetMapper sessionSetMapper;
 
     @Mock
+    private ExerciseMetricsMapper exerciseMetricsMapper;
+
+    @Mock
     private StatsService statsService;
 
     @InjectMocks
@@ -130,6 +136,7 @@ class WorkoutSessionServiceTest {
     @DisplayName("addNewSessionExercise")
     class AddNewSessionExercise {
         @Test
+        @DisplayName("Should shift existing exercises and return added response when position is in middle")
         void should_shiftExistingExercisesAndReturnAddedResponse_when_positionIsInMiddle() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -205,6 +212,7 @@ class WorkoutSessionServiceTest {
         }
 
         @Test
+        @DisplayName("Should throw bad request exception when session is completed")
         void should_throwBadRequestException_when_sessionIsCompleted() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -233,6 +241,7 @@ class WorkoutSessionServiceTest {
         }
 
         @Test
+        @DisplayName("Should throw resource not found exception when session is missing")
         void should_throwResourceNotFoundException_when_sessionIsMissing() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -253,6 +262,7 @@ class WorkoutSessionServiceTest {
         }
 
         @Test
+        @DisplayName("Should throw validation exception when set data does not match category")
         void should_throwValidationException_when_setDataDoesNotMatchCategory() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -282,6 +292,7 @@ class WorkoutSessionServiceTest {
         }
 
         @Test
+        @DisplayName("Should throw resource not found exception when exercise does not exist")
         void should_throwResourceNotFoundException_when_exerciseDoesNotExist() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -306,12 +317,53 @@ class WorkoutSessionServiceTest {
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessage("Exercise not found");
         }
+
+        @Test
+        @DisplayName("Should append exercise at the end when position is null")
+        void should_appendExerciseAtTheEnd_when_positionIsNull() {
+            UUID userId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            UUID exerciseId = UUID.randomUUID();
+
+            Exercise exercise = ExerciseBuilder.anExercise(FAKER)
+                    .withCategory(Category.STRENGTH)
+                    .build();
+            exercise.setId(exerciseId);
+            SessionExercise first = SessionExerciseBuilder.aSessionExercise(FAKER)
+                    .withId(UUID.randomUUID())
+                    .withPosition(1)
+                    .forExercise(ExerciseBuilder.anExercise(FAKER).build())
+                    .build();
+            WorkoutSession session = WorkoutSessionBuilder.aWorkoutSession(FAKER)
+                    .withId(sessionId)
+                    .forUser(UserBuilder.aUser(FAKER).build())
+                    .withExercises(List.of(first))
+                    .build();
+            SessionExerciseRequestDTO dto = new SessionExerciseRequestDTO(
+                    null, "notes", exerciseId, List.of(new SessionSetRequestDTO(1, 10, 20.0, null, null, true)));
+
+            when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
+                    .thenReturn(Optional.of(session));
+            when(exerciseRepository.findByIdAndActiveTrue(exerciseId)).thenReturn(Optional.of(exercise));
+
+            workoutSessionService.addNewSessionExercise(sessionId, userId, dto);
+
+            ArgumentCaptor<SessionExercise> addedExerciseCaptor = ArgumentCaptor.forClass(SessionExercise.class);
+            verify(sessionExerciseMapper).toSessionExerciseAddedResponseDTO(addedExerciseCaptor.capture(), any());
+
+            assertThat(session.getExercises()).hasSize(2);
+            assertThat(addedExerciseCaptor.getValue().getPosition()).isEqualTo(2);
+            assertThat(session.getExercises())
+                    .extracting(SessionExercise::getPosition)
+                    .containsExactly(1, 2);
+        }
     }
 
     @Nested
     @DisplayName("updateSessionExercisePosition")
     class UpdateSessionExercisePosition {
         @Test
+        @DisplayName("Should shift exercises down when moving exercise up")
         void should_shiftExercisesDownWhenMovingExerciseUp() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -358,6 +410,7 @@ class WorkoutSessionServiceTest {
         }
 
         @Test
+        @DisplayName("Should shift exercises up when moving exercise down")
         void should_shiftExercisesUpWhenMovingExerciseDown() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -404,6 +457,7 @@ class WorkoutSessionServiceTest {
         }
 
         @Test
+        @DisplayName("Should keep positions unchanged when moving to same position")
         void should_keepPositionsUnchanged_when_movingToSamePosition() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -437,6 +491,7 @@ class WorkoutSessionServiceTest {
         }
 
         @Test
+        @DisplayName("Should throw bad request exception when session is completed")
         void should_throwBadRequestException_when_sessionIsCompleted() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -460,6 +515,7 @@ class WorkoutSessionServiceTest {
         }
 
         @Test
+        @DisplayName("Should throw resource not found exception when session exercise does not exist")
         void should_throwResourceNotFoundException_when_sessionExerciseDoesNotExist() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -482,6 +538,7 @@ class WorkoutSessionServiceTest {
     @DisplayName("deleteSessionExercise")
     class DeleteSessionExercise {
         @Test
+        @DisplayName("Should close position gap and return updated positions when exercise is removed")
         void should_closePositionGapAndReturnUpdatedPositions_when_exerciseIsRemoved() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -526,6 +583,7 @@ class WorkoutSessionServiceTest {
         }
 
         @Test
+        @DisplayName("Should throw bad request exception when deleting exercise from completed session")
         void should_throwBadRequestException_when_deletingExerciseFromCompletedSession() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -549,6 +607,7 @@ class WorkoutSessionServiceTest {
         }
 
         @Test
+        @DisplayName("Should throw resource not found exception when deleting exercise that does not exist in session")
         void should_throwResourceNotFoundException_when_deletingExerciseThatDoesNotExistInSession() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -570,6 +629,7 @@ class WorkoutSessionServiceTest {
     @DisplayName("addNewSessionSet")
     class AddNewSessionSet {
         @Test
+        @DisplayName("Should append set and return mapped response when session is active")
         void should_appendSetAndReturnMappedResponse_when_sessionIsActive() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -630,6 +690,7 @@ class WorkoutSessionServiceTest {
         }
 
         @Test
+        @DisplayName("Should throw bad request exception when session is completed")
         void should_throwBadRequestException_when_sessionIsCompleted() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -659,12 +720,95 @@ class WorkoutSessionServiceTest {
             verify(sessionSetRepository, never()).save(any(SessionSet.class));
             verifyNoInteractions(sessionSetMapper);
         }
+
+        @Test
+        @DisplayName("Should reuse the last set metrics when the request has no metrics")
+        void should_reuseLastSetMetrics_when_requestHasNoMetrics() {
+            UUID userId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            SessionSet lastSet = SessionSetBuilder.aSessionSet(FAKER)
+                    .withSetNumber(2)
+                    .withReps(12)
+                    .withWeightKg(30.0)
+                    .withCompleted(true)
+                    .build();
+            SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(FAKER)
+                    .withSets(List.of(lastSet))
+                    .forExercise(ExerciseBuilder.anExercise(FAKER)
+                            .withCategory(Category.STRENGTH)
+                            .build())
+                    .build();
+            WorkoutSession session = WorkoutSessionBuilder.aWorkoutSession(FAKER)
+                    .withId(sessionId)
+                    .forUser(UserBuilder.aUser(FAKER).build())
+                    .withExercises(List.of(sessionExercise))
+                    .build();
+            SessionSetRequestDTO dto = new SessionSetRequestDTO(null, null, null, null, null, false);
+
+            when(sessionExerciseRepository.findForUpdateWithWorkoutSessionAndExerciseAndSets(
+                            sessionExercise.getId(), sessionId, userId))
+                    .thenReturn(Optional.of(sessionExercise));
+            when(sessionSetMapper.toDefaultSessionSetRequestDTO(lastSet))
+                    .thenReturn(new SessionSetRequestDTO(1, 12, 30.0, null, null, false));
+            when(sessionSetRepository.save(any(SessionSet.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            workoutSessionService.addNewSessionSet(sessionId, sessionExercise.getId(), userId, dto);
+
+            ArgumentCaptor<SessionSet> savedSetCaptor = ArgumentCaptor.forClass(SessionSet.class);
+            verify(sessionSetRepository).save(savedSetCaptor.capture());
+
+            SessionSet savedSet = savedSetCaptor.getValue();
+            assertThat(savedSet.getSetNumber()).isEqualTo(2);
+            assertThat(savedSet.getReps()).isEqualTo(12);
+            assertThat(savedSet.getWeightKg()).isEqualTo(30.0);
+            assertThat(savedSet.isCompleted()).isFalse();
+            verify(sessionSetMapper).toDefaultSessionSetRequestDTO(lastSet);
+            verifyNoInteractions(exerciseMetricsMapper);
+        }
+
+        @Test
+        @DisplayName("Should use the category defaults when the exercise has no sets")
+        void should_useCategoryDefaults_when_exerciseHasNoSets() {
+            UUID userId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(FAKER)
+                    .forExercise(ExerciseBuilder.anExercise(FAKER)
+                            .withCategory(Category.STRENGTH)
+                            .build())
+                    .build();
+            WorkoutSession session = WorkoutSessionBuilder.aWorkoutSession(FAKER)
+                    .withId(sessionId)
+                    .forUser(UserBuilder.aUser(FAKER).build())
+                    .withExercises(List.of(sessionExercise))
+                    .build();
+            SessionSetRequestDTO dto = new SessionSetRequestDTO(null, null, null, null, null, false);
+
+            when(sessionExerciseRepository.findForUpdateWithWorkoutSessionAndExerciseAndSets(
+                            sessionExercise.getId(), sessionId, userId))
+                    .thenReturn(Optional.of(sessionExercise));
+            when(exerciseMetricsMapper.toDefaultSessionSetRequestDTO(Category.STRENGTH.defaultMetrics()))
+                    .thenReturn(new SessionSetRequestDTO(1, 8, 5.0, null, null, false));
+            when(sessionSetRepository.save(any(SessionSet.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            workoutSessionService.addNewSessionSet(sessionId, sessionExercise.getId(), userId, dto);
+
+            ArgumentCaptor<SessionSet> savedSetCaptor = ArgumentCaptor.forClass(SessionSet.class);
+            verify(sessionSetRepository).save(savedSetCaptor.capture());
+
+            SessionSet savedSet = savedSetCaptor.getValue();
+            assertThat(savedSet.getSetNumber()).isEqualTo(1);
+            assertThat(savedSet.getReps()).isEqualTo(8);
+            assertThat(savedSet.getWeightKg()).isEqualTo(5.0);
+            verify(exerciseMetricsMapper).toDefaultSessionSetRequestDTO(Category.STRENGTH.defaultMetrics());
+            verify(sessionSetMapper, never()).toDefaultSessionSetRequestDTO(any(SessionSet.class));
+        }
     }
 
     @Nested
     @DisplayName("updateSessionSet")
     class UpdateSessionSet {
         @Test
+        @DisplayName("Should update set fields and return mapped response when session is active")
         void should_updateSetFieldsAndReturnMappedResponse_when_sessionIsActive() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -722,6 +866,7 @@ class WorkoutSessionServiceTest {
         }
 
         @Test
+        @DisplayName("Should throw bad request exception when session is completed")
         void should_throwBadRequestException_when_sessionIsCompleted() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -758,6 +903,7 @@ class WorkoutSessionServiceTest {
         }
 
         @Test
+        @DisplayName("Should throw bad request exception when set data does not match category")
         void should_throwBadRequestException_when_setDataDoesNotMatchCategory() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -794,6 +940,7 @@ class WorkoutSessionServiceTest {
         }
 
         @Test
+        @DisplayName("Should throw resource not found exception when session set is missing")
         void should_throwResourceNotFoundException_when_sessionSetIsMissing() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -819,6 +966,7 @@ class WorkoutSessionServiceTest {
     @DisplayName("deleteSessionSet")
     class DeleteSessionSet {
         @Test
+        @DisplayName("Should close set number gap and remove set when session is active")
         void should_closeSetNumberGapAndRemoveSet_when_sessionIsActive() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -857,6 +1005,7 @@ class WorkoutSessionServiceTest {
         }
 
         @Test
+        @DisplayName("Should throw bad request exception when session is completed")
         void should_throwBadRequestException_when_sessionIsCompleted() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -891,6 +1040,7 @@ class WorkoutSessionServiceTest {
         }
 
         @Test
+        @DisplayName("Should throw resource not found exception when session exercise is missing")
         void should_throwResourceNotFoundException_when_sessionExerciseIsMissing() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -907,6 +1057,7 @@ class WorkoutSessionServiceTest {
         }
 
         @Test
+        @DisplayName("Should throw resource not found exception when session set is missing from exercise")
         void should_throwResourceNotFoundException_when_sessionSetIsMissingFromExercise() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -932,12 +1083,47 @@ class WorkoutSessionServiceTest {
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessage("Session set not found");
         }
+
+        @Test
+        @DisplayName("Should delete the session exercise when the deleted set is the only one")
+        void should_deleteSessionExercise_when_itIsTheOnlySet() {
+            UUID userId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            UUID sessionSetId = UUID.randomUUID();
+            SessionSet onlySet = SessionSetBuilder.aSessionSet(FAKER)
+                    .withId(sessionSetId)
+                    .withSetNumber(1)
+                    .build();
+            SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(FAKER)
+                    .withSets(List.of(onlySet))
+                    .forExercise(ExerciseBuilder.anExercise(FAKER)
+                            .withCategory(Category.STRENGTH)
+                            .build())
+                    .build();
+            WorkoutSession session = WorkoutSessionBuilder.aWorkoutSession(FAKER)
+                    .withId(sessionId)
+                    .forUser(UserBuilder.aUser(FAKER).build())
+                    .withExercises(List.of(sessionExercise))
+                    .build();
+            onlySet.setSessionExercise(sessionExercise);
+            sessionExercise.setWorkoutSession(session);
+
+            when(sessionExerciseRepository.findForUpdateWithWorkoutSessionAndSets(
+                            sessionExercise.getId(), sessionId, userId))
+                    .thenReturn(Optional.of(sessionExercise));
+
+            workoutSessionService.deleteSessionSet(sessionId, sessionExercise.getId(), sessionSetId, userId);
+
+            verify(sessionExerciseRepository).delete(sessionExercise);
+            assertThat(sessionExercise.getSets()).hasSize(1);
+        }
     }
 
     @Nested
     @DisplayName("updateSessionExerciseNotes")
     class UpdateSessionExerciseNotes {
         @Test
+        @DisplayName("Should update exercise notes when session is active")
         void should_updateExerciseNotes_when_sessionIsActive() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -963,6 +1149,7 @@ class WorkoutSessionServiceTest {
         }
 
         @Test
+        @DisplayName("Should throw bad request exception when updating exercise notes in completed session")
         void should_throwBadRequestException_when_updatingExerciseNotesInCompletedSession() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -988,6 +1175,7 @@ class WorkoutSessionServiceTest {
         }
 
         @Test
+        @DisplayName("Should throw resource not found exception when updating notes for missing session exercise")
         void should_throwResourceNotFoundException_when_updatingNotesForMissingSessionExercise() {
             UUID userId = UUID.randomUUID();
             UUID sessionId = UUID.randomUUID();
@@ -1004,6 +1192,7 @@ class WorkoutSessionServiceTest {
     }
 
     @Test
+    @DisplayName("Should return page of workout session list items when getting all workout sessions")
     void should_returnPageOfWorkoutSessionListItems_when_gettingAllWorkoutSessions() {
         UUID userId = UUID.randomUUID();
         Pageable pageable = PageRequest.of(0, 2);
@@ -1032,6 +1221,7 @@ class WorkoutSessionServiceTest {
     }
 
     @Test
+    @DisplayName("Should return workout session by id when session exists")
     void should_returnWorkoutSessionById_when_sessionExists() {
         UUID userId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
@@ -1053,6 +1243,7 @@ class WorkoutSessionServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw resource not found exception when workout session by id does not exist")
     void should_throwResourceNotFoundException_when_workoutSessionByIdDoesNotExist() {
         UUID userId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
@@ -1066,10 +1257,10 @@ class WorkoutSessionServiceTest {
     }
 
     @Test
+    @DisplayName("Should create workout session from routine preserving exercises and default sets")
     void should_createWorkoutSessionFromRoutinePreservingExercisesAndDefaultSets() {
         UUID userId = UUID.randomUUID();
         UUID routineId = UUID.randomUUID();
-        User user = UserBuilder.aUser(FAKER).withId(userId).build();
         User userReference = UserBuilder.aUser(FAKER).withId(userId).build();
         Exercise firstExercise = ExerciseBuilder.anExercise(FAKER).build();
         firstExercise.setId(UUID.randomUUID());
@@ -1078,7 +1269,7 @@ class WorkoutSessionServiceTest {
         secondExercise.setId(UUID.randomUUID());
         Routine routine = RoutineBuilder.aRoutine(FAKER)
                 .withId(routineId)
-                .forUser(user)
+                .forUserId(userId)
                 .withExercises(List.of())
                 .build();
         RoutineExercise firstRoutineExercise = RoutineExerciseBuilder.aRoutineExercise(FAKER)
@@ -1142,6 +1333,7 @@ class WorkoutSessionServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw resource not found exception when creating workout session from missing routine")
     void should_throwResourceNotFoundException_when_creatingWorkoutSessionFromMissingRoutine() {
         UUID userId = UUID.randomUUID();
         UUID routineId = UUID.randomUUID();
@@ -1156,6 +1348,7 @@ class WorkoutSessionServiceTest {
     }
 
     @Test
+    @DisplayName("Should reject completed session without completion time")
     void should_rejectCompletedSessionWithoutCompletionTime() {
         WorkoutSessionRequestDTO request = new WorkoutSessionRequestDTO(
                 SessionStatus.COMPLETED,
@@ -1172,6 +1365,7 @@ class WorkoutSessionServiceTest {
     }
 
     @Test
+    @DisplayName("Should reject future completion time")
     void should_rejectFutureCompletionTime() {
         WorkoutSessionRequestDTO request = new WorkoutSessionRequestDTO(
                 SessionStatus.COMPLETED,
@@ -1187,6 +1381,7 @@ class WorkoutSessionServiceTest {
     }
 
     @Test
+    @DisplayName("Should reject completion time for in progress session")
     void should_rejectCompletionTimeForInProgressSession() {
         WorkoutSessionRequestDTO request = new WorkoutSessionRequestDTO(
                 SessionStatus.IN_PROGRESS,
@@ -1202,6 +1397,7 @@ class WorkoutSessionServiceTest {
     }
 
     @Test
+    @DisplayName("Should create workout session from scratch with sequential positions")
     void should_createWorkoutSessionFromScratchWithSequentialPositions() {
         UUID userId = UUID.randomUUID();
         UUID firstExerciseId = UUID.randomUUID();
@@ -1271,6 +1467,119 @@ class WorkoutSessionServiceTest {
     }
 
     @Test
+    @DisplayName("Should synthesize a set from the last completed set when the request has no sets")
+    void should_synthesizeSetFromLastCompletedSet_when_requestHasNoSets() {
+        UUID userId = UUID.randomUUID();
+        UUID exerciseId = UUID.randomUUID();
+        User userReference = UserBuilder.aUser(FAKER).withId(userId).build();
+        Exercise exercise = ExerciseBuilder.anExercise(FAKER)
+                .withCategory(Category.STRENGTH)
+                .build();
+        exercise.setId(exerciseId);
+        WorkoutSessionRequestDTO request = new WorkoutSessionRequestDTO(
+                SessionStatus.IN_PROGRESS,
+                Instant.parse("2025-01-01T10:00:00Z"),
+                null,
+                "session notes",
+                List.of(new SessionExerciseRequestDTO(null, "exercise notes", exerciseId, List.of())));
+        WorkoutSessionResponseDTO response = new WorkoutSessionResponseDTO(
+                UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "session notes", List.of());
+        LastSetProjection lastSet = mock(LastSetProjection.class);
+        when(lastSet.getExerciseId()).thenReturn(exerciseId);
+        when(lastSet.getReps()).thenReturn(15);
+        when(lastSet.getWeightKg()).thenReturn(40.0);
+
+        when(exerciseFinder.findActiveByIds(eq(List.of(exerciseId)), any())).thenReturn(Map.of(exerciseId, exercise));
+        when(sessionSetRepository.findLastSetsByExerciseIdAndUserId(Set.of(exerciseId), userId))
+                .thenReturn(List.of(lastSet));
+        when(userRepository.getReferenceById(userId)).thenReturn(userReference);
+        when(workoutSessionRepository.save(any(WorkoutSession.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(workoutSessionMapper.toWorkoutSessionResponseDTO(any(WorkoutSession.class), anyMap()))
+                .thenReturn(response);
+
+        WorkoutSessionResponseDTO result = workoutSessionService.createWorkoutSessionFromScratch(request, userId);
+
+        ArgumentCaptor<WorkoutSession> savedSessionCaptor = ArgumentCaptor.forClass(WorkoutSession.class);
+        verify(workoutSessionRepository).save(savedSessionCaptor.capture());
+        WorkoutSession savedSession = savedSessionCaptor.getValue();
+
+        assertThat(result).isEqualTo(response);
+        assertThat(savedSession.getExercises()).hasSize(1);
+        assertThat(savedSession.getExercises().get(0).getSets()).hasSize(1);
+        assertThat(savedSession.getExercises().get(0).getSets().get(0).getSetNumber())
+                .isEqualTo(1);
+        assertThat(savedSession.getExercises().get(0).getSets().get(0).getReps())
+                .isEqualTo(15);
+        assertThat(savedSession.getExercises().get(0).getSets().get(0).getWeightKg())
+                .isEqualTo(40.0);
+        verifyNoInteractions(exerciseMetricsMapper);
+    }
+
+    @Test
+    @DisplayName("Should synthesize a set from the category defaults when there is no last completed set")
+    void should_synthesizeSetFromCategoryDefaults_when_noLastCompletedSetExists() {
+        UUID userId = UUID.randomUUID();
+        UUID exerciseId = UUID.randomUUID();
+        User userReference = UserBuilder.aUser(FAKER).withId(userId).build();
+        Exercise exercise = ExerciseBuilder.anExercise(FAKER)
+                .withCategory(Category.STRENGTH)
+                .build();
+        exercise.setId(exerciseId);
+        WorkoutSessionRequestDTO request = new WorkoutSessionRequestDTO(
+                SessionStatus.IN_PROGRESS,
+                Instant.parse("2025-01-01T10:00:00Z"),
+                null,
+                "session notes",
+                List.of(new SessionExerciseRequestDTO(null, "exercise notes", exerciseId, List.of())));
+        WorkoutSessionResponseDTO response = new WorkoutSessionResponseDTO(
+                UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "session notes", List.of());
+
+        when(exerciseFinder.findActiveByIds(eq(List.of(exerciseId)), any())).thenReturn(Map.of(exerciseId, exercise));
+        when(sessionSetRepository.findLastSetsByExerciseIdAndUserId(Set.of(exerciseId), userId))
+                .thenReturn(List.of());
+        when(exerciseMetricsMapper.toDefaultSessionSetRequestDTO(Category.STRENGTH.defaultMetrics()))
+                .thenReturn(new SessionSetRequestDTO(1, 8, 5.0, null, null, false));
+        when(userRepository.getReferenceById(userId)).thenReturn(userReference);
+        when(workoutSessionRepository.save(any(WorkoutSession.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(workoutSessionMapper.toWorkoutSessionResponseDTO(any(WorkoutSession.class), anyMap()))
+                .thenReturn(response);
+
+        WorkoutSessionResponseDTO result = workoutSessionService.createWorkoutSessionFromScratch(request, userId);
+
+        ArgumentCaptor<WorkoutSession> savedSessionCaptor = ArgumentCaptor.forClass(WorkoutSession.class);
+        verify(workoutSessionRepository).save(savedSessionCaptor.capture());
+        WorkoutSession savedSession = savedSessionCaptor.getValue();
+
+        assertThat(result).isEqualTo(response);
+        assertThat(savedSession.getExercises().get(0).getSets()).hasSize(1);
+        assertThat(savedSession.getExercises().get(0).getSets().get(0).getReps())
+                .isEqualTo(8);
+        assertThat(savedSession.getExercises().get(0).getSets().get(0).getWeightKg())
+                .isEqualTo(5.0);
+        verify(exerciseMetricsMapper).toDefaultSessionSetRequestDTO(Category.STRENGTH.defaultMetrics());
+    }
+
+    @Test
+    @DisplayName("Should reject a completed session without exercises")
+    void should_rejectCompletedSessionWithoutExercises() {
+        UUID userId = UUID.randomUUID();
+        WorkoutSessionRequestDTO request = new WorkoutSessionRequestDTO(
+                SessionStatus.COMPLETED,
+                Instant.parse("2025-01-01T10:00:00Z"),
+                Instant.parse("2025-01-01T11:00:00Z"),
+                "notes",
+                List.of());
+
+        assertThatThrownBy(() -> workoutSessionService.createWorkoutSessionFromScratch(request, userId))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("A completed workout session must have at least one exercise");
+        verifyNoInteractions(exerciseFinder, workoutSessionRepository);
+    }
+
+    @Test
+    @DisplayName("Should throw validation exception when creating workout session from scratch with exercise errors")
     void should_throwValidationException_when_creatingWorkoutSessionFromScratchWithExerciseErrors() {
         UUID userId = UUID.randomUUID();
         UUID exerciseId = UUID.randomUUID();
@@ -1301,6 +1610,7 @@ class WorkoutSessionServiceTest {
     }
 
     @Test
+    @DisplayName("Should update notes when session is active")
     void should_updateNotes_when_sessionIsActive() {
         UUID userId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
@@ -1319,6 +1629,7 @@ class WorkoutSessionServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw bad request exception when updating notes for completed session")
     void should_throwBadRequestException_when_updatingNotesForCompletedSession() {
         UUID userId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
@@ -1337,6 +1648,7 @@ class WorkoutSessionServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw resource not found exception when updating notes for missing session")
     void should_throwResourceNotFoundException_when_updatingNotesForMissingSession() {
         UUID userId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
@@ -1351,6 +1663,7 @@ class WorkoutSessionServiceTest {
     }
 
     @Test
+    @DisplayName("Should complete session when session is active")
     void should_completeSession_when_sessionIsActive() {
         UUID userId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
@@ -1361,7 +1674,7 @@ class WorkoutSessionServiceTest {
         WorkoutSessionResponseDTO response =
                 new WorkoutSessionResponseDTO(sessionId, SessionStatus.COMPLETED, null, null, null, List.of());
 
-        when(workoutSessionRepository.findForUpdateWithExercisesAndSets(sessionId, userId))
+        when(workoutSessionRepository.findForUpdateWithExercisesAndCatalogExercise(sessionId, userId))
                 .thenReturn(Optional.of(session));
         when(workoutSessionMapper.toWorkoutSessionResponseDTO(eq(session), anyMap()))
                 .thenReturn(response);
@@ -1374,6 +1687,7 @@ class WorkoutSessionServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw bad request exception when completing already completed session")
     void should_throwBadRequestException_when_completingAlreadyCompletedSession() {
         UUID userId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
@@ -1383,7 +1697,7 @@ class WorkoutSessionServiceTest {
                 .forUser(UserBuilder.aUser(FAKER).build())
                 .build();
 
-        when(workoutSessionRepository.findForUpdateWithExercisesAndSets(sessionId, userId))
+        when(workoutSessionRepository.findForUpdateWithExercisesAndCatalogExercise(sessionId, userId))
                 .thenReturn(Optional.of(session));
 
         assertThatThrownBy(() -> workoutSessionService.completeWorkoutSession(sessionId, userId))
@@ -1391,11 +1705,12 @@ class WorkoutSessionServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw resource not found exception when completing missing session")
     void should_throwResourceNotFoundException_when_completingMissingSession() {
         UUID userId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
 
-        when(workoutSessionRepository.findForUpdateWithExercisesAndSets(sessionId, userId))
+        when(workoutSessionRepository.findForUpdateWithExercisesAndCatalogExercise(sessionId, userId))
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> workoutSessionService.completeWorkoutSession(sessionId, userId))
@@ -1404,6 +1719,7 @@ class WorkoutSessionServiceTest {
     }
 
     @Test
+    @DisplayName("Should delete session when session exists")
     void should_deleteSession_when_sessionExists() {
         UUID userId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
@@ -1421,6 +1737,7 @@ class WorkoutSessionServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw resource not found exception when deleting missing session")
     void should_throwResourceNotFoundException_when_deletingMissingSession() {
         UUID userId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
