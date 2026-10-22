@@ -45,13 +45,13 @@ public interface RoutineRepository extends JpaRepository<Routine, UUID> {
                 )
             FROM Routine r
             LEFT JOIN r.exercises e
-            WHERE r.user.id = :userId
+            WHERE r.userId = :userId
                 AND r.active = true
             GROUP BY r.id, r.name, r.updatedAt
         """, countQuery = """
                 SELECT COUNT(r)
                 FROM Routine r
-                WHERE r.user.id = :userId
+                WHERE r.userId = :userId
                     AND r.active = true
             """)
     Page<RoutineListItemDTO> findAllByUserIdAndActiveTrueWithExerciseCount(UUID userId, Pageable pageable);
