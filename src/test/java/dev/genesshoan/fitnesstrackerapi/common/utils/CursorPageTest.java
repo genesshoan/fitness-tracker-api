@@ -1,10 +1,9 @@
-package dev.genesshoan.fitnesstrackerapi.unit;
+package dev.genesshoan.fitnesstrackerapi.common.utils;
 
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
-import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

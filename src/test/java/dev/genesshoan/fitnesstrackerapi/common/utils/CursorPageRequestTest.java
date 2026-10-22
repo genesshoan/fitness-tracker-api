@@ -1,6 +1,5 @@
-package dev.genesshoan.fitnesstrackerapi.unit;
+package dev.genesshoan.fitnesstrackerapi.common.utils;
 
-import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPageRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
