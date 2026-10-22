@@ -1,7 +1,8 @@
-package dev.genesshoan.fitnesstrackerapi.unit;
+package dev.genesshoan.fitnesstrackerapi.stats.service;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,11 +34,11 @@ import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MuscleIntens
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.OneRepMaxProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.RankedSetProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.VolumeSetProjection;
-import dev.genesshoan.fitnesstrackerapi.stats.service.StatsService;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.SessionExerciseBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.SessionSetBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.UserBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.WorkoutSessionBuilder;
+import dev.genesshoan.fitnesstrackerapi.user.application.port.in.GetUserTimeZoneUseCase;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
@@ -62,6 +63,8 @@ import static org.mockito.Mockito.when;
 class StatsServiceTest {
 
     private static final Faker FAKER = new Faker();
+    private static final ZoneId SAO_PAULO = ZoneId.of("America/Sao_Paulo");
+    private static final ZoneId UTC = ZoneId.of("UTC");
 
     @Mock
     private StatsRepository statsRepository;
@@ -71,6 +74,9 @@ class StatsServiceTest {
 
     @Mock
     private ExerciseRepository exerciseRepository;
+
+    @Mock
+    private GetUserTimeZoneUseCase getUserTimeZoneUseCase;
 
     @Mock
     private ExerciseMetricsMapper exerciseMetricsMapper;
@@ -86,10 +92,11 @@ class StatsServiceTest {
     void getCurrentStreak_shouldCalculateStreakInUserTimezone() {
         UUID userId = UUID.randomUUID();
         Instant reference = Instant.parse("2026-09-13T01:00:00Z");
+        when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.of(SAO_PAULO));
         when(statsRepository.getTrainedDatesBeforeAsc(userId, reference))
                 .thenReturn(List.of(Instant.parse("2026-09-11T23:00:00Z"), Instant.parse("2026-09-12T23:00:00Z")));
 
-        StreakDTO result = statsService.getCurrentStreak(userId, reference, "America/Sao_Paulo");
+        StreakDTO result = statsService.getCurrentStreak(userId, reference);
 
         assertThat(result.currentStreak()).isEqualTo(2);
         assertThat(result.longestStreak()).isEqualTo(2);
@@ -102,9 +109,10 @@ class StatsServiceTest {
     void getCurrentStreak_shouldReturnEmptyStreakWhenNoDatesExist() {
         UUID userId = UUID.randomUUID();
         Instant reference = Instant.parse("2026-09-13T01:00:00Z");
+        when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.of(UTC));
         when(statsRepository.getTrainedDatesBeforeAsc(userId, reference)).thenReturn(List.of());
 
-        StreakDTO result = statsService.getCurrentStreak(userId, reference, "UTC");
+        StreakDTO result = statsService.getCurrentStreak(userId, reference);
 
         assertThat(result).isEqualTo(new StreakDTO(0, 0, null));
     }
@@ -114,17 +122,49 @@ class StatsServiceTest {
     void getCurrentStreak_shouldResetCurrentStreakWhenLastDateIsOlderThanYesterday() {
         UUID userId = UUID.randomUUID();
         Instant reference = Instant.parse("2026-09-13T12:00:00Z");
+        when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.of(UTC));
         when(statsRepository.getTrainedDatesBeforeAsc(userId, reference))
                 .thenReturn(List.of(
                         Instant.parse("2026-09-09T12:00:00Z"),
                         Instant.parse("2026-09-10T12:00:00Z"),
                         Instant.parse("2026-09-11T12:00:00Z")));
 
-        StreakDTO result = statsService.getCurrentStreak(userId, reference, "UTC");
+        StreakDTO result = statsService.getCurrentStreak(userId, reference);
 
         assertThat(result.currentStreak()).isZero();
         assertThat(result.longestStreak()).isEqualTo(3);
         assertThat(result.lastActiveDay()).isEqualTo(LocalDate.of(2026, 9, 11));
+    }
+
+    @Test
+    @DisplayName("Should count a single trained day once when several sessions share the day")
+    void getCurrentStreak_shouldCountDuplicatedDaysOnlyOnce() {
+        UUID userId = UUID.randomUUID();
+        Instant reference = Instant.parse("2026-09-13T01:00:00Z");
+        when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.of(SAO_PAULO));
+        when(statsRepository.getTrainedDatesBeforeAsc(userId, reference))
+                .thenReturn(List.of(
+                        Instant.parse("2026-09-12T10:00:00Z"),
+                        Instant.parse("2026-09-12T20:00:00Z"),
+                        Instant.parse("2026-09-12T23:00:00Z")));
+
+        StreakDTO result = statsService.getCurrentStreak(userId, reference);
+
+        assertThat(result.currentStreak()).isEqualTo(1);
+        assertThat(result.longestStreak()).isEqualTo(1);
+        assertThat(result.lastActiveDay()).isEqualTo(LocalDate.of(2026, 9, 12));
+    }
+
+    @Test
+    @DisplayName("Should reject streak calculation when the user has no timezone configured")
+    void getCurrentStreak_shouldThrowWhenUserTimezoneIsMissing() {
+        UUID userId = UUID.randomUUID();
+        when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> statsService.getCurrentStreak(userId, Instant.parse("2026-09-13T01:00:00Z")))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verifyNoInteractions(statsRepository);
     }
 
     @Test
@@ -146,12 +186,12 @@ class StatsServiceTest {
     @DisplayName("Should calculate volume for an inclusive local-date range")
     void calculateVolume_shouldConvertDatesAndReturnVolume() {
         UUID userId = UUID.randomUUID();
+        when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.of(SAO_PAULO));
         when(statsRepository.getVolume(
                         userId, Instant.parse("2026-01-01T03:00:00Z"), Instant.parse("2026-02-01T03:00:00Z")))
                 .thenReturn(700.0);
 
-        assertThat(statsService.calculateVolume(
-                        userId, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31), "America/Sao_Paulo"))
+        assertThat(statsService.calculateVolume(userId, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31)))
                 .isEqualTo(new SessionVolumeDTO(700.0));
     }
 
@@ -159,21 +199,69 @@ class StatsServiceTest {
     @DisplayName("Should calculate monthly volume in repository order")
     void getMonthlyVolume_shouldMapRepositoryResults() {
         UUID userId = UUID.randomUUID();
+        when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.of(UTC));
         when(statsRepository.getMonthlyVolume(
                         userId, Instant.parse("2026-01-01T00:00:00Z"), Instant.parse("2026-02-01T00:00:00Z"), "UTC"))
                 .thenReturn(List.of(new MonthlyVolumeProjection("2026-01", 500.0)));
 
-        assertThat(statsService.getMonthlyVolume(userId, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31), "UTC"))
+        assertThat(statsService.getMonthlyVolume(userId, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31)))
                 .containsExactly(new MonthlyVolumeDTO("2026-01", 500.0));
+    }
+
+    @Test
+    @DisplayName("Should convert monthly volume dates to the user's timezone")
+    void getMonthlyVolume_shouldConvertDatesInUserTimezone() {
+        UUID userId = UUID.randomUUID();
+        when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.of(SAO_PAULO));
+        when(statsRepository.getMonthlyVolume(
+                        userId,
+                        Instant.parse("2026-01-01T03:00:00Z"),
+                        Instant.parse("2026-02-01T03:00:00Z"),
+                        "America/Sao_Paulo"))
+                .thenReturn(List.of());
+
+        assertThat(statsService.getMonthlyVolume(userId, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31)))
+                .isEmpty();
+
+        verify(statsRepository)
+                .getMonthlyVolume(
+                        userId,
+                        Instant.parse("2026-01-01T03:00:00Z"),
+                        Instant.parse("2026-02-01T03:00:00Z"),
+                        "America/Sao_Paulo");
     }
 
     @Test
     @DisplayName("Should reject volume ranges when start date is after end date")
     void calculateVolume_shouldThrowWhenFromIsAfterTo() {
         assertThatThrownBy(() -> statsService.calculateVolume(
-                        UUID.randomUUID(), LocalDate.of(2026, 2, 1), LocalDate.of(2026, 1, 1), "UTC"))
+                        UUID.randomUUID(), LocalDate.of(2026, 2, 1), LocalDate.of(2026, 1, 1)))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("The start date cannot be after the end date");
+
+        verifyNoInteractions(statsRepository, getUserTimeZoneUseCase);
+    }
+
+    @Test
+    @DisplayName("Should reject monthly volume ranges when start date is after end date")
+    void getMonthlyVolume_shouldThrowWhenFromIsAfterTo() {
+        assertThatThrownBy(() -> statsService.getMonthlyVolume(
+                        UUID.randomUUID(), LocalDate.of(2026, 2, 1), LocalDate.of(2026, 1, 1)))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("The start date cannot be after the end date");
+
+        verifyNoInteractions(statsRepository, getUserTimeZoneUseCase);
+    }
+
+    @Test
+    @DisplayName("Should reject volume calculation when the user has no timezone configured")
+    void calculateVolume_shouldThrowWhenUserTimezoneIsMissing() {
+        UUID userId = UUID.randomUUID();
+        when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(
+                        () -> statsService.calculateVolume(userId, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31)))
+                .isInstanceOf(ResourceNotFoundException.class);
 
         verifyNoInteractions(statsRepository);
     }
@@ -181,14 +269,16 @@ class StatsServiceTest {
     @Test
     @DisplayName("Should return empty exercise progress when no points exist")
     void getExerciseProgress_shouldReturnEmptyProgress() {
+        UUID userId = UUID.randomUUID();
         UUID exerciseId = UUID.randomUUID();
         Instant from = Instant.parse("2026-01-01T00:00:00Z");
         Instant to = Instant.parse("2026-02-01T00:00:00Z");
         when(exerciseRepository.existsById(exerciseId)).thenReturn(true);
+        when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.of(UTC));
         when(statsRepository.getExerciseProgressPoints(any(), any(), any(), any()))
                 .thenReturn(List.of());
 
-        assertThat(statsService.getExerciseProgress(UUID.randomUUID(), exerciseId, from, to, "UTC"))
+        assertThat(statsService.getExerciseProgress(userId, exerciseId, from, to))
                 .isEqualTo(new ExerciseProgressPointsDTO(exerciseId, List.of()));
     }
 
@@ -199,11 +289,14 @@ class StatsServiceTest {
         when(exerciseRepository.existsById(exerciseId)).thenReturn(false);
 
         assertThatThrownBy(() -> statsService.getExerciseProgress(
-                        UUID.randomUUID(), exerciseId, Instant.now().minusSeconds(3600), Instant.now(), "UTC"))
+                        UUID.randomUUID(),
+                        exerciseId,
+                        Instant.parse("2026-01-01T00:00:00Z"),
+                        Instant.parse("2026-02-01T00:00:00Z")))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Exercise not found");
 
-        verifyNoInteractions(statsRepository);
+        verifyNoInteractions(statsRepository, getUserTimeZoneUseCase);
     }
 
     @Test
@@ -213,11 +306,29 @@ class StatsServiceTest {
         Instant from = Instant.parse("2026-02-01T00:00:00Z");
         Instant to = Instant.parse("2026-01-01T00:00:00Z");
 
-        assertThatThrownBy(() -> statsService.getExerciseProgress(UUID.randomUUID(), exerciseId, from, to, "UTC"))
+        assertThatThrownBy(() -> statsService.getExerciseProgress(UUID.randomUUID(), exerciseId, from, to))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("The start date cannot be after the end date");
 
-        verifyNoInteractions(statsRepository, exerciseRepository);
+        verifyNoInteractions(statsRepository, exerciseRepository, getUserTimeZoneUseCase);
+    }
+
+    @Test
+    @DisplayName("Should reject progress when the user has no timezone configured")
+    void getExerciseProgress_shouldThrowWhenUserTimezoneIsMissing() {
+        UUID userId = UUID.randomUUID();
+        UUID exerciseId = UUID.randomUUID();
+        when(exerciseRepository.existsById(exerciseId)).thenReturn(true);
+        when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> statsService.getExerciseProgress(
+                        userId,
+                        exerciseId,
+                        Instant.parse("2026-01-01T00:00:00Z"),
+                        Instant.parse("2026-02-01T00:00:00Z")))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verifyNoInteractions(statsRepository);
     }
 
     @Test
@@ -280,17 +391,19 @@ class StatsServiceTest {
         Instant from = Instant.parse("2026-01-01T00:00:00Z");
         Instant to = Instant.parse("2026-02-01T00:00:00Z");
         when(exerciseRepository.existsById(exerciseId)).thenReturn(true);
+        when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.of(SAO_PAULO));
         when(statsRepository.getExerciseProgressPoints(userId, exerciseId, from, to))
                 .thenReturn(
                         List.of(new ExerciseProgressProjection(Instant.parse("2026-01-15T01:00:00Z"), 80.0, 5, 93.33)));
 
-        ExerciseProgressPointsDTO result =
-                statsService.getExerciseProgress(userId, exerciseId, from, to, "America/Sao_Paulo");
+        ExerciseProgressPointsDTO result = statsService.getExerciseProgress(userId, exerciseId, from, to);
 
         assertThat(result.exerciseId()).isEqualTo(exerciseId);
         assertThat(result.progress()).hasSize(1);
         assertThat(result.progress().getFirst().date()).isEqualTo(LocalDate.of(2026, 1, 14));
         assertThat(result.progress().getFirst().weightKg()).isEqualTo(80.0);
+        assertThat(result.progress().getFirst().reps()).isEqualTo(5);
+        assertThat(result.progress().getFirst().estimatedOneRepMax()).isEqualTo(93.33);
     }
 
     @Test
@@ -451,6 +564,7 @@ class StatsServiceTest {
         UUID secondMuscleId = UUID.randomUUID();
         LocalDate from = LocalDate.of(2026, 9, 1);
         LocalDate to = LocalDate.of(2026, 9, 7);
+        when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.of(UTC));
         when(statsRepository.getMuscleIntensity(
                         userId, Instant.parse("2026-09-01T00:00:00Z"), Instant.parse("2026-09-08T00:00:00Z")))
                 .thenReturn(List.of(
@@ -459,7 +573,7 @@ class StatsServiceTest {
                         new MuscleIntensityProjection(
                                 secondMuscleId, "Second muscle", "second-muscle", BodyRegion.LEGS, null, 0.0)));
 
-        MuscleIntensityResponseDTO result = statsService.getMuscleIntensity(userId, from, to, "UTC");
+        MuscleIntensityResponseDTO result = statsService.getMuscleIntensity(userId, from, to);
 
         assertThat(result.from()).isEqualTo(from);
         assertThat(result.to()).isEqualTo(to);
@@ -476,6 +590,7 @@ class StatsServiceTest {
         UUID weightedMuscleId = UUID.randomUUID();
         UUID highestMuscleId = UUID.randomUUID();
         UUID zeroMuscleId = UUID.randomUUID();
+        when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.of(UTC));
         when(statsRepository.getMuscleIntensity(userId, Instant.EPOCH, Instant.EPOCH.plusSeconds(86400)))
                 .thenReturn(List.of(
                         new MuscleIntensityProjection(
@@ -510,7 +625,7 @@ class StatsServiceTest {
                                 zeroMuscleId, "Zero muscle", "zero-muscle", BodyRegion.OTHER, null, 0.0)));
 
         MuscleIntensityResponseDTO result =
-                statsService.getMuscleIntensity(userId, LocalDate.of(1970, 1, 1), LocalDate.of(1970, 1, 1), "UTC");
+                statsService.getMuscleIntensity(userId, LocalDate.of(1970, 1, 1), LocalDate.of(1970, 1, 1));
 
         assertThat(result.muscles())
                 .containsExactly(
@@ -528,6 +643,7 @@ class StatsServiceTest {
         UUID halfUpMuscleId = UUID.randomUUID();
         UUID lowerMuscleId = UUID.randomUUID();
         UUID maximumMuscleId = UUID.randomUUID();
+        when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.of(UTC));
         when(statsRepository.getMuscleIntensity(userId, Instant.EPOCH, Instant.EPOCH.plusSeconds(86400)))
                 .thenReturn(List.of(
                         new MuscleIntensityProjection(
@@ -553,7 +669,7 @@ class StatsServiceTest {
                                 1.0)));
 
         MuscleIntensityResponseDTO result =
-                statsService.getMuscleIntensity(userId, LocalDate.of(1970, 1, 1), LocalDate.of(1970, 1, 1), "UTC");
+                statsService.getMuscleIntensity(userId, LocalDate.of(1970, 1, 1), LocalDate.of(1970, 1, 1));
 
         assertThat(result.muscles().getFirst().intensity()).isEqualTo(1.1);
         assertThat(result.muscles().get(1).intensity()).isEqualTo(1.0);
@@ -564,12 +680,12 @@ class StatsServiceTest {
     @DisplayName("Should convert inclusive local dates to the user's timezone")
     void getMuscleIntensity_shouldConvertDatesInUserTimezone() {
         UUID userId = UUID.randomUUID();
+        when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.of(SAO_PAULO));
         when(statsRepository.getMuscleIntensity(
                         userId, Instant.parse("2026-01-01T03:00:00Z"), Instant.parse("2026-01-02T03:00:00Z")))
                 .thenReturn(List.of());
 
-        statsService.getMuscleIntensity(
-                userId, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 1), "America/Sao_Paulo");
+        statsService.getMuscleIntensity(userId, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 1));
 
         verify(statsRepository)
                 .getMuscleIntensity(
@@ -577,13 +693,27 @@ class StatsServiceTest {
     }
 
     @Test
+    @DisplayName("Should return an empty muscle list when no muscle was trained")
+    void getMuscleIntensity_shouldReturnEmptyMuscleListWhenNoProjectionExists() {
+        UUID userId = UUID.randomUUID();
+        when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.of(UTC));
+        when(statsRepository.getMuscleIntensity(userId, Instant.EPOCH, Instant.EPOCH.plusSeconds(86400)))
+                .thenReturn(List.of());
+
+        MuscleIntensityResponseDTO result =
+                statsService.getMuscleIntensity(userId, LocalDate.of(1970, 1, 1), LocalDate.of(1970, 1, 1));
+
+        assertThat(result.muscles()).isEmpty();
+    }
+
+    @Test
     @DisplayName("Should reject muscle intensity when start date is after end date")
     void getMuscleIntensity_shouldThrowWhenFromIsAfterTo() {
         assertThatThrownBy(() -> statsService.getMuscleIntensity(
-                        UUID.randomUUID(), LocalDate.of(2026, 9, 2), LocalDate.of(2026, 9, 1), "UTC"))
+                        UUID.randomUUID(), LocalDate.of(2026, 9, 2), LocalDate.of(2026, 9, 1)))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("The start date cannot be after the end date");
 
-        verifyNoInteractions(statsRepository);
+        verifyNoInteractions(statsRepository, getUserTimeZoneUseCase);
     }
 }
