@@ -1,12 +1,15 @@
-package dev.genesshoan.fitnesstrackerapi.integration;
+package dev.genesshoan.fitnesstrackerapi.user.infrastructure.web;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +25,9 @@ import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -83,8 +88,77 @@ class UserControllerIT extends AbstractIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    @DisplayName("Should return the profile of the authenticated user")
+    void getProfile_ShouldReturn200WithTheAuthenticatedUserProfile() throws Exception {
+        mockMvc.perform(get("/api/v1/user/me").with(user(asUser(user))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value(user.getEmail()))
+                .andExpect(jsonPath("$.username").value(user.getUsername()))
+                .andExpect(jsonPath("$.profilePictureUrl").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("Should require authentication to read the profile")
+    void getProfile_ShouldReturn401WhenUnauthenticated() throws Exception {
+        mockMvc.perform(get("/api/v1/user/me")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Should change the username of the authenticated user")
+    void changeUsername_ShouldReturn204AndPersistTheNewUsername() throws Exception {
+        String newUsername = "renamed_" + user.getId().toString().substring(0, 8);
+
+        mockMvc.perform(put("/api/v1/user/me/username")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("newUsername", newUsername)))
+                        .with(user(asUser(user))))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/v1/user/me").with(user(asUser(user))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value(newUsername));
+    }
+
+    @Test
+    @DisplayName("Should reject a username change to the current username")
+    void changeUsername_ShouldReturn400WhenNewUsernameMatchesCurrentOne() throws Exception {
+        mockMvc.perform(put("/api/v1/user/me/username")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("newUsername", user.getUsername())))
+                        .with(user(asUser(user))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("New username must be different from current one"));
+    }
+
+    @Test
+    @DisplayName("Should reject a blank username")
+    void changeUsername_ShouldReturn400WhenNewUsernameIsBlank() throws Exception {
+        mockMvc.perform(put("/api/v1/user/me/username")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("newUsername", " ")))
+                        .with(user(asUser(user))))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should require authentication to change the username")
+    void changeUsername_ShouldReturn401WhenUnauthenticated() throws Exception {
+        mockMvc.perform(put("/api/v1/user/me/username")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("newUsername", "someone"))))
+                .andExpect(status().isUnauthorized());
+    }
+
     private UserDetails asUser(User target) {
-        return new UserDetailsImpl(target);
+        return new UserDetailsImpl(
+                target.getId(),
+                target.getEmail(),
+                target.getEmail(),
+                target.getUsername(),
+                target.getPasswordHash(),
+                target.isEmailVerified(),
+                List.of(new SimpleGrantedAuthority("ROLE_" + target.getRole().name())));
     }
 
     private byte[] validPng() throws Exception {
