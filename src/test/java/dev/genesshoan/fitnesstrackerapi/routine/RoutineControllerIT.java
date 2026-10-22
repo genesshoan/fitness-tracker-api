@@ -1,10 +1,11 @@
-package dev.genesshoan.fitnesstrackerapi.integration;
+package dev.genesshoan.fitnesstrackerapi.routine;
 
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -42,7 +43,14 @@ class RoutineControllerIT extends AbstractIntegrationTest {
     }
 
     private RequestPostProcessor asUser(User targetUser) {
-        UserDetails userDetails = new UserDetailsImpl(targetUser);
+        UserDetails userDetails = new UserDetailsImpl(
+                targetUser.getId(),
+                targetUser.getEmail(),
+                targetUser.getEmail(),
+                targetUser.getUsername(),
+                targetUser.getPasswordHash(),
+                targetUser.isEmailVerified(),
+                List.of(new SimpleGrantedAuthority("ROLE_" + targetUser.getRole())));
         return SecurityMockMvcRequestPostProcessors.user(userDetails);
     }
 
@@ -65,6 +73,33 @@ class RoutineControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.content").isArray())
                     .andExpect(jsonPath("$.content", hasSize(3)))
                     .andExpect(jsonPath("$.totalElements").value(3));
+        }
+
+        @Test
+        @DisplayName("Should return only the routines owned by the authenticated user")
+        void shouldReturnOnlyTheRoutinesOfTheAuthenticatedUser() throws Exception {
+            User otherUser = testEntityFactory.createAndPersistUser();
+
+            testEntityFactory.createAndPersistRoutine(user, "My Routine");
+            testEntityFactory.createAndPersistRoutine(otherUser, "Other Routine");
+
+            mockMvc.perform(get("/api/v1/routines")
+                            .param("page", "0")
+                            .param("size", "10")
+                            .with(asUser(user)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content", hasSize(1)))
+                    .andExpect(jsonPath("$.content[0].name").value("My Routine"))
+                    .andExpect(jsonPath("$.totalElements").value(1));
+        }
+
+        @Test
+        @DisplayName("Should return an empty page when the user has no routines")
+        void shouldReturnEmptyPageWhenTheUserHasNoRoutines() throws Exception {
+            mockMvc.perform(get("/api/v1/routines").with(asUser(user)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content", hasSize(0)))
+                    .andExpect(jsonPath("$.totalElements").value(0));
         }
 
         @Test
@@ -160,6 +195,30 @@ class RoutineControllerIT extends AbstractIntegrationTest {
         }
 
         @Test
+        @DisplayName("Should create the routine owned by the authenticated user")
+        @Transactional
+        void shouldCreateRoutineOwnedByTheAuthenticatedUser() throws Exception {
+            var request = Map.of("name", "Owned Routine", "description", "Owned", "exercises", List.of());
+
+            var result = mockMvc.perform(post("/api/v1/routines")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request))
+                            .with(asUser(user)))
+                    .andExpect(status().isCreated())
+                    .andReturn();
+
+            var routineId = UUID.fromString(objectMapper
+                    .readTree(result.getResponse().getContentAsString())
+                    .get("id")
+                    .asText());
+
+            var persisted =
+                    testEntityFactory.getRoutineRepository().findById(routineId).orElseThrow();
+
+            assertThat(persisted.getUserId()).isEqualTo(user.getId());
+        }
+
+        @Test
         @DisplayName("Should return 400 when request body is invalid (missing name)")
         void shouldReturn400WhenNameMissing() throws Exception {
             var request = Map.of("description", "No name", "exercises", List.of());
@@ -184,6 +243,17 @@ class RoutineControllerIT extends AbstractIntegrationTest {
                             .content(objectMapper.writeValueAsString(request))
                             .with(asUser(user)))
                     .andExpect(status().isConflict());
+        }
+
+        @Test
+        @DisplayName("Should return 401 when no auth token")
+        void shouldReturn401WhenNoAuth() throws Exception {
+            var request = Map.of("name", "Unauthorized Routine", "description", "Nope", "exercises", List.of());
+
+            mockMvc.perform(post("/api/v1/routines")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isUnauthorized());
         }
     }
 
@@ -250,6 +320,21 @@ class RoutineControllerIT extends AbstractIntegrationTest {
         }
 
         @Test
+        @DisplayName("Should return 404 (not 403) when the routine belongs to another user")
+        void shouldReturn404WhenUserDoesNotOwnRoutine() throws Exception {
+            User otherUser = testEntityFactory.createAndPersistUser();
+            Routine otherRoutine = testEntityFactory.createAndPersistRoutine(otherUser, "Other Routine");
+
+            var request = Map.of("name", "Stolen Name", "description", "Nope", "exercises", List.of());
+
+            mockMvc.perform(put("/api/v1/routines/{routineId}", otherRoutine.getId())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request))
+                            .with(asUser(user)))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
         @DisplayName("Should return 409 when new name conflicts with another routine")
         @Transactional
         void shouldReturn409WhenNameConflicts() throws Exception {
@@ -293,6 +378,17 @@ class RoutineControllerIT extends AbstractIntegrationTest {
         @DisplayName("Should return 404 when routine does not exist")
         void shouldReturn404WhenRoutineNotFound() throws Exception {
             mockMvc.perform(delete("/api/v1/routines/{routineId}", UUID.randomUUID())
+                            .with(asUser(user)))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("Should return 404 (not 403) when the routine belongs to another user")
+        void shouldReturn404WhenUserDoesNotOwnRoutine() throws Exception {
+            User otherUser = testEntityFactory.createAndPersistUser();
+            Routine otherRoutine = testEntityFactory.createAndPersistRoutine(otherUser, "Other Routine");
+
+            mockMvc.perform(delete("/api/v1/routines/{routineId}", otherRoutine.getId())
                             .with(asUser(user)))
                     .andExpect(status().isNotFound());
         }
@@ -378,6 +474,43 @@ class RoutineControllerIT extends AbstractIntegrationTest {
                             .with(asUser(user)))
                     .andExpect(status().isNotFound());
         }
+
+        @Test
+        @DisplayName("Should return 404 when routine does not exist")
+        void shouldReturn404WhenRoutineNotFound() throws Exception {
+            var request = Map.of(
+                    "exerciseId", UUID.randomUUID().toString(),
+                    "defaultRestSeconds", 60,
+                    "defaultSets", 3,
+                    "defaultReps", 12,
+                    "defaultWeightKg", 14.0);
+
+            mockMvc.perform(post("/api/v1/routines/{routineId}/exercises/{position}", UUID.randomUUID(), 1)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request))
+                            .with(asUser(user)))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("Should return 404 (not 403) when the routine belongs to another user")
+        void shouldReturn404WhenUserDoesNotOwnRoutine() throws Exception {
+            User otherUser = testEntityFactory.createAndPersistUser();
+            Routine otherRoutine = testEntityFactory.createAndPersistRoutineWithExercise(otherUser, existingExercise);
+
+            var request = Map.of(
+                    "exerciseId", existingExercise.getId().toString(),
+                    "defaultRestSeconds", 60,
+                    "defaultSets", 3,
+                    "defaultReps", 12,
+                    "defaultWeightKg", 14.0);
+
+            mockMvc.perform(post("/api/v1/routines/{routineId}/exercises/{position}", otherRoutine.getId(), 1)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request))
+                            .with(asUser(user)))
+                    .andExpect(status().isNotFound());
+        }
     }
 
     @Nested
@@ -445,6 +578,26 @@ class RoutineControllerIT extends AbstractIntegrationTest {
                             .with(asUser(user)))
                     .andExpect(status().isNotFound());
         }
+
+        @Test
+        @DisplayName("Should return 404 (not 403) when the routine belongs to another user")
+        void shouldReturn404WhenUserDoesNotOwnRoutine() throws Exception {
+            User otherUser = testEntityFactory.createAndPersistUser();
+            Routine otherRoutine = testEntityFactory.createAndPersistRoutine(otherUser, "Other Routine");
+
+            var request = Map.of(
+                    "exerciseId", ex2.getId().toString(),
+                    "defaultRestSeconds", 60,
+                    "defaultSets", 3,
+                    "defaultReps", 12,
+                    "defaultWeightKg", 14.0);
+
+            mockMvc.perform(put("/api/v1/routines/{routineId}/exercises/{position}", otherRoutine.getId(), 1)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request))
+                            .with(asUser(user)))
+                    .andExpect(status().isNotFound());
+        }
     }
 
     @Nested
@@ -495,6 +648,62 @@ class RoutineControllerIT extends AbstractIntegrationTest {
             mockMvc.perform(delete("/api/v1/routines/{routineId}/exercises/{position}", routine.getId(), 99)
                             .with(asUser(user)))
                     .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("Should return 404 (not 403) when the routine belongs to another user")
+        void shouldReturn404WhenUserDoesNotOwnRoutine() throws Exception {
+            User otherUser = testEntityFactory.createAndPersistUser();
+            Routine otherRoutine = testEntityFactory.createAndPersistRoutineWithExercise(otherUser, ex1);
+
+            mockMvc.perform(delete("/api/v1/routines/{routineId}/exercises/{position}", otherRoutine.getId(), 1)
+                            .with(asUser(user)))
+                    .andExpect(status().isNotFound());
+        }
+    }
+
+    @Nested
+    @DisplayName("RoutineRepository.findByIdAndUserIdAndActiveTrue")
+    class FindRoutineByIdAndUserId {
+
+        @Test
+        @DisplayName("Should return the routine when it is active and belongs to the user")
+        void shouldReturnRoutineForItsOwner() {
+            Routine routine = testEntityFactory.createAndPersistRoutine(user, "Owned Routine");
+
+            var found = testEntityFactory
+                    .getRoutineRepository()
+                    .findByIdAndUserIdAndActiveTrue(routine.getId(), user.getId());
+
+            assertThat(found).isPresent();
+            assertThat(found.get().getId()).isEqualTo(routine.getId());
+        }
+
+        @Test
+        @DisplayName("Should not return the routine when it belongs to another user")
+        void shouldNotReturnRoutineOfAnotherUser() {
+            User otherUser = testEntityFactory.createAndPersistUser();
+            Routine routine = testEntityFactory.createAndPersistRoutine(otherUser, "Other Routine");
+
+            var found = testEntityFactory
+                    .getRoutineRepository()
+                    .findByIdAndUserIdAndActiveTrue(routine.getId(), user.getId());
+
+            assertThat(found).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should not return an inactive routine")
+        void shouldNotReturnInactiveRoutine() {
+            Routine routine = testEntityFactory.createAndPersistRoutine(user, "Inactive Routine");
+            routine.setActive(false);
+            testEntityFactory.getRoutineRepository().save(routine);
+
+            var found = testEntityFactory
+                    .getRoutineRepository()
+                    .findByIdAndUserIdAndActiveTrue(routine.getId(), user.getId());
+
+            assertThat(found).isEmpty();
         }
     }
 }
