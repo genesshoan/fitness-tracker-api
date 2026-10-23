@@ -33,9 +33,6 @@ public class MuscleAsset extends BaseEntity {
     @Column(nullable = false)
     private String view;
 
-    @Column(name = "content_type")
-    private String contentType;
-
     @ManyToMany(mappedBy = "assets", fetch = FetchType.LAZY)
     @Builder.Default
     private Set<Muscle> muscles = new HashSet<>();
