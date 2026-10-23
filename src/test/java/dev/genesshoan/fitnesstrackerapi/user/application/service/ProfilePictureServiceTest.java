@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:src/test/java/dev/genesshoan/fitnesstrackerapi/user/application/service/ProfilePictureServiceTest.java
 package dev.genesshoan.fitnesstrackerapi.user.application.service;
-========
-package dev.genesshoan.fitnesstrackerapi.user.profilepicture.service;
->>>>>>>> 960f79e (test: reorganize tests to mirror module architecture):src/test/java/dev/genesshoan/fitnesstrackerapi/user/profilepicture/service/ProfilePictureServiceTest.java
 
 import java.util.Optional;
 import java.util.UUID;
@@ -14,13 +10,7 @@ import dev.genesshoan.fitnesstrackerapi.common.storage.ObjectStoragePort;
 import dev.genesshoan.fitnesstrackerapi.user.application.exception.FileStorageException;
 import dev.genesshoan.fitnesstrackerapi.user.application.exception.InvalidProfilePictureException;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
-<<<<<<<< HEAD:src/test/java/dev/genesshoan/fitnesstrackerapi/user/application/service/ProfilePictureServiceTest.java
 import dev.genesshoan.fitnesstrackerapi.user.infrastructure.persistence.UserRepository;
-========
-import dev.genesshoan.fitnesstrackerapi.user.profilepicture.processor.ProcessedImage;
-import dev.genesshoan.fitnesstrackerapi.user.profilepicture.processor.ProfilePictureProcessor;
-import dev.genesshoan.fitnesstrackerapi.user.profilepicture.validator.ProfilePictureValidator;
->>>>>>>> 960f79e (test: reorganize tests to mirror module architecture):src/test/java/dev/genesshoan/fitnesstrackerapi/user/profilepicture/service/ProfilePictureServiceTest.java
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
