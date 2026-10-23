@@ -21,9 +21,8 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestExcepti
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ValidationException;
 import dev.genesshoan.fitnesstrackerapi.common.mapper.ExerciseMetricsMapper;
-import dev.genesshoan.fitnesstrackerapi.exercise.ExerciseRepository;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseQueryPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.ExerciseFinder;
 import dev.genesshoan.fitnesstrackerapi.routine.RoutineRepository;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.AchievementDTO;
@@ -73,9 +72,7 @@ public class WorkoutSessionService {
     private final SessionSetRepository sessionSetRepository;
     private final RoutineRepository routineRepository;
     private final UserRepository userRepository;
-    private final ExerciseRepository exerciseRepository;
-
-    private final ExerciseFinder exerciseFinder;
+    private final ExerciseQueryPort exerciseQueryPort;
 
     private final WorkoutSessionMapper workoutSessionMapper;
     private final SessionExerciseMapper sessionExerciseMapper;
@@ -162,7 +159,7 @@ public class WorkoutSessionService {
 
         Map<String, List<String>> errors = new HashMap<>();
 
-        Map<UUID, Exercise> exercises = exerciseFinder.findActiveByIds(
+        Map<UUID, Exercise> exercises = exerciseQueryPort.findActiveByIds(
                 dto.exercises().stream()
                         .map(SessionExerciseRequestDTO::exerciseId)
                         .toList(),
@@ -270,7 +267,7 @@ public class WorkoutSessionService {
         Map<String, List<String>> errors = new HashMap<>();
 
         Exercise exercise = getOrThrowResourceNotFound(
-                exerciseRepository.findByIdAndActiveTrue(dto.exerciseId()), "Exercise", dto.exerciseId());
+                exerciseQueryPort.findByIdAndActiveTrue(dto.exerciseId()), "Exercise", dto.exerciseId());
 
         validateSetsData(dto.sets(), exercise, errors);
 

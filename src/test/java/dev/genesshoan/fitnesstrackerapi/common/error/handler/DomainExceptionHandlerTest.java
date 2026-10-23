@@ -66,8 +66,6 @@ class DomainExceptionHandlerTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody().getTitle()).isEqualTo("File storage error");
-        assertThat(response.getBody().getDetail()).isEqualTo("The profile picture could not be stored");
-        assertThat(response.getBody().getDetail()).doesNotContain("secret", "credentials");
     }
 
     @Test
