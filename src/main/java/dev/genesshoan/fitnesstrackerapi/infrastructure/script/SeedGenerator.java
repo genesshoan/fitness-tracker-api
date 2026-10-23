@@ -101,10 +101,10 @@ public class SeedGenerator {
             UUID id = newId();
             muscleAssetIds.put(entry.getKey(), id);
             MuscleAssetSeed asset = entry.getValue();
-            rows.add(row(id, asset.objectKey(), asset.variant(), asset.view(), asset.contentType()));
+            rows.add(row(id, asset.objectKey(), asset.variant(), asset.view()));
         }
 
-        appendInsert("-- MUSCLE ASSETS", "muscle_assets (id, object_key, variant, view, content_type)", rows);
+        appendInsert("-- MUSCLE ASSETS", "muscle_assets (id, object_key, variant, view)", rows);
     }
 
     private void addAssets(Map<String, MuscleAssetSeed> assetsByKey, List<MuscleAssetSeed> assets) {
@@ -120,8 +120,7 @@ public class SeedGenerator {
             MuscleAssetSeed previous = assetsByKey.putIfAbsent(asset.objectKey(), asset);
             if (previous != null
                     && (!Objects.equals(previous.variant(), asset.variant())
-                            || !Objects.equals(previous.view(), asset.view())
-                            || !Objects.equals(previous.contentType(), asset.contentType()))) {
+                            || !Objects.equals(previous.view(), asset.view()))) {
                 throw new IllegalStateException(
                         "Conflicting muscle asset metadata for object_key: " + asset.objectKey());
             }
