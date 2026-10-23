@@ -1485,7 +1485,8 @@ class WorkoutSessionServiceTest {
         when(lastSet.getReps()).thenReturn(15);
         when(lastSet.getWeightKg()).thenReturn(40.0);
 
-        when(exerciseQueryPort.findActiveByIds(eq(List.of(exerciseId)), any())).thenReturn(Map.of(exerciseId, exercise));
+        when(exerciseQueryPort.findActiveByIds(eq(List.of(exerciseId)), any()))
+                .thenReturn(Map.of(exerciseId, exercise));
         when(sessionSetRepository.findLastSetsByExerciseIdAndUserId(Set.of(exerciseId), userId))
                 .thenReturn(List.of(lastSet));
         when(userRepository.getReferenceById(userId)).thenReturn(userReference);
@@ -1531,7 +1532,8 @@ class WorkoutSessionServiceTest {
         WorkoutSessionResponseDTO response = new WorkoutSessionResponseDTO(
                 UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "session notes", List.of());
 
-        when(exerciseQueryPort.findActiveByIds(eq(List.of(exerciseId)), any())).thenReturn(Map.of(exerciseId, exercise));
+        when(exerciseQueryPort.findActiveByIds(eq(List.of(exerciseId)), any()))
+                .thenReturn(Map.of(exerciseId, exercise));
         when(sessionSetRepository.findLastSetsByExerciseIdAndUserId(Set.of(exerciseId), userId))
                 .thenReturn(List.of());
         when(exerciseMetricsMapper.toDefaultSessionSetRequestDTO(Category.STRENGTH.defaultMetrics()))
