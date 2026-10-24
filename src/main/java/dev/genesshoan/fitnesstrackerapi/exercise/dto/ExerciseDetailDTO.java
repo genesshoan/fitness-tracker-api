@@ -18,7 +18,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @param category exercise category
  * @param difficulty exercise difficulty
  * @param exerciseMuscles associated muscles
- * @param gifUrl client-facing media URL, currently a placeholder
+ * @param gifUrl client-facing media URL
  */
 @Schema(description = "Exercise detail DTO")
 public record ExerciseDetailDTO(
@@ -45,5 +45,5 @@ public record ExerciseDetailDTO(
 
         @Schema(description = "Exercise muscles") List<ExerciseMuscleDTO> exerciseMuscles,
 
-        @Schema(description = "URL to the exercise GIF (placeholder, always null for now)")
+        @Schema(description = "Public URL of the exercise GIF")
         String gifUrl) {}

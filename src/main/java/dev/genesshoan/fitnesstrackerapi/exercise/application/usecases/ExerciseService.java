@@ -17,7 +17,6 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundE
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPage;
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPageRequest;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseServicePort;
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.AssetUrlProviderPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.ExerciseRepositoryPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.MuscleRepositoryPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.usecases.search.ExerciseNameHighlighter;
@@ -62,7 +61,6 @@ public class ExerciseService implements ExerciseServicePort {
     private final ExerciseRepositoryPort exerciseRepositoryPort;
     private final MuscleRepositoryPort muscleRepository;
     private final ExerciseMapper exerciseMapper;
-    private final AssetUrlProviderPort assetUrlProviderPort;
 
     /**
      * {@inheritDoc}
@@ -76,11 +74,7 @@ public class ExerciseService implements ExerciseServicePort {
         log.info("Found {} exercises", exercises == null ? 0 : exercises.size());
 
         return CursorPage.of(
-                exercises,
-                request.size(),
-                Exercise::getId,
-                exercise -> exerciseMapper.toItemDTO(
-                        exercise, assetUrlProviderPort.exerciseThumbnailUrl(exercise.getThumbnailObjectKey())));
+                exercises, request.size(), Exercise::getId, exercise -> exerciseMapper.toItemDTO(exercise));
     }
 
     /**
@@ -122,7 +116,7 @@ public class ExerciseService implements ExerciseServicePort {
 
         log.info("Found exercise with slug {}", slug);
 
-        return exerciseMapper.toDetailDTO(exercise, assetUrlProviderPort.exerciseGifUrl(exercise.getMediaObjectKey()));
+        return exerciseMapper.toDetailDTO(exercise);
     }
 
     /**
@@ -151,7 +145,7 @@ public class ExerciseService implements ExerciseServicePort {
 
         log.info("Created exercise with slug {}", saved.getSlug());
 
-        return exerciseMapper.toDetailDTO(saved, assetUrlProviderPort.exerciseGifUrl(exercise.getMediaObjectKey()));
+        return exerciseMapper.toDetailDTO(saved);
     }
 
     /**
@@ -189,7 +183,7 @@ public class ExerciseService implements ExerciseServicePort {
 
         log.info("Updated exercise with slug {}", saved.getSlug());
 
-        return exerciseMapper.toDetailDTO(saved, assetUrlProviderPort.exerciseGifUrl(exercise.getMediaObjectKey()));
+        return exerciseMapper.toDetailDTO(saved);
     }
 
     /**

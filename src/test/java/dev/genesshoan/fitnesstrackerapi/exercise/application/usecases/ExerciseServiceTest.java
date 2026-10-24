@@ -10,7 +10,6 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyEx
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPage;
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPageRequest;
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.AssetUrlProviderPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.ExerciseRepositoryPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.MuscleRepositoryPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
@@ -59,9 +58,6 @@ class ExerciseServiceTest {
 
     @Mock
     private ExerciseMapper exerciseMapper;
-
-    @Mock
-    private AssetUrlProviderPort assetUrlProviderPort;
 
     @InjectMocks
     private ExerciseService exerciseService;
@@ -114,10 +110,7 @@ class ExerciseServiceTest {
 
         when(exerciseRepositoryPort.findBySlugAndActiveTrue(slug)).thenReturn(Optional.of(exercise));
 
-        when(assetUrlProviderPort.exerciseGifUrl(exercise.getMediaObjectKey()))
-                .thenReturn("https://example.com/exercises/test.gif");
-
-        when(exerciseMapper.toDetailDTO(eq(exercise), any())).thenReturn(detailDTO);
+        when(exerciseMapper.toDetailDTO(exercise)).thenReturn(detailDTO);
 
         // When
         var result = exerciseService.getExerciseBySlug(slug);
@@ -127,7 +120,7 @@ class ExerciseServiceTest {
 
         verify(exerciseRepositoryPort).findBySlugAndActiveTrue(slug);
 
-        verify(exerciseMapper).toDetailDTO(eq(exercise), any());
+        verify(exerciseMapper).toDetailDTO(exercise);
     }
 
     @Test
@@ -194,9 +187,7 @@ class ExerciseServiceTest {
         when(exerciseMapper.toEntity(request)).thenReturn(exercise);
         when(muscleRepositoryPort.findBySlugIn(List.of("biceps"))).thenReturn(List.of(muscle));
         when(exerciseRepositoryPort.saveExercise(exercise)).thenReturn(exercise);
-        when(assetUrlProviderPort.exerciseGifUrl(exercise.getMediaObjectKey()))
-                .thenReturn("https://example.com/exercises/test.gif");
-        when(exerciseMapper.toDetailDTO(eq(exercise), any())).thenReturn(detailDTO);
+        when(exerciseMapper.toDetailDTO(exercise)).thenReturn(detailDTO);
 
         // When
         var result = exerciseService.createExercise(request);
@@ -292,9 +283,7 @@ class ExerciseServiceTest {
         when(exerciseRepositoryPort.existsBySlug(request.slug())).thenReturn(false);
         when(muscleRepositoryPort.findBySlugIn(List.of("chest-upper"))).thenReturn(List.of(muscle));
         when(exerciseRepositoryPort.saveExercise(exercise)).thenReturn(exercise);
-        when(assetUrlProviderPort.exerciseGifUrl(exercise.getMediaObjectKey()))
-                .thenReturn("https://example.com/exercises/test.gif");
-        when(exerciseMapper.toDetailDTO(eq(exercise), any())).thenReturn(detailDTO);
+        when(exerciseMapper.toDetailDTO(exercise)).thenReturn(detailDTO);
 
         // When
         var result = exerciseService.updateExercise(slug, request);
@@ -383,9 +372,7 @@ class ExerciseServiceTest {
         when(exerciseRepositoryPort.existsBySlug(request.slug())).thenReturn(false);
         when(exerciseMapper.toEntity(request)).thenReturn(exercise);
         when(exerciseRepositoryPort.saveExercise(exercise)).thenReturn(exercise);
-        when(assetUrlProviderPort.exerciseGifUrl(exercise.getMediaObjectKey()))
-                .thenReturn("https://example.com/exercises/test.gif");
-        when(exerciseMapper.toDetailDTO(eq(exercise), any())).thenReturn(detailDTO);
+        when(exerciseMapper.toDetailDTO(exercise)).thenReturn(detailDTO);
 
         // When
         var result = exerciseService.createExercise(request);
@@ -448,7 +435,7 @@ class ExerciseServiceTest {
 
         when(exerciseRepositoryPort.findByFiltersAndActiveTrue(any(), any(), any(), any(), any()))
                 .thenReturn(List.of(first, second));
-        when(exerciseMapper.toItemDTO(eq(first), any())).thenReturn(firstItem);
+        when(exerciseMapper.toItemDTO(first)).thenReturn(firstItem);
 
         // When
         CursorPage<ExerciseListItemDTO, UUID> page = exerciseService.getAllExercises(request, null, null, null);
@@ -598,7 +585,7 @@ class ExerciseServiceTest {
         when(exerciseRepositoryPort.existsBySlug(request.slug())).thenReturn(false);
         when(exerciseMapper.toEntity(request)).thenReturn(exercise);
         when(exerciseRepositoryPort.saveExercise(exercise)).thenReturn(exercise);
-        when(exerciseMapper.toDetailDTO(eq(exercise), any())).thenReturn(detailDTO);
+        when(exerciseMapper.toDetailDTO(exercise)).thenReturn(detailDTO);
 
         // When
         var result = exerciseService.createExercise(request);
