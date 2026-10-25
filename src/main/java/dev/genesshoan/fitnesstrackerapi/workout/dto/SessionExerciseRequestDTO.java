@@ -6,7 +6,6 @@ import java.util.UUID;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -24,5 +23,13 @@ public record SessionExerciseRequestDTO(
         @NotNull @Schema(description = "Exercise performed in this session")
         UUID exerciseId,
 
-        @Valid @NotNull @Size(min = 1) @Schema(description = "Sets performed for the exercise")
-        List<SessionSetRequestDTO> sets) {}
+        @Valid
+        @Schema(
+                description = "Sets performed for the exercise. "
+                        + "When omitted, a default set is derived from the last performed set of the exercise.")
+        List<@NotNull @Valid SessionSetRequestDTO> sets) {
+
+    public SessionExerciseRequestDTO {
+        sets = sets == null ? List.of() : sets;
+    }
+}

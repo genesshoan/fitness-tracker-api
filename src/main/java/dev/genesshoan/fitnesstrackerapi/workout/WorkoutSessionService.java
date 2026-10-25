@@ -643,6 +643,10 @@ public class WorkoutSessionService {
                 .map(SessionExerciseRequestDTO::exerciseId)
                 .collect(Collectors.toSet());
 
+        if (exerciseIdsWithoutSets.isEmpty()) {
+            return Map.of();
+        }
+
         Map<UUID, LastSetProjection> defaultsByExercise =
                 sessionSetRepository.findLastSetsByExerciseIdAndUserId(exerciseIdsWithoutSets, userId).stream()
                         .collect(Collectors.toMap(lsp -> lsp.getExerciseId(), Function.identity()));

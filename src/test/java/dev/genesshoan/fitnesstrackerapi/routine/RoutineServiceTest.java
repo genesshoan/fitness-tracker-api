@@ -208,6 +208,37 @@ public class RoutineServiceTest {
     }
 
     @Test
+    @DisplayName("Should create a routine when the exercises are not provided")
+    void createRoutine_shouldCreateRoutine_WhenExercisesAreNull() {
+        UUID userId = UUID.randomUUID();
+
+        RoutineRequestDTO request = new RoutineRequestDTO("Empty Routine", "Description", null);
+
+        RoutineResponseDTO response =
+                new RoutineResponseDTO(UUID.randomUUID(), "Empty Routine", "Description", List.of());
+
+        when(routineRepository.existsByNameAndUserIdAndActiveTrue(request.name(), userId))
+                .thenReturn(false);
+
+        when(routineRepository.save(any(Routine.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        when(routineMapper.toRoutineResponseDTO(any(Routine.class))).thenReturn(response);
+
+        RoutineResponseDTO result = routineService.createRoutine(request, userId);
+
+        assertThat(result).isEqualTo(response);
+
+        ArgumentCaptor<Routine> captor = ArgumentCaptor.forClass(Routine.class);
+
+        verify(routineRepository).save(captor.capture());
+        verify(routineMapper).toRoutineResponseDTO(captor.capture());
+
+        assertThat(captor.getValue().getExercises()).isEmpty();
+
+        verify(exerciseRepository, never()).findAllByIdInAndActiveTrue(anySet());
+    }
+
+    @Test
     @DisplayName(
             "Should throw a ResourceAlreadyExistsException when already exists an active routine with the same name"
                     + " for the same user")
@@ -338,6 +369,42 @@ public class RoutineServiceTest {
         assertThat(captured.getExercises())
                 .extracting(RoutineExercise::getPosition)
                 .containsExactly(1, 2);
+    }
+
+    @Test
+    @DisplayName("Should remove the exercises when the request does not provide them")
+    void updateRoutine_shouldRemoveExercises_WhenExercisesAreNull() {
+        UUID userId = UUID.randomUUID();
+        UUID routineId = UUID.randomUUID();
+
+        Exercise ex1 = exerciseWithId();
+
+        Routine routine = RoutineBuilder.aRoutine(FAKER)
+                .withName("oldName")
+                .withDescription("oldDescription")
+                .forUserId(userId)
+                .build();
+        routine.setExercises(new ArrayList<>(List.of(routineExerciseAt(1, ex1, routine))));
+        routine.setId(routineId);
+
+        RoutineRequestDTO request = new RoutineRequestDTO("newName", "newDescription", null);
+
+        when(routineRepository.existsByNameAndUserIdAndActiveTrue(request.name(), userId))
+                .thenReturn(false);
+
+        when(routineMapper.toRoutineResponseDTO(any(Routine.class))).thenReturn(mock(RoutineResponseDTO.class));
+
+        when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
+
+        routineService.updateRoutine(routineId, request, userId);
+
+        ArgumentCaptor<Routine> captor = ArgumentCaptor.forClass(Routine.class);
+
+        verify(routineMapper).toRoutineResponseDTO(captor.capture());
+
+        assertThat(captor.getValue().getExercises()).isEmpty();
+
+        verify(exerciseRepository, never()).findAllByIdInAndActiveTrue(anySet());
     }
 
     @Test

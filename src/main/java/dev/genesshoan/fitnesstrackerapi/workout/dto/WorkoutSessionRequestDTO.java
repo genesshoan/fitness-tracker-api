@@ -24,4 +24,9 @@ public record WorkoutSessionRequestDTO(
         @Schema(description = "Workout session notes") String notes,
 
         @Valid @Schema(description = "Exercise performed for the workout session")
-        List<SessionExerciseRequestDTO> exercises) {}
+        List<@NotNull @Valid SessionExerciseRequestDTO> exercises) {
+
+    public WorkoutSessionRequestDTO {
+        exercises = exercises == null ? List.of() : exercises;
+    }
+}

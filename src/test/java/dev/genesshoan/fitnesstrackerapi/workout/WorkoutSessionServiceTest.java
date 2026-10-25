@@ -1579,6 +1579,82 @@ class WorkoutSessionServiceTest {
     }
 
     @Test
+    @DisplayName("Should create workout session from scratch when the exercises are not provided")
+    void should_createWorkoutSessionFromScratch_when_exercisesAreNull() {
+        UUID userId = UUID.randomUUID();
+        User userReference = UserBuilder.aUser(FAKER).withId(userId).build();
+        WorkoutSessionRequestDTO request = new WorkoutSessionRequestDTO(
+                SessionStatus.IN_PROGRESS, Instant.parse("2025-01-01T10:00:00Z"), null, "session notes", null);
+        WorkoutSessionResponseDTO response = new WorkoutSessionResponseDTO(
+                UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "session notes", List.of());
+
+        when(exerciseFinder.findActiveByIds(eq(List.of()), any())).thenReturn(Map.of());
+        when(userRepository.getReferenceById(userId)).thenReturn(userReference);
+        when(workoutSessionRepository.save(any(WorkoutSession.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(workoutSessionMapper.toWorkoutSessionResponseDTO(any(WorkoutSession.class), anyMap()))
+                .thenReturn(response);
+
+        WorkoutSessionResponseDTO result = workoutSessionService.createWorkoutSessionFromScratch(request, userId);
+
+        ArgumentCaptor<WorkoutSession> savedSessionCaptor = ArgumentCaptor.forClass(WorkoutSession.class);
+        verify(workoutSessionRepository).save(savedSessionCaptor.capture());
+        WorkoutSession savedSession = savedSessionCaptor.getValue();
+
+        assertThat(result).isEqualTo(response);
+        assertThat(savedSession.getExercises()).isEmpty();
+        verify(sessionSetRepository, never()).findLastSetsByExerciseIdAndUserId(any(), any());
+    }
+
+    @Test
+    @DisplayName("Should synthesize a set from the last completed set when the request sets are not provided")
+    void should_synthesizeSetFromLastCompletedSet_when_requestSetsAreNull() {
+        UUID userId = UUID.randomUUID();
+        UUID exerciseId = UUID.randomUUID();
+        User userReference = UserBuilder.aUser(FAKER).withId(userId).build();
+        Exercise exercise = ExerciseBuilder.anExercise(FAKER)
+                .withCategory(Category.STRENGTH)
+                .build();
+        exercise.setId(exerciseId);
+        WorkoutSessionRequestDTO request = new WorkoutSessionRequestDTO(
+                SessionStatus.IN_PROGRESS,
+                Instant.parse("2025-01-01T10:00:00Z"),
+                null,
+                "session notes",
+                List.of(new SessionExerciseRequestDTO(null, "exercise notes", exerciseId, null)));
+        WorkoutSessionResponseDTO response = new WorkoutSessionResponseDTO(
+                UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "session notes", List.of());
+        LastSetProjection lastSet = mock(LastSetProjection.class);
+        when(lastSet.getExerciseId()).thenReturn(exerciseId);
+        when(lastSet.getReps()).thenReturn(15);
+        when(lastSet.getWeightKg()).thenReturn(40.0);
+
+        when(exerciseFinder.findActiveByIds(eq(List.of(exerciseId)), any())).thenReturn(Map.of(exerciseId, exercise));
+        when(sessionSetRepository.findLastSetsByExerciseIdAndUserId(Set.of(exerciseId), userId))
+                .thenReturn(List.of(lastSet));
+        when(userRepository.getReferenceById(userId)).thenReturn(userReference);
+        when(workoutSessionRepository.save(any(WorkoutSession.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(workoutSessionMapper.toWorkoutSessionResponseDTO(any(WorkoutSession.class), anyMap()))
+                .thenReturn(response);
+
+        WorkoutSessionResponseDTO result = workoutSessionService.createWorkoutSessionFromScratch(request, userId);
+
+        ArgumentCaptor<WorkoutSession> savedSessionCaptor = ArgumentCaptor.forClass(WorkoutSession.class);
+        verify(workoutSessionRepository).save(savedSessionCaptor.capture());
+        WorkoutSession savedSession = savedSessionCaptor.getValue();
+
+        assertThat(result).isEqualTo(response);
+        assertThat(savedSession.getExercises().get(0).getSets()).hasSize(1);
+        assertThat(savedSession.getExercises().get(0).getSets().get(0).getSetNumber())
+                .isEqualTo(1);
+        assertThat(savedSession.getExercises().get(0).getSets().get(0).getReps())
+                .isEqualTo(15);
+        assertThat(savedSession.getExercises().get(0).getSets().get(0).getWeightKg())
+                .isEqualTo(40.0);
+    }
+
+    @Test
     @DisplayName("Should throw validation exception when creating workout session from scratch with exercise errors")
     void should_throwValidationException_when_creatingWorkoutSessionFromScratchWithExerciseErrors() {
         UUID userId = UUID.randomUUID();
