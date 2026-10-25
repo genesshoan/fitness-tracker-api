@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
  * <ul>
  * <li>Stateless authentication using JWT</li>
  * <li>Authorization rules for API endpoints</li>
+ * <li>Cross-origin requests handled by the {@link CorsProperties} configuration</li>
  * <li>Integration of custom JWT filter into the Spring Security filter
  * chain</li>
  * <li>Password encoding strategy</li>
@@ -76,6 +77,7 @@ public class SecurityConfig {
      * Configures:
      * <ul>
      * <li>CSRF protection restricted to the cookie based session endpoints</li>
+     * <li>Cross-origin requests through the configured {@link CorsProperties}</li>
      * <li>Public and secured endpoints</li>
      * <li>Stateless session management</li>
      * <li>JWT filter integration before UsernamePasswordAuthenticationFilter</li>
@@ -87,14 +89,10 @@ public class SecurityConfig {
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.csrf(csrf -> csrf
-                        // The CSRF token is stored in a readable cookie and sent back in the
-                        // X-XSRF-TOKEN header. Only the endpoints that rely on the refresh token
-                        // cookie need it, the remaining ones are authorized by the Authorization
-                        // header, which a browser never attaches automatically.
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+        return http.csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(new EagerCsrfTokenRequestHandler())
                         .requireCsrfProtectionMatcher(cookieSessionEndpoints()))
+                .cors(cors -> {})
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/register")
