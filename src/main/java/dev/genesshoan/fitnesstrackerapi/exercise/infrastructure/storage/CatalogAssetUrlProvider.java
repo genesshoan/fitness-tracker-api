@@ -2,7 +2,6 @@ package dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.storage;
 
 import org.springframework.stereotype.Component;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.AssetUrlProviderPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.config.CatalogProperties;
 import lombok.RequiredArgsConstructor;
 
@@ -11,30 +10,36 @@ import lombok.RequiredArgsConstructor;
  */
 @Component
 @RequiredArgsConstructor
-public class CatalogAssetUrlProvider implements AssetUrlProviderPort {
+public class CatalogAssetUrlProvider {
 
     private final CatalogProperties properties;
 
     /**
-     * {@inheritDoc}
+     * Resolves the public URL of an exercise GIF.
+     *
+     * @param objectKey object storage key of the GIF
+     * @return public URL of the exercise GIF, or {@code null} if the object key is {@code null}
      */
-    @Override
     public String exerciseGifUrl(String objectKey) {
         return build(properties.exercise().gifs(), objectKey);
     }
 
     /**
-     * {@inheritDoc}
+     * Resolves the public URL of an exercise thumbnail.
+     *
+     * @param objectKey object storage key of the thumbnail
+     * @return public URL of the exercise thumbnail, or {@code null} if the object key is {@code null}
      */
-    @Override
     public String exerciseThumbnailUrl(String objectKey) {
         return build(properties.exercise().thumbnails(), objectKey);
     }
 
     /**
-     * {@inheritDoc}
+     * Resolves the public URL of a muscle image.
+     *
+     * @param objectKey object storage key of the image
+     * @return public URL of the muscle image, or {@code null} if the object key is {@code null}
      */
-    @Override
     public String muscleUrl(String objectKey) {
         return build(properties.muscle().images(), objectKey);
     }
