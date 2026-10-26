@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,12 +27,6 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ExerciseMuscle;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ExerciseMuscleId;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.Muscle;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseDetailDTO;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseListItemDTO;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseMuscleRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseSearchResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseSearchResultDTO;
 import dev.genesshoan.fitnesstrackerapi.exercise.mapper.ExerciseMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,7 +61,7 @@ public class ExerciseService implements ExerciseServicePort {
      * {@inheritDoc}
      */
     @Override
-    public CursorPage<ExerciseListItemDTO, UUID> getAllExercises(
+    public CursorPage<ExerciseListItem, UUID> getAllExercises(
             CursorPageRequest<UUID> request, Category category, Difficulty difficulty, List<String> muscleSlugs) {
         List<Exercise> exercises = exerciseRepositoryPort.findByFiltersAndActiveTrue(
                 request.cursor(), category, difficulty, muscleSlugs, request.pageable());
@@ -87,14 +82,14 @@ public class ExerciseService implements ExerciseServicePort {
      * @param limit maximum number of suggestions
      * @return matching lightweight exercise results
      */
-    public ExerciseSearchResponseDTO searchExercises(String query, int limit) {
+    public ExerciseSearchResponse searchExercises(String query, int limit) {
         String normalizedQuery = query == null ? "" : query.trim();
-        List<ExerciseSearchResultDTO> results =
+        List<ExerciseSearchResult> results =
                 exerciseRepositoryPort.searchActive(escapeLike(normalizedQuery), limit).stream()
                         .map(exercise -> toSearchResult(exercise, normalizedQuery))
                         .toList();
 
-        return new ExerciseSearchResponseDTO(results);
+        return new ExerciseSearchResponse(results);
     }
 
     /**
@@ -103,15 +98,15 @@ public class ExerciseService implements ExerciseServicePort {
      * <p>The slug is a URL-friendly identifier (e.g., "bicep-curl").
      * Only exercises with {@code active = true} are returned.
      *
-     * <p>The returned {@link ExerciseDetailDTO} includes the full
+     * <p>The returned {@link ExerciseDetail} includes the full
      * exercise-muscle relationships with impact levels.
      *
      * @param slug the URL-friendly exercise identifier
-     * @return a {@link ExerciseDetailDTO} with full exercise details
+     * @return a {@link ExerciseDetail} with full exercise details
      * @throws BadRequestException if the slug is null or blank
      * @throws ResourceNotFoundException if no active exercise exists with the given slug
      */
-    public ExerciseDetailDTO getExerciseBySlug(String slug) {
+    public ExerciseDetail getExerciseBySlug(String slug) {
         Exercise exercise = findActiveBySlug(slug);
 
         log.info("Found exercise with slug {}", slug);
@@ -126,12 +121,12 @@ public class ExerciseService implements ExerciseServicePort {
      * ones. Muscle slugs must reference existing muscles.
      *
      * @param request the exercise data
-     * @return an {@link ExerciseDetailDTO} with the created exercise
+     * @return an {@link ExerciseDetail} with the created exercise
      * @throws ResourceAlreadyExistsException if another exercise already uses the slug
      * @throws ResourceNotFoundException if a referenced muscle does not exist
      */
     @Transactional
-    public ExerciseDetailDTO createExercise(ExerciseRequestDTO request) {
+    public ExerciseDetail createExercise(ExerciseRequest request) {
         if (exerciseRepositoryPort.existsBySlug(request.slug())) {
             throw new ResourceAlreadyExistsException("Exercise with slug " + request.slug() + " already exists");
         }
@@ -156,14 +151,14 @@ public class ExerciseService implements ExerciseServicePort {
      *
      * @param slug the URL-friendly identifier of the exercise to update
      * @param request the new exercise data
-     * @return an {@link ExerciseDetailDTO} with the updated exercise
+     * @return an {@link ExerciseDetail} with the updated exercise
      * @throws BadRequestException if the slug is null or blank
      * @throws ResourceNotFoundException if no active exercise exists with the given slug,
      *                                   or a referenced muscle does not exist
      * @throws ResourceAlreadyExistsException if the new slug is already used by another exercise
      */
     @Transactional
-    public ExerciseDetailDTO updateExercise(String slug, ExerciseRequestDTO request) {
+    public ExerciseDetail updateExercise(String slug, ExerciseRequest request) {
         Exercise exercise = findActiveBySlug(slug);
 
         if (!exercise.getSlug().equals(request.slug()) && exerciseRepositoryPort.existsBySlug(request.slug())) {
@@ -228,8 +223,8 @@ public class ExerciseService implements ExerciseServicePort {
         return instructions == null ? List.of() : instructions;
     }
 
-    private ExerciseSearchResultDTO toSearchResult(Exercise exercise, String query) {
-        return new ExerciseSearchResultDTO(
+    private ExerciseSearchResult toSearchResult(Exercise exercise, String query) {
+        return new ExerciseSearchResult(
                 exercise.getId(),
                 exercise.getName(),
                 exercise.getSlug(),
@@ -241,13 +236,13 @@ public class ExerciseService implements ExerciseServicePort {
         return query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
-    private Set<ExerciseMuscle> resolveMuscles(Exercise exercise, List<ExerciseMuscleRequestDTO> muscles) {
+    private Set<ExerciseMuscle> resolveMuscles(Exercise exercise, List<ExerciseMuscleRequest> muscles) {
         if (muscles == null || muscles.isEmpty()) {
             return new HashSet<>();
         }
 
         List<String> slugs =
-                muscles.stream().map(ExerciseMuscleRequestDTO::muscleSlug).toList();
+                muscles.stream().map(ExerciseMuscleRequest::muscleSlug).toList();
 
         Set<String> seen = new HashSet<>();
         List<String> duplicates =

@@ -17,11 +17,7 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.Muscle;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseDetailDTO;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseListItemDTO;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseMuscleRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseSearchResultDTO;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.*;
 import dev.genesshoan.fitnesstrackerapi.exercise.mapper.ExerciseMapper;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.ExerciseBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.MuscleBuilder;
@@ -97,7 +93,7 @@ class ExerciseServiceTest {
                 .withInstructions(List.of("Step 1", "Step 2"))
                 .build();
 
-        var detailDTO = new ExerciseDetailDTO(
+        var detailDTO = new ExerciseDetail(
                 UUID.randomUUID(),
                 exercise.getName(),
                 exercise.getSlug(),
@@ -161,18 +157,18 @@ class ExerciseServiceTest {
         // Given
         Muscle muscle = MuscleBuilder.aMuscle(FAKER).withSlug("biceps").build();
 
-        var request = new ExerciseRequestDTO(
+        var request = new ExerciseRequest(
                 "Bicep Curl",
                 "bicep-curl",
                 "Made with a bicep curl bar",
                 List.of("Step 1", "Step 2"),
                 Category.STRENGTH,
                 Difficulty.INTERMEDIATE,
-                List.of(new ExerciseMuscleRequestDTO("biceps", ImpactLevel.PRIMARY)));
+                List.of(new ExerciseMuscleRequest("biceps", ImpactLevel.PRIMARY)));
 
         var exercise = ExerciseBuilder.anExercise(FAKER).build();
 
-        var detailDTO = new ExerciseDetailDTO(
+        var detailDTO = new ExerciseDetail(
                 UUID.randomUUID(),
                 request.name(),
                 request.slug(),
@@ -205,7 +201,7 @@ class ExerciseServiceTest {
     @DisplayName("Should throw ResourceAlreadyExistsException when slug is taken")
     void createExercise_shouldThrowExceptionWhenSlugExists() {
         // Given
-        var request = new ExerciseRequestDTO(
+        var request = new ExerciseRequest(
                 "Bicep Curl",
                 "bicep-curl",
                 "Made with a bicep curl bar",
@@ -228,14 +224,14 @@ class ExerciseServiceTest {
     @DisplayName("Should throw ResourceNotFoundException when muscle does not exist")
     void createExercise_shouldThrowExceptionWhenMuscleNotFound() {
         // Given
-        var request = new ExerciseRequestDTO(
+        var request = new ExerciseRequest(
                 "Bicep Curl",
                 "bicep-curl",
                 "Made with a bicep curl bar",
                 null,
                 Category.STRENGTH,
                 Difficulty.INTERMEDIATE,
-                List.of(new ExerciseMuscleRequestDTO("unknown-muscle", ImpactLevel.PRIMARY)));
+                List.of(new ExerciseMuscleRequest("unknown-muscle", ImpactLevel.PRIMARY)));
 
         var exercise = ExerciseBuilder.anExercise(FAKER).build();
 
@@ -259,16 +255,16 @@ class ExerciseServiceTest {
 
         Muscle muscle = MuscleBuilder.aMuscle(FAKER).withSlug("chest-upper").build();
 
-        var request = new ExerciseRequestDTO(
+        var request = new ExerciseRequest(
                 "Updated Bench Press",
                 "updated-bench-press",
                 "Updated description",
                 List.of("Updated step"),
                 Category.STRENGTH,
                 Difficulty.ADVANCED,
-                List.of(new ExerciseMuscleRequestDTO("chest-upper", ImpactLevel.PRIMARY)));
+                List.of(new ExerciseMuscleRequest("chest-upper", ImpactLevel.PRIMARY)));
 
-        var detailDTO = new ExerciseDetailDTO(
+        var detailDTO = new ExerciseDetail(
                 exercise.getId(),
                 request.name(),
                 request.slug(),
@@ -301,7 +297,7 @@ class ExerciseServiceTest {
     @DisplayName("Should throw ResourceNotFoundException when updating missing exercise")
     void updateExercise_shouldThrowExceptionWhenExerciseDoesNotExist() {
         // Given
-        var request = new ExerciseRequestDTO(
+        var request = new ExerciseRequest(
                 "Bench Press", "bench-press", "Description", null, Category.STRENGTH, Difficulty.INTERMEDIATE, null);
 
         when(exerciseRepositoryPort.findBySlugAndActiveTrue("bench-press")).thenReturn(Optional.empty());
@@ -318,7 +314,7 @@ class ExerciseServiceTest {
         // Given
         var exercise = ExerciseBuilder.anExercise(FAKER).withSlug("bench-press").build();
 
-        var request = new ExerciseRequestDTO(
+        var request = new ExerciseRequest(
                 "Bench Press", "taken-slug", "Description", null, Category.STRENGTH, Difficulty.INTERMEDIATE, null);
 
         when(exerciseRepositoryPort.findBySlugAndActiveTrue("bench-press")).thenReturn(Optional.of(exercise));
@@ -347,7 +343,7 @@ class ExerciseServiceTest {
     @DisplayName("Should default null instructions to empty list on create")
     void createExercise_shouldDefaultNullInstructionsToEmptyList() {
         // Given
-        var request = new ExerciseRequestDTO(
+        var request = new ExerciseRequest(
                 "Bicep Curl",
                 "bicep-curl",
                 "Made with a bicep curl bar",
@@ -358,7 +354,7 @@ class ExerciseServiceTest {
 
         var exercise = ExerciseBuilder.anExercise(FAKER).build();
 
-        var detailDTO = new ExerciseDetailDTO(
+        var detailDTO = new ExerciseDetail(
                 UUID.randomUUID(),
                 request.name(),
                 request.slug(),
@@ -386,7 +382,7 @@ class ExerciseServiceTest {
     @DisplayName("Should throw BadRequestException when muscles are duplicated")
     void createExercise_shouldThrowExceptionWhenMusclesAreDuplicated() {
         // Given
-        var request = new ExerciseRequestDTO(
+        var request = new ExerciseRequest(
                 "Bicep Curl",
                 "bicep-curl",
                 "Made with a bicep curl bar",
@@ -394,8 +390,8 @@ class ExerciseServiceTest {
                 Category.STRENGTH,
                 Difficulty.INTERMEDIATE,
                 List.of(
-                        new ExerciseMuscleRequestDTO("biceps", ImpactLevel.PRIMARY),
-                        new ExerciseMuscleRequestDTO("biceps", ImpactLevel.SECONDARY)));
+                        new ExerciseMuscleRequest("biceps", ImpactLevel.PRIMARY),
+                        new ExerciseMuscleRequest("biceps", ImpactLevel.SECONDARY)));
 
         var exercise = ExerciseBuilder.anExercise(FAKER).build();
 
@@ -428,7 +424,7 @@ class ExerciseServiceTest {
         var second =
                 ExerciseBuilder.anExercise(FAKER).withSlug("second-exercise").build();
 
-        var firstItem = new ExerciseListItemDTO(
+        var firstItem = new ExerciseListItem(
                 first.getId(), first.getName(), first.getSlug(), first.getCategory(), first.getDifficulty(), null);
 
         CursorPageRequest<UUID> request = new CursorPageRequest<>(null, 1);
@@ -438,7 +434,7 @@ class ExerciseServiceTest {
         when(exerciseMapper.toItemDTO(first)).thenReturn(firstItem);
 
         // When
-        CursorPage<ExerciseListItemDTO, UUID> page = exerciseService.getAllExercises(request, null, null, null);
+        CursorPage<ExerciseListItem, UUID> page = exerciseService.getAllExercises(request, null, null, null);
 
         // Then
         assertThat(page.page()).containsExactly(firstItem);
@@ -462,7 +458,7 @@ class ExerciseServiceTest {
 
         // Then
         assertThat(result.results())
-                .containsExactly(new ExerciseSearchResultDTO(
+                .containsExactly(new ExerciseSearchResult(
                         exercise.getId(),
                         "Barbell Bench Press",
                         "barbell-bench-press",
@@ -545,7 +541,7 @@ class ExerciseServiceTest {
     @DisplayName("Should throw BadRequestException when updating with an invalid slug")
     void updateExercise_shouldThrowExceptionWhenSlugIsInvalid(String slug) {
         // Given
-        var request = new ExerciseRequestDTO(
+        var request = new ExerciseRequest(
                 "Bench Press", "bench-press", "Description", null, Category.STRENGTH, Difficulty.INTERMEDIATE, null);
 
         // When / Then
@@ -560,7 +556,7 @@ class ExerciseServiceTest {
     @DisplayName("Should create an exercise without muscle associations")
     void createExercise_shouldCreateExerciseWithoutMuscles() {
         // Given
-        var request = new ExerciseRequestDTO(
+        var request = new ExerciseRequest(
                 "Bicep Curl",
                 "bicep-curl",
                 "Made with a bicep curl bar",
@@ -571,7 +567,7 @@ class ExerciseServiceTest {
 
         var exercise = ExerciseBuilder.anExercise(FAKER).build();
 
-        var detailDTO = new ExerciseDetailDTO(
+        var detailDTO = new ExerciseDetail(
                 UUID.randomUUID(),
                 request.name(),
                 request.slug(),

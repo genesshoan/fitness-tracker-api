@@ -10,8 +10,8 @@ import dev.genesshoan.fitnesstrackerapi.base.AbstractIntegrationTest;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseMuscleRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseRequestDTO;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.ExerciseMuscleRequest;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.ExerciseRequest;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.ExerciseBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -161,7 +161,7 @@ public class ExerciseControllerIT extends AbstractIntegrationTest {
     @DisplayName("Should return 403 when creating without ADMIN role")
     @WithMockUser
     void createExercise_ShouldReturn403WithoutAdminRole() throws Exception {
-        var request = new ExerciseRequestDTO(
+        var request = new ExerciseRequest(
                 "Bicep Curl",
                 "bicep-curl",
                 "Made with a bicep curl bar",
@@ -182,14 +182,14 @@ public class ExerciseControllerIT extends AbstractIntegrationTest {
     void createExercise_ShouldCreateWithMusclesAndBeQueryable() throws Exception {
         var muscle = testEntityFactory.createAndPersistMuscle();
 
-        var request = new ExerciseRequestDTO(
+        var request = new ExerciseRequest(
                 "Bicep Curl",
                 "bicep-curl",
                 "Made with a bicep curl bar",
                 List.of("Step 1", "Step 2"),
                 Category.STRENGTH,
                 Difficulty.BEGINNER,
-                List.of(new ExerciseMuscleRequestDTO(muscle.getSlug(), ImpactLevel.PRIMARY)));
+                List.of(new ExerciseMuscleRequest(muscle.getSlug(), ImpactLevel.PRIMARY)));
 
         mockMvc.perform(post("/api/v1/exercises")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -212,14 +212,14 @@ public class ExerciseControllerIT extends AbstractIntegrationTest {
     void updateExercise_ShouldReplaceMuscleAssociations() throws Exception {
         var exercise = testEntityFactory.createAndPersistExerciseWithMuscles(1, ImpactLevel.PRIMARY);
         var muscle = testEntityFactory.createAndPersistMuscle();
-        var request = new ExerciseRequestDTO(
+        var request = new ExerciseRequest(
                 "Updated Exercise",
                 "updated-exercise",
                 "Updated description",
                 List.of("Updated step"),
                 Category.MOBILITY,
                 Difficulty.ADVANCED,
-                List.of(new ExerciseMuscleRequestDTO(muscle.getSlug(), ImpactLevel.SECONDARY)));
+                List.of(new ExerciseMuscleRequest(muscle.getSlug(), ImpactLevel.SECONDARY)));
 
         mockMvc.perform(put("/api/v1/exercises/{slug}", exercise.getSlug())
                         .contentType(MediaType.APPLICATION_JSON)

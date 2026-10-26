@@ -1,5 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.exercise.controller;
 
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.MuscleResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ProblemDetail;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.MuscleServicePort;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.MuscleResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -39,7 +39,7 @@ public class MuscleController {
                         content =
                                 @Content(
                                         mediaType = "application/json",
-                                        schema = @Schema(implementation = MuscleResponseDTO.class))),
+                                        schema = @Schema(implementation = MuscleResponse.class))),
                 @ApiResponse(
                         responseCode = "401",
                         description = "Unauthorized",
@@ -56,8 +56,8 @@ public class MuscleController {
                                         schema = @Schema(implementation = ProblemDetail.class))),
             })
     @GetMapping
-    public ResponseEntity<Page<MuscleResponseDTO>> getMuscles(@ParameterObject Pageable pageable) {
-        Page<MuscleResponseDTO> muscles = muscleService.getMuscles(pageable);
+    public ResponseEntity<Page<MuscleResponse>> getMuscles(@ParameterObject Pageable pageable) {
+        Page<MuscleResponse> muscles = muscleService.getMuscles(pageable);
 
         return ResponseEntity.ok(muscles);
     }
@@ -71,7 +71,7 @@ public class MuscleController {
                         content =
                                 @Content(
                                         mediaType = "application/json",
-                                        schema = @Schema(implementation = MuscleResponseDTO.class))),
+                                        schema = @Schema(implementation = MuscleResponse.class))),
                 @ApiResponse(
                         responseCode = "401",
                         description = "Unauthorized",
@@ -95,7 +95,7 @@ public class MuscleController {
                                         schema = @Schema(implementation = ProblemDetail.class))),
             })
     @GetMapping("/{slug}")
-    public ResponseEntity<MuscleResponseDTO> getMuscle(@PathVariable String slug) {
+    public ResponseEntity<MuscleResponse> getMuscle(@PathVariable String slug) {
         var muscle = muscleService.getMuscleBySlug(slug);
 
         return ResponseEntity.ok(muscle);

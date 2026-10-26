@@ -1,9 +1,9 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.dto;
+package dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Base assets used for the muscle intensity visualization")
-public record MuscleBaseAssetsDTO(
+public record MuscleBaseAssets(
         @Schema(
                 description = "Front view base asset URL",
                 example = "https://cdn.example.com/muscles/male/front/male_front_base.png")

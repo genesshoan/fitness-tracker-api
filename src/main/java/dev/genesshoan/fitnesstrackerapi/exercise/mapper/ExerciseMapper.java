@@ -1,12 +1,12 @@
 package dev.genesshoan.fitnesstrackerapi.exercise.mapper;
 
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.ExerciseRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.AssetUrlProviderPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseDetailDTO;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseListItemDTO;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseRequestDTO;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.ExerciseDetail;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.ExerciseListItem;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -47,7 +47,7 @@ public abstract class ExerciseMapper {
     @Mapping(
             target = "thumbnailUrl",
             expression = "java(assetUrlProviderPort.exerciseThumbnailUrl(exercise.getThumbnailObjectKey()))")
-    public abstract ExerciseListItemDTO toItemDTO(Exercise exercise);
+    public abstract ExerciseListItem toItemDTO(Exercise exercise);
 
     /**
      * Maps an exercise to its detail representation.
@@ -56,7 +56,7 @@ public abstract class ExerciseMapper {
      * @return the detail DTO, with the GIF URL resolved
      */
     @Mapping(target = "gifUrl", expression = "java(assetUrlProviderPort.exerciseGifUrl(exercise.getMediaObjectKey()))")
-    public abstract ExerciseDetailDTO toDetailDTO(Exercise exercise);
+    public abstract ExerciseDetail toDetailDTO(Exercise exercise);
 
     /**
      * Maps a creation request to a new exercise entity.
@@ -71,5 +71,5 @@ public abstract class ExerciseMapper {
     @Mapping(target = "exerciseMuscles", ignore = true)
     @Mapping(target = "mediaObjectKey", ignore = true)
     @Mapping(target = "thumbnailObjectKey", ignore = true)
-    public abstract Exercise toEntity(ExerciseRequestDTO request);
+    public abstract Exercise toEntity(ExerciseRequest request);
 }

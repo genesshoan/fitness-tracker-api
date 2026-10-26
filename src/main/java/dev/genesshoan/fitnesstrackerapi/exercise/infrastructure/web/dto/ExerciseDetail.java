@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.dto;
+package dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto;
 
 import java.util.List;
 import java.util.UUID;
@@ -21,7 +21,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @param gifUrl client-facing media URL
  */
 @Schema(description = "Exercise detail DTO")
-public record ExerciseDetailDTO(
+public record ExerciseDetail(
         @Schema(description = "Exercise ID", example = "123e4567-e89b-12d3-a456-426614174000")
         UUID id,
 
@@ -43,7 +43,7 @@ public record ExerciseDetailDTO(
         @Schema(description = "Exercise difficulty", example = "INTERMEDIATE")
         Difficulty difficulty,
 
-        @Schema(description = "Exercise muscles") List<ExerciseMuscleDTO> exerciseMuscles,
+        @Schema(description = "Exercise muscles") List<ExerciseMuscle> exerciseMuscles,
 
         @Schema(description = "Public URL of the exercise GIF")
         String gifUrl) {}

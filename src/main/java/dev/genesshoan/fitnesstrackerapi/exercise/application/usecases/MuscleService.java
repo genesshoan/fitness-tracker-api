@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.MuscleServicePort;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.MuscleRepositoryPort;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.MuscleResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.MuscleResponse;
 import dev.genesshoan.fitnesstrackerapi.exercise.mapper.MuscleMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,7 @@ public class MuscleService implements MuscleServicePort {
      * {@inheritDoc}
      */
     @Override
-    public Page<MuscleResponseDTO> getMuscles(Pageable pageable) {
+    public Page<MuscleResponse> getMuscles(Pageable pageable) {
 
         log.debug("Fetching muscles page={} size={}", pageable.getPageNumber(), pageable.getPageSize());
 
@@ -44,7 +44,7 @@ public class MuscleService implements MuscleServicePort {
      * {@inheritDoc}
      */
     @Override
-    public MuscleResponseDTO getMuscleBySlug(String slug) {
+    public MuscleResponse getMuscleBySlug(String slug) {
 
         log.info("Fetching muscle by slug={}", slug);
 
