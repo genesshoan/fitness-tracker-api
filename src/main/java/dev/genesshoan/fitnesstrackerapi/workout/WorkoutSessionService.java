@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -21,7 +22,7 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestExcepti
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ValidationException;
 import dev.genesshoan.fitnesstrackerapi.common.mapper.ExerciseMetricsMapper;
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseQueryPort;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.ExerciseQueryUseCase;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.routine.RoutineRepository;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
@@ -72,7 +73,7 @@ public class WorkoutSessionService {
     private final SessionSetRepository sessionSetRepository;
     private final RoutineRepository routineRepository;
     private final UserRepository userRepository;
-    private final ExerciseQueryPort exerciseQueryPort;
+    private final ExerciseQueryUseCase exerciseQueryUseCase;
 
     private final WorkoutSessionMapper workoutSessionMapper;
     private final SessionExerciseMapper sessionExerciseMapper;
@@ -159,11 +160,7 @@ public class WorkoutSessionService {
 
         Map<String, List<String>> errors = new HashMap<>();
 
-        Map<UUID, Exercise> exercises = exerciseQueryPort.findActiveByIds(
-                dto.exercises().stream()
-                        .map(SessionExerciseRequestDTO::exerciseId)
-                        .toList(),
-                errors);
+        Map<UUID, Exercise> exercises = resolveExercises(dto.exercises(), errors);
 
         validateSetsData(dto.exercises(), exercises, errors);
 
@@ -267,7 +264,7 @@ public class WorkoutSessionService {
         Map<String, List<String>> errors = new HashMap<>();
 
         Exercise exercise = getOrThrowResourceNotFound(
-                exerciseQueryPort.findByIdAndActiveTrue(dto.exerciseId()), "Exercise", dto.exerciseId());
+                exerciseQueryUseCase.findById(dto.exerciseId()), "Exercise", dto.exerciseId());
 
         validateSetsData(dto.sets(), exercise, errors);
 
@@ -533,6 +530,36 @@ public class WorkoutSessionService {
         sessionSet.setDurationSeconds(dto.durationSeconds());
         sessionSet.setDistanceKm(dto.distanceKm());
         sessionSet.setCompleted(dto.completed());
+    }
+
+    /**
+     * Resolves the exercises referenced by the request and records an error for
+     * every referenced exercise that does not exist.
+     *
+     * @param exerciseDTOs the requested session exercises
+     * @param errors       the validation errors to fill
+     * @return the existing exercises, keyed by exercise id
+     */
+    private Map<UUID, Exercise> resolveExercises(
+            List<SessionExerciseRequestDTO> exerciseDTOs, Map<String, List<String>> errors) {
+
+        List<UUID> exerciseIds =
+                exerciseDTOs.stream().map(SessionExerciseRequestDTO::exerciseId).toList();
+
+        if (exerciseIds.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<UUID, Exercise> exercises = exerciseQueryUseCase.findByIds(exerciseIds);
+
+        for (UUID exerciseId : new LinkedHashSet<>(exerciseIds)) {
+            if (!exercises.containsKey(exerciseId)) {
+                errors.computeIfAbsent(exerciseId.toString(), k -> new ArrayList<>())
+                        .add("Exercise does not exist");
+            }
+        }
+
+        return exercises;
     }
 
     private void validateSetsData(

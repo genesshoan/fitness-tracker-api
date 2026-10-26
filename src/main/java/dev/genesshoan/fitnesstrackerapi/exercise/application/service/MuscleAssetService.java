@@ -1,38 +1,40 @@
 package dev.genesshoan.fitnesstrackerapi.exercise.application.service;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.storage.CatalogAssetUrlProvider;
 import org.springframework.stereotype.Service;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.MuscleAssetUrlPort;
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.MuscleAssetRepositoryPort;
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.persistence.projection.MuscleBaseAssetsProjection;
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.MuscleBaseAssets;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.MuscleAssetUseCase;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.result.MuscleBaseAssetsResult;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.persistence.MuscleAssetRepository;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.storage.CatalogAssetUrlProvider;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Service that resolves the public URLs of the muscle catalog assets.
+ */
 @Service
 @RequiredArgsConstructor
-public class MuscleAssetService implements MuscleAssetUrlPort {
+public class MuscleAssetService implements MuscleAssetUseCase {
 
-    private final CatalogAssetUrlProvider assetUrlProviderPort;
-    private final MuscleAssetRepositoryPort muscleAssetRepositoryPort;
+    private final MuscleAssetRepository muscleAssetRepository;
+    private final CatalogAssetUrlProvider assetUrlProvider;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public MuscleBaseAssets findBaseAssets() {
-        MuscleBaseAssetsProjection objectkeys = muscleAssetRepositoryPort.findBaseAssets();
+    public MuscleBaseAssetsResult findBaseAssets() {
+        var objectKeys = muscleAssetRepository.findBaseAssets();
 
-        return new MuscleBaseAssets(
-                assetUrlProviderPort.muscleUrl(objectkeys.getFrontBaseObjectKey()),
-                assetUrlProviderPort.muscleUrl(objectkeys.getBackBaseObjectKey()));
+        return new MuscleBaseAssetsResult(
+                assetUrlProvider.muscleUrl(objectKeys.getFrontBaseObjectKey()),
+                assetUrlProvider.muscleUrl(objectKeys.getBackBaseObjectKey()));
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public String muscleUrl(String objectKey) {
-        return assetUrlProviderPort.muscleUrl(objectKey);
+    public String resolveMuscleUrl(String objectKey) {
+        return assetUrlProvider.muscleUrl(objectKey);
     }
 }

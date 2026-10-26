@@ -20,4 +20,16 @@ public record CursorPage<T, C>(List<T> page, Optional<C> nextCursor, boolean has
 
         return new CursorPage<>(mappedPage, nextCursor, hasNext);
     }
+
+    /**
+     * Maps the page content to another type, keeping the cursor and the
+     * pagination state untouched.
+     *
+     * @param mapper the function applied to every item of the page
+     * @param <D>    the type of the mapped items
+     * @return the page with the mapped content
+     */
+    public <D> CursorPage<D, C> map(Function<T, D> mapper) {
+        return new CursorPage<>(page.stream().map(mapper).toList(), nextCursor, hasNext);
+    }
 }

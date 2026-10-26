@@ -13,8 +13,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseQueryPort;
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.ExerciseRepositoryPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
@@ -23,27 +21,33 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
  * Persistence operations for exercises, including active-catalog queries and soft deletion.
  */
 @Repository
-public interface ExerciseRepository extends JpaRepository<Exercise, UUID>, ExerciseRepositoryPort, ExerciseQueryPort {
+public interface ExerciseRepository extends JpaRepository<Exercise, UUID> {
 
     /**
-     * {@inheritDoc}
+     * Finds an active exercise by its unique slug.
+     *
+     * @param slug the slug identifying the exercise
+     * @return the matching active exercise, or {@link Optional#empty()} if no
+     *         active exercise with the given slug exists
      */
-    @Override
-    default Exercise saveExercise(Exercise exercise) {
-        return save(exercise);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     @EntityGraph(attributePaths = {"exerciseMuscles", "exerciseMuscles.muscle"})
     Optional<Exercise> findBySlugAndActiveTrue(String slug);
 
     /**
-     * {@inheritDoc}
+     * Finds active exercises matching the specified filters using cursor-based
+     * pagination.
+     *
+     * @param cursor the identifier used as the pagination cursor; {@code null}
+     *        starts from the beginning
+     * @param category the exercise category to filter by, or {@code null} to
+     *        include all categories
+     * @param difficulty the exercise difficulty to filter by, or {@code null}
+     *        to include all difficulties
+     * @param muscleSlugs the muscle slugs to filter by; an empty collection
+     *        means no muscle filter is applied
+     * @param pageable pagination and sorting parameters
+     * @return a list of active exercises matching the specified filters
      */
-    @Override
     @Query("""
             SELECT e
             FROM Exercise e
@@ -66,9 +70,13 @@ public interface ExerciseRepository extends JpaRepository<Exercise, UUID>, Exerc
             Pageable pageable);
 
     /**
-     * {@inheritDoc}
+     * Searches active exercises matching the specified query.
+     *
+     * @param query the search text
+     * @param limit the maximum number of exercises to return
+     * @return a list of matching active exercises, limited to the specified
+     *         number of results
      */
-    @Override
     @Query(value = """
         SELECT e.*
         FROM exercises e
@@ -84,27 +92,52 @@ public interface ExerciseRepository extends JpaRepository<Exercise, UUID>, Exerc
     List<Exercise> searchActive(@Param("query") String query, @Param("limit") int limit);
 
     /**
-     * {@inheritDoc}
+     * Finds all active exercises whose identifiers are contained in the
+     * specified set.
+     *
+     * @param ids the identifiers of the exercises to find
+     * @return the active exercises whose identifiers are contained in
+     *         {@code ids}
      */
-    @Override
     List<Exercise> findAllByIdInAndActiveTrue(Collection<UUID> ids);
 
     /**
-     * {@inheritDoc}
+     * Finds an active exercise by its identifier.
+     *
+     * @param id the identifier of the exercise
+     * @return the matching active exercise, or {@link Optional#empty()} if no
+     *         active exercise with the given identifier exists
      */
-    @Override
     Optional<Exercise> findByIdAndActiveTrue(UUID id);
 
     /**
-     * {@inheritDoc}
+     * Checks whether an active exercise exists with the specified identifier.
+     *
+     * @param id the identifier of the exercise
+     * @return {@code true} if an active exercise with the specified identifier
+     *         exists, {@code false} otherwise
      */
-    @Override
+    boolean existsByIdAndActiveTrue(UUID id);
+
+    /**
+     * Checks whether an exercise with the specified slug exists.
+     *
+     * <p>This method does not restrict the check to active exercises.</p>
+     *
+     * @param slug the slug to check
+     * @return {@code true} if an exercise with the specified slug exists,
+     *         {@code false} otherwise
+     */
     boolean existsBySlug(String slug);
 
     /**
-     * {@inheritDoc}
+     * Soft-deletes an exercise identified by its slug.
+     *
+     * <p>The exercise is not physically removed from persistence.</p>
+     *
+     * @param slug the slug identifying the exercise
+     * @return the number of exercises affected by the operation
      */
-    @Override
     @Modifying
     @Query("UPDATE Exercise e SET e.active = false, e.updatedAt = CURRENT_TIMESTAMP"
             + " WHERE e.slug = :slug AND e.active = true")

@@ -6,28 +6,27 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.MuscleRepositoryPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Muscle;
 
-public interface MuscleRepository extends JpaRepository<Muscle, UUID>, MuscleRepositoryPort {
+/**
+ * Persistence operations for the muscle catalog.
+ */
+public interface MuscleRepository extends JpaRepository<Muscle, UUID> {
 
     /**
-     * {@inheritDoc}
+     * Finds a muscle by its unique slug.
+     *
+     * @param slug the slug identifying the muscle
+     * @return the matching muscle, or {@link Optional#empty()} if no muscle
+     *         with the given slug exists
      */
-    @Override
-    default Muscle saveMuscle(Muscle muscle) {
-        return save(muscle);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     Optional<Muscle> findBySlug(String slug);
 
     /**
-     * {@inheritDoc}
+     * Finds muscles whose slugs are contained in the specified list.
+     *
+     * @param slugs the slugs identifying the muscles to find
+     * @return a list containing the muscles matching the specified slugs
      */
-    @Override
     List<Muscle> findBySlugIn(List<String> slugs);
 }

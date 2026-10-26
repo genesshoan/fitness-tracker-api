@@ -248,7 +248,7 @@ public class TestEntityFactory {
     }
 
     public Muscle createAndPersistMuscle(MuscleBuilder builder) {
-        return muscleRepository.saveMuscle(builder.build());
+        return muscleRepository.save(builder.build());
     }
 
     public Muscle createAndPersistMuscle() {

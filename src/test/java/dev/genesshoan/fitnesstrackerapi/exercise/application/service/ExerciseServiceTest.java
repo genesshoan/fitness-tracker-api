@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.application.usecases;
+package dev.genesshoan.fitnesstrackerapi.exercise.application.service;
 
 import java.util.Collections;
 import java.util.List;
@@ -10,16 +10,19 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyEx
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPage;
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPageRequest;
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.ExerciseRepositoryPort;
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.MuscleRepositoryPort;
-import dev.genesshoan.fitnesstrackerapi.exercise.application.service.ExerciseService;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.mapper.ExerciseResultMapper;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.command.ExerciseCommand;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.command.ExerciseMuscleCommand;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.result.ExerciseDetailResult;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.result.ExerciseListItemResult;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.result.ExerciseSuggestion;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Muscle;
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.ExerciseMapper;
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.*;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.persistence.ExerciseRepository;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.persistence.MuscleRepository;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.ExerciseBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.MuscleBuilder;
 import net.datafaker.Faker;
@@ -48,13 +51,13 @@ class ExerciseServiceTest {
     private static final Faker FAKER = new Faker();
 
     @Mock
-    private ExerciseRepositoryPort exerciseRepositoryPort;
+    private ExerciseRepository exerciseRepository;
 
     @Mock
-    private MuscleRepositoryPort muscleRepositoryPort;
+    private MuscleRepository muscleRepository;
 
     @Mock
-    private ExerciseMapper exerciseMapper;
+    private ExerciseResultMapper exerciseResultMapper;
 
     @InjectMocks
     private ExerciseService exerciseService;
@@ -69,18 +72,18 @@ class ExerciseServiceTest {
 
         CursorPageRequest<UUID> request = new CursorPageRequest<>(null, 10);
 
-        when(exerciseRepositoryPort.findByFiltersAndActiveTrue(any(), any(), any(), any(), any()))
+        when(exerciseRepository.findByFiltersAndActiveTrue(any(), any(), any(), any(), any()))
                 .thenReturn(Collections.emptyList());
 
         // When
         exerciseService.getAllExercises(request, category, difficulty, muscleSlugs);
 
         // Then
-        verify(exerciseRepositoryPort)
+        verify(exerciseRepository)
                 .findByFiltersAndActiveTrue(
                         eq(request.cursor()), eq(category), eq(difficulty), eq(muscleSlugs), eq(request.pageable()));
 
-        verifyNoInteractions(exerciseMapper);
+        verifyNoInteractions(exerciseResultMapper);
     }
 
     @Test
@@ -94,7 +97,7 @@ class ExerciseServiceTest {
                 .withInstructions(List.of("Step 1", "Step 2"))
                 .build();
 
-        var detailDTO = new ExerciseDetail(
+        var detail = new ExerciseDetailResult(
                 UUID.randomUUID(),
                 exercise.getName(),
                 exercise.getSlug(),
@@ -105,19 +108,19 @@ class ExerciseServiceTest {
                 List.of(),
                 null);
 
-        when(exerciseRepositoryPort.findBySlugAndActiveTrue(slug)).thenReturn(Optional.of(exercise));
+        when(exerciseRepository.findBySlugAndActiveTrue(slug)).thenReturn(Optional.of(exercise));
 
-        when(exerciseMapper.toDetailDTO(exercise)).thenReturn(detailDTO);
+        when(exerciseResultMapper.toDetail(exercise)).thenReturn(detail);
 
         // When
         var result = exerciseService.getExerciseBySlug(slug);
 
         // Then
-        assertThat(result).isEqualTo(detailDTO);
+        assertThat(result).isEqualTo(detail);
 
-        verify(exerciseRepositoryPort).findBySlugAndActiveTrue(slug);
+        verify(exerciseRepository).findBySlugAndActiveTrue(slug);
 
-        verify(exerciseMapper).toDetailDTO(exercise);
+        verify(exerciseResultMapper).toDetail(exercise);
     }
 
     @Test
@@ -126,16 +129,16 @@ class ExerciseServiceTest {
         // Given
         String slug = "bench-press";
 
-        when(exerciseRepositoryPort.findBySlugAndActiveTrue(slug)).thenReturn(Optional.empty());
+        when(exerciseRepository.findBySlugAndActiveTrue(slug)).thenReturn(Optional.empty());
 
         // When / Then
         assertThatThrownBy(() -> exerciseService.getExerciseBySlug(slug))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Exercise with slug " + slug + " not found");
 
-        verify(exerciseRepositoryPort).findBySlugAndActiveTrue(slug);
+        verify(exerciseRepository).findBySlugAndActiveTrue(slug);
 
-        verifyNoInteractions(exerciseMapper);
+        verifyNoInteractions(exerciseResultMapper);
     }
 
     @ParameterizedTest
@@ -148,8 +151,8 @@ class ExerciseServiceTest {
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("Slug is required");
 
-        verifyNoInteractions(exerciseRepositoryPort);
-        verifyNoInteractions(exerciseMapper);
+        verifyNoInteractions(exerciseRepository);
+        verifyNoInteractions(exerciseResultMapper);
     }
 
     @Test
@@ -158,51 +161,51 @@ class ExerciseServiceTest {
         // Given
         Muscle muscle = MuscleBuilder.aMuscle(FAKER).withSlug("biceps").build();
 
-        var request = new ExerciseRequest(
+        var command = new ExerciseCommand(
                 "Bicep Curl",
                 "bicep-curl",
                 "Made with a bicep curl bar",
                 List.of("Step 1", "Step 2"),
                 Category.STRENGTH,
                 Difficulty.INTERMEDIATE,
-                List.of(new ExerciseMuscleRequest("biceps", ImpactLevel.PRIMARY)));
+                List.of(new ExerciseMuscleCommand("biceps", ImpactLevel.PRIMARY)));
 
         var exercise = ExerciseBuilder.anExercise(FAKER).build();
 
-        var detailDTO = new ExerciseDetail(
+        var detail = new ExerciseDetailResult(
                 UUID.randomUUID(),
-                request.name(),
-                request.slug(),
-                request.description(),
-                request.instructions(),
-                request.category(),
-                request.difficulty(),
+                command.name(),
+                command.slug(),
+                command.description(),
+                command.instructions(),
+                command.category(),
+                command.difficulty(),
                 List.of(),
                 null);
 
-        when(exerciseRepositoryPort.existsBySlug(request.slug())).thenReturn(false);
-        when(exerciseMapper.toEntity(request)).thenReturn(exercise);
-        when(muscleRepositoryPort.findBySlugIn(List.of("biceps"))).thenReturn(List.of(muscle));
-        when(exerciseRepositoryPort.saveExercise(exercise)).thenReturn(exercise);
-        when(exerciseMapper.toDetailDTO(exercise)).thenReturn(detailDTO);
+        when(exerciseRepository.existsBySlug(command.slug())).thenReturn(false);
+        when(exerciseResultMapper.toEntity(command)).thenReturn(exercise);
+        when(muscleRepository.findBySlugIn(List.of("biceps"))).thenReturn(List.of(muscle));
+        when(exerciseRepository.save(exercise)).thenReturn(exercise);
+        when(exerciseResultMapper.toDetail(exercise)).thenReturn(detail);
 
         // When
-        var result = exerciseService.createExercise(request);
+        var result = exerciseService.createExercise(command);
 
         // Then
-        assertThat(result).isEqualTo(detailDTO);
+        assertThat(result).isEqualTo(detail);
         assertThat(exercise.isActive()).isTrue();
         assertThat(exercise.getExerciseMuscles()).hasSize(1);
 
-        verify(exerciseRepositoryPort).existsBySlug(request.slug());
-        verify(exerciseRepositoryPort).saveExercise(exercise);
+        verify(exerciseRepository).existsBySlug(command.slug());
+        verify(exerciseRepository).save(exercise);
     }
 
     @Test
     @DisplayName("Should throw ResourceAlreadyExistsException when slug is taken")
     void createExercise_shouldThrowExceptionWhenSlugExists() {
         // Given
-        var request = new ExerciseRequest(
+        var command = new ExerciseCommand(
                 "Bicep Curl",
                 "bicep-curl",
                 "Made with a bicep curl bar",
@@ -211,37 +214,37 @@ class ExerciseServiceTest {
                 Difficulty.INTERMEDIATE,
                 null);
 
-        when(exerciseRepositoryPort.existsBySlug(request.slug())).thenReturn(true);
+        when(exerciseRepository.existsBySlug(command.slug())).thenReturn(true);
 
         // When / Then
-        assertThatThrownBy(() -> exerciseService.createExercise(request))
+        assertThatThrownBy(() -> exerciseService.createExercise(command))
                 .isInstanceOf(ResourceAlreadyExistsException.class)
                 .hasMessage("Exercise with slug bicep-curl already exists");
 
-        verify(exerciseRepositoryPort, never()).saveExercise(any(Exercise.class));
+        verify(exerciseRepository, never()).save(any(Exercise.class));
     }
 
     @Test
     @DisplayName("Should throw ResourceNotFoundException when muscle does not exist")
     void createExercise_shouldThrowExceptionWhenMuscleNotFound() {
         // Given
-        var request = new ExerciseRequest(
+        var command = new ExerciseCommand(
                 "Bicep Curl",
                 "bicep-curl",
                 "Made with a bicep curl bar",
                 null,
                 Category.STRENGTH,
                 Difficulty.INTERMEDIATE,
-                List.of(new ExerciseMuscleRequest("unknown-muscle", ImpactLevel.PRIMARY)));
+                List.of(new ExerciseMuscleCommand("unknown-muscle", ImpactLevel.PRIMARY)));
 
         var exercise = ExerciseBuilder.anExercise(FAKER).build();
 
-        when(exerciseRepositoryPort.existsBySlug(request.slug())).thenReturn(false);
-        when(exerciseMapper.toEntity(request)).thenReturn(exercise);
-        when(muscleRepositoryPort.findBySlugIn(List.of("unknown-muscle"))).thenReturn(List.of());
+        when(exerciseRepository.existsBySlug(command.slug())).thenReturn(false);
+        when(exerciseResultMapper.toEntity(command)).thenReturn(exercise);
+        when(muscleRepository.findBySlugIn(List.of("unknown-muscle"))).thenReturn(List.of());
 
         // When / Then
-        assertThatThrownBy(() -> exerciseService.createExercise(request))
+        assertThatThrownBy(() -> exerciseService.createExercise(command))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Muscles with slugs [unknown-muscle] not found");
     }
@@ -256,55 +259,55 @@ class ExerciseServiceTest {
 
         Muscle muscle = MuscleBuilder.aMuscle(FAKER).withSlug("chest-upper").build();
 
-        var request = new ExerciseRequest(
+        var command = new ExerciseCommand(
                 "Updated Bench Press",
                 "updated-bench-press",
                 "Updated description",
                 List.of("Updated step"),
                 Category.STRENGTH,
                 Difficulty.ADVANCED,
-                List.of(new ExerciseMuscleRequest("chest-upper", ImpactLevel.PRIMARY)));
+                List.of(new ExerciseMuscleCommand("chest-upper", ImpactLevel.PRIMARY)));
 
-        var detailDTO = new ExerciseDetail(
+        var detail = new ExerciseDetailResult(
                 exercise.getId(),
-                request.name(),
-                request.slug(),
-                request.description(),
-                request.instructions(),
-                request.category(),
-                request.difficulty(),
+                command.name(),
+                command.slug(),
+                command.description(),
+                command.instructions(),
+                command.category(),
+                command.difficulty(),
                 List.of(),
                 null);
 
-        when(exerciseRepositoryPort.findBySlugAndActiveTrue(slug)).thenReturn(Optional.of(exercise));
-        when(exerciseRepositoryPort.existsBySlug(request.slug())).thenReturn(false);
-        when(muscleRepositoryPort.findBySlugIn(List.of("chest-upper"))).thenReturn(List.of(muscle));
-        when(exerciseRepositoryPort.saveExercise(exercise)).thenReturn(exercise);
-        when(exerciseMapper.toDetailDTO(exercise)).thenReturn(detailDTO);
+        when(exerciseRepository.findBySlugAndActiveTrue(slug)).thenReturn(Optional.of(exercise));
+        when(exerciseRepository.existsBySlug(command.slug())).thenReturn(false);
+        when(muscleRepository.findBySlugIn(List.of("chest-upper"))).thenReturn(List.of(muscle));
+        when(exerciseRepository.save(exercise)).thenReturn(exercise);
+        when(exerciseResultMapper.toDetail(exercise)).thenReturn(detail);
 
         // When
-        var result = exerciseService.updateExercise(slug, request);
+        var result = exerciseService.updateExercise(slug, command);
 
         // Then
-        assertThat(result).isEqualTo(detailDTO);
+        assertThat(result).isEqualTo(detail);
         assertThat(exercise.getName()).isEqualTo("Updated Bench Press");
         assertThat(exercise.getSlug()).isEqualTo("updated-bench-press");
         assertThat(exercise.getExerciseMuscles()).hasSize(1);
 
-        verify(exerciseRepositoryPort).saveExercise(exercise);
+        verify(exerciseRepository).save(exercise);
     }
 
     @Test
     @DisplayName("Should throw ResourceNotFoundException when updating missing exercise")
     void updateExercise_shouldThrowExceptionWhenExerciseDoesNotExist() {
         // Given
-        var request = new ExerciseRequest(
+        var command = new ExerciseCommand(
                 "Bench Press", "bench-press", "Description", null, Category.STRENGTH, Difficulty.INTERMEDIATE, null);
 
-        when(exerciseRepositoryPort.findBySlugAndActiveTrue("bench-press")).thenReturn(Optional.empty());
+        when(exerciseRepository.findBySlugAndActiveTrue("bench-press")).thenReturn(Optional.empty());
 
         // When / Then
-        assertThatThrownBy(() -> exerciseService.updateExercise("bench-press", request))
+        assertThatThrownBy(() -> exerciseService.updateExercise("bench-press", command))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Exercise with slug bench-press not found");
     }
@@ -315,14 +318,14 @@ class ExerciseServiceTest {
         // Given
         var exercise = ExerciseBuilder.anExercise(FAKER).withSlug("bench-press").build();
 
-        var request = new ExerciseRequest(
+        var command = new ExerciseCommand(
                 "Bench Press", "taken-slug", "Description", null, Category.STRENGTH, Difficulty.INTERMEDIATE, null);
 
-        when(exerciseRepositoryPort.findBySlugAndActiveTrue("bench-press")).thenReturn(Optional.of(exercise));
-        when(exerciseRepositoryPort.existsBySlug("taken-slug")).thenReturn(true);
+        when(exerciseRepository.findBySlugAndActiveTrue("bench-press")).thenReturn(Optional.of(exercise));
+        when(exerciseRepository.existsBySlug("taken-slug")).thenReturn(true);
 
         // When / Then
-        assertThatThrownBy(() -> exerciseService.updateExercise("bench-press", request))
+        assertThatThrownBy(() -> exerciseService.updateExercise("bench-press", command))
                 .isInstanceOf(ResourceAlreadyExistsException.class)
                 .hasMessage("Exercise with slug taken-slug already exists");
     }
@@ -331,20 +334,20 @@ class ExerciseServiceTest {
     @DisplayName("Should soft-delete exercise when slug exists")
     void deleteExercise_shouldSoftDeleteWhenSlugExists() {
         // Given
-        when(exerciseRepositoryPort.softDeleteBySlug("bench-press")).thenReturn(1);
+        when(exerciseRepository.softDeleteBySlug("bench-press")).thenReturn(1);
 
         // When
         exerciseService.deleteExercise("bench-press");
 
         // Then
-        verify(exerciseRepositoryPort).softDeleteBySlug("bench-press");
+        verify(exerciseRepository).softDeleteBySlug("bench-press");
     }
 
     @Test
     @DisplayName("Should default null instructions to empty list on create")
     void createExercise_shouldDefaultNullInstructionsToEmptyList() {
         // Given
-        var request = new ExerciseRequest(
+        var command = new ExerciseCommand(
                 "Bicep Curl",
                 "bicep-curl",
                 "Made with a bicep curl bar",
@@ -355,27 +358,27 @@ class ExerciseServiceTest {
 
         var exercise = ExerciseBuilder.anExercise(FAKER).build();
 
-        var detailDTO = new ExerciseDetail(
+        var detail = new ExerciseDetailResult(
                 UUID.randomUUID(),
-                request.name(),
-                request.slug(),
-                request.description(),
+                command.name(),
+                command.slug(),
+                command.description(),
                 List.of(),
-                request.category(),
-                request.difficulty(),
+                command.category(),
+                command.difficulty(),
                 List.of(),
                 null);
 
-        when(exerciseRepositoryPort.existsBySlug(request.slug())).thenReturn(false);
-        when(exerciseMapper.toEntity(request)).thenReturn(exercise);
-        when(exerciseRepositoryPort.saveExercise(exercise)).thenReturn(exercise);
-        when(exerciseMapper.toDetailDTO(exercise)).thenReturn(detailDTO);
+        when(exerciseRepository.existsBySlug(command.slug())).thenReturn(false);
+        when(exerciseResultMapper.toEntity(command)).thenReturn(exercise);
+        when(exerciseRepository.save(exercise)).thenReturn(exercise);
+        when(exerciseResultMapper.toDetail(exercise)).thenReturn(detail);
 
         // When
-        var result = exerciseService.createExercise(request);
+        var result = exerciseService.createExercise(command);
 
         // Then
-        assertThat(result).isEqualTo(detailDTO);
+        assertThat(result).isEqualTo(detail);
         assertThat(exercise.getInstructions()).isEmpty();
     }
 
@@ -383,7 +386,7 @@ class ExerciseServiceTest {
     @DisplayName("Should throw BadRequestException when muscles are duplicated")
     void createExercise_shouldThrowExceptionWhenMusclesAreDuplicated() {
         // Given
-        var request = new ExerciseRequest(
+        var command = new ExerciseCommand(
                 "Bicep Curl",
                 "bicep-curl",
                 "Made with a bicep curl bar",
@@ -391,16 +394,16 @@ class ExerciseServiceTest {
                 Category.STRENGTH,
                 Difficulty.INTERMEDIATE,
                 List.of(
-                        new ExerciseMuscleRequest("biceps", ImpactLevel.PRIMARY),
-                        new ExerciseMuscleRequest("biceps", ImpactLevel.SECONDARY)));
+                        new ExerciseMuscleCommand("biceps", ImpactLevel.PRIMARY),
+                        new ExerciseMuscleCommand("biceps", ImpactLevel.SECONDARY)));
 
         var exercise = ExerciseBuilder.anExercise(FAKER).build();
 
-        when(exerciseRepositoryPort.existsBySlug(request.slug())).thenReturn(false);
-        when(exerciseMapper.toEntity(request)).thenReturn(exercise);
+        when(exerciseRepository.existsBySlug(command.slug())).thenReturn(false);
+        when(exerciseResultMapper.toEntity(command)).thenReturn(exercise);
 
         // When / Then
-        assertThatThrownBy(() -> exerciseService.createExercise(request))
+        assertThatThrownBy(() -> exerciseService.createExercise(command))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("Duplicate muscles in request: [biceps]");
     }
@@ -409,7 +412,7 @@ class ExerciseServiceTest {
     @DisplayName("Should throw ResourceNotFoundException when deleting missing exercise")
     void deleteExercise_shouldThrowExceptionWhenExerciseDoesNotExist() {
         // Given
-        when(exerciseRepositoryPort.softDeleteBySlug("bench-press")).thenReturn(0);
+        when(exerciseRepository.softDeleteBySlug("bench-press")).thenReturn(0);
 
         // When / Then
         assertThatThrownBy(() -> exerciseService.deleteExercise("bench-press"))
@@ -425,17 +428,17 @@ class ExerciseServiceTest {
         var second =
                 ExerciseBuilder.anExercise(FAKER).withSlug("second-exercise").build();
 
-        var firstItem = new ExerciseListItem(
+        var firstItem = new ExerciseListItemResult(
                 first.getId(), first.getName(), first.getSlug(), first.getCategory(), first.getDifficulty(), null);
 
         CursorPageRequest<UUID> request = new CursorPageRequest<>(null, 1);
 
-        when(exerciseRepositoryPort.findByFiltersAndActiveTrue(any(), any(), any(), any(), any()))
+        when(exerciseRepository.findByFiltersAndActiveTrue(any(), any(), any(), any(), any()))
                 .thenReturn(List.of(first, second));
-        when(exerciseMapper.toItemDTO(first)).thenReturn(firstItem);
+        when(exerciseResultMapper.toListItem(first)).thenReturn(firstItem);
 
         // When
-        CursorPage<ExerciseListItem, UUID> page = exerciseService.getAllExercises(request, null, null, null);
+        CursorPage<ExerciseListItemResult, UUID> page = exerciseService.getAllExercises(request, null, null, null);
 
         // Then
         assertThat(page.page()).containsExactly(firstItem);
@@ -452,14 +455,14 @@ class ExerciseServiceTest {
                 .withSlug("barbell-bench-press")
                 .build();
 
-        when(exerciseRepositoryPort.searchActive("barbell", 10)).thenReturn(List.of(exercise));
+        when(exerciseRepository.searchActive("barbell", 10)).thenReturn(List.of(exercise));
 
         // When
         var result = exerciseService.searchExercises("barbell", 10);
 
         // Then
-        assertThat(result.results())
-                .containsExactly(new ExerciseSearchResult(
+        assertThat(result)
+                .containsExactly(new ExerciseSuggestion(
                         exercise.getId(),
                         "Barbell Bench Press",
                         "barbell-bench-press",
@@ -471,56 +474,56 @@ class ExerciseServiceTest {
     @DisplayName("Should return an empty result when no exercise matches the query")
     void searchExercises_shouldReturnEmptyResultsWhenNothingMatches() {
         // Given
-        when(exerciseRepositoryPort.searchActive("press", 10)).thenReturn(List.of());
+        when(exerciseRepository.searchActive("press", 10)).thenReturn(List.of());
 
         // When
         var result = exerciseService.searchExercises("press", 10);
 
         // Then
-        assertThat(result.results()).isEmpty();
+        assertThat(result).isEmpty();
     }
 
     @Test
     @DisplayName("Should trim the query before searching")
     void searchExercises_shouldTrimTheQueryBeforeSearching() {
         // Given
-        when(exerciseRepositoryPort.searchActive("press", 5)).thenReturn(List.of());
+        when(exerciseRepository.searchActive("press", 5)).thenReturn(List.of());
 
         // When
         exerciseService.searchExercises("  press  ", 5);
 
         // Then
-        verify(exerciseRepositoryPort).searchActive("press", 5);
+        verify(exerciseRepository).searchActive("press", 5);
     }
 
     @Test
     @DisplayName("Should search with an empty query when the query is null")
     void searchExercises_shouldSearchWithAnEmptyQueryWhenQueryIsNull() {
         // Given
-        when(exerciseRepositoryPort.searchActive("", 5)).thenReturn(List.of());
+        when(exerciseRepository.searchActive("", 5)).thenReturn(List.of());
 
         // When
         var result = exerciseService.searchExercises(null, 5);
 
         // Then
-        verify(exerciseRepositoryPort).searchActive("", 5);
-        assertThat(result.results()).isEmpty();
+        verify(exerciseRepository).searchActive("", 5);
+        assertThat(result).isEmpty();
     }
 
     @Test
     @DisplayName("Should escape LIKE metacharacters in the search query")
     void searchExercises_shouldEscapeLikeMetacharactersInTheQuery() {
         // Given
-        when(exerciseRepositoryPort.searchActive("100\\% effort", 10)).thenReturn(List.of());
-        when(exerciseRepositoryPort.searchActive("a\\_b", 10)).thenReturn(List.of());
+        when(exerciseRepository.searchActive("100\\% effort", 10)).thenReturn(List.of());
+        when(exerciseRepository.searchActive("a\\_b", 10)).thenReturn(List.of());
 
         // When
         exerciseService.searchExercises("100% effort", 10);
         exerciseService.searchExercises("a_b", 10);
 
         // Then
-        verify(exerciseRepositoryPort).searchActive("100\\% effort", 10);
-        verify(exerciseRepositoryPort).searchActive("a\\_b", 10);
+        verify(exerciseRepository).searchActive("100\\% effort", 10);
+        verify(exerciseRepository).searchActive("a\\_b", 10);
     }
 
     @ParameterizedTest
@@ -533,7 +536,7 @@ class ExerciseServiceTest {
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("Slug is required");
 
-        verifyNoInteractions(exerciseRepositoryPort);
+        verifyNoInteractions(exerciseRepository);
     }
 
     @ParameterizedTest
@@ -542,22 +545,22 @@ class ExerciseServiceTest {
     @DisplayName("Should throw BadRequestException when updating with an invalid slug")
     void updateExercise_shouldThrowExceptionWhenSlugIsInvalid(String slug) {
         // Given
-        var request = new ExerciseRequest(
+        var command = new ExerciseCommand(
                 "Bench Press", "bench-press", "Description", null, Category.STRENGTH, Difficulty.INTERMEDIATE, null);
 
         // When / Then
-        assertThatThrownBy(() -> exerciseService.updateExercise(slug, request))
+        assertThatThrownBy(() -> exerciseService.updateExercise(slug, command))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("Slug is required");
 
-        verifyNoInteractions(exerciseRepositoryPort);
+        verifyNoInteractions(exerciseRepository);
     }
 
     @Test
     @DisplayName("Should create an exercise without muscle associations")
     void createExercise_shouldCreateExerciseWithoutMuscles() {
         // Given
-        var request = new ExerciseRequest(
+        var command = new ExerciseCommand(
                 "Bicep Curl",
                 "bicep-curl",
                 "Made with a bicep curl bar",
@@ -568,29 +571,83 @@ class ExerciseServiceTest {
 
         var exercise = ExerciseBuilder.anExercise(FAKER).build();
 
-        var detailDTO = new ExerciseDetail(
+        var detail = new ExerciseDetailResult(
                 UUID.randomUUID(),
-                request.name(),
-                request.slug(),
-                request.description(),
-                request.instructions(),
-                request.category(),
-                request.difficulty(),
+                command.name(),
+                command.slug(),
+                command.description(),
+                command.instructions(),
+                command.category(),
+                command.difficulty(),
                 List.of(),
                 null);
 
-        when(exerciseRepositoryPort.existsBySlug(request.slug())).thenReturn(false);
-        when(exerciseMapper.toEntity(request)).thenReturn(exercise);
-        when(exerciseRepositoryPort.saveExercise(exercise)).thenReturn(exercise);
-        when(exerciseMapper.toDetailDTO(exercise)).thenReturn(detailDTO);
+        when(exerciseRepository.existsBySlug(command.slug())).thenReturn(false);
+        when(exerciseResultMapper.toEntity(command)).thenReturn(exercise);
+        when(exerciseRepository.save(exercise)).thenReturn(exercise);
+        when(exerciseResultMapper.toDetail(exercise)).thenReturn(detail);
 
         // When
-        var result = exerciseService.createExercise(request);
+        var result = exerciseService.createExercise(command);
 
         // Then
-        assertThat(result).isEqualTo(detailDTO);
+        assertThat(result).isEqualTo(detail);
         assertThat(exercise.getExerciseMuscles()).isEmpty();
 
-        verifyNoInteractions(muscleRepositoryPort);
+        verifyNoInteractions(muscleRepository);
+    }
+
+    @Test
+    @DisplayName("Should check whether an active exercise exists")
+    void existsById_shouldDelegateToTheRepository() {
+        // Given
+        UUID id = UUID.randomUUID();
+
+        when(exerciseRepository.existsByIdAndActiveTrue(id)).thenReturn(true);
+
+        // When / Then
+        assertThat(exerciseService.existsById(id)).isTrue();
+
+        verify(exerciseRepository).existsByIdAndActiveTrue(id);
+    }
+
+    @Test
+    @DisplayName("Should find an active exercise by id")
+    void findById_shouldReturnTheActiveExercise() {
+        // Given
+        UUID id = UUID.randomUUID();
+        var exercise = ExerciseBuilder.anExercise(FAKER).build();
+
+        when(exerciseRepository.findByIdAndActiveTrue(id)).thenReturn(Optional.of(exercise));
+
+        // When / Then
+        assertThat(exerciseService.findById(id)).contains(exercise);
+
+        verify(exerciseRepository).findByIdAndActiveTrue(id);
+    }
+
+    @Test
+    @DisplayName("Should return the found exercises keyed by id")
+    void findByIds_shouldReturnTheFoundExercisesKeyedById() {
+        // Given
+        var first = ExerciseBuilder.anExercise(FAKER).build();
+        var second = ExerciseBuilder.anExercise(FAKER).build();
+
+        when(exerciseRepository.findAllByIdInAndActiveTrue(any())).thenReturn(List.of(first, second));
+
+        // When
+        var result = exerciseService.findByIds(List.of(first.getId(), second.getId()));
+
+        // Then
+        assertThat(result).containsOnlyKeys(first.getId(), second.getId());
+    }
+
+    @Test
+    @DisplayName("Should return an empty map when no ids are requested")
+    void findByIds_shouldReturnAnEmptyMapWhenNoIdsAreRequested() {
+        // When / Then
+        assertThat(exerciseService.findByIds(List.of())).isEmpty();
+
+        verifyNoInteractions(exerciseRepository);
     }
 }

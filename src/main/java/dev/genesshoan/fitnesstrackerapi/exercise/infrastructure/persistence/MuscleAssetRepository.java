@@ -1,21 +1,24 @@
 package dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.persistence;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.MuscleAssetRepositoryPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.MuscleAsset;
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.persistence.projection.MuscleBaseAssetsProjection;
 
-public interface MuscleAssetRepository extends JpaRepository<MuscleAsset, UUID>, MuscleAssetRepositoryPort {
+/**
+ * Persistence operations for the muscle catalog assets.
+ */
+public interface MuscleAssetRepository extends JpaRepository<MuscleAsset, UUID> {
 
     /**
-     * {@inheritDoc}
+     * Retrieves the base assets used for the muscle visualization.
+     *
+     * @return projection containing the object storage keys of the front and
+     *         back base assets
      */
-    @Override
     @Query(value = """
             SELECT
                 MAX(CASE WHEN a.view = 'FRONT' THEN a.object_key END) AS frontBaseObjectKey,
@@ -24,10 +27,4 @@ public interface MuscleAssetRepository extends JpaRepository<MuscleAsset, UUID>,
             WHERE a.object_key ILIKE '%base%'
         """, nativeQuery = true)
     MuscleBaseAssetsProjection findBaseAssets();
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Optional<MuscleAsset> findByObjectKey(String objectKey);
 }

@@ -1,6 +1,5 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.application.usecases.search;
+package dev.genesshoan.fitnesstrackerapi.exercise.application.service;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.application.service.ExerciseNameHighlighter;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

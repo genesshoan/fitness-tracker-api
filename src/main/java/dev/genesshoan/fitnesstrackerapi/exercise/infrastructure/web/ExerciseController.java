@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPage;
 import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPageRequest;
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseServicePort;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.ExerciseUseCase;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.*;
@@ -50,7 +50,9 @@ import lombok.RequiredArgsConstructor;
 @Tag(name = "Exercises", description = "Endpoints for managing and retrieving exercises")
 public class ExerciseController {
 
-    private final ExerciseServicePort exerciseService;
+    private final ExerciseUseCase exerciseUseCase;
+
+    private final ExerciseMapper exerciseMapper;
 
     /**
      * Returns active exercises using cursor pagination and optional filters.
@@ -96,7 +98,9 @@ public class ExerciseController {
                     List<String> muscleSlugs) {
         var request = new CursorPageRequest<>(cursor, size);
 
-        return ResponseEntity.ok(exerciseService.getAllExercises(request, category, difficulty, muscleSlugs));
+        var page = exerciseUseCase.getAllExercises(request, category, difficulty, muscleSlugs);
+
+        return ResponseEntity.ok(page.map(exerciseMapper::toItemDTO));
     }
 
     /**
@@ -143,7 +147,11 @@ public class ExerciseController {
                     @Min(1)
                     @Max(20)
                     Integer limit) {
-        return ResponseEntity.ok(exerciseService.searchExercises(q, limit));
+        var results = exerciseUseCase.searchExercises(q, limit).stream()
+                .map(exerciseMapper::toSearchResultDTO)
+                .toList();
+
+        return ResponseEntity.ok(new ExerciseSearchResponse(results));
     }
 
     /**
@@ -190,7 +198,7 @@ public class ExerciseController {
     @GetMapping("/{slug}")
     public ResponseEntity<ExerciseDetail> getExerciseBySlug(
             @Parameter(description = "Slug of the exercise") @PathVariable @NotBlank String slug) {
-        return ResponseEntity.ok(exerciseService.getExerciseBySlug(slug));
+        return ResponseEntity.ok(exerciseMapper.toDetailDTO(exerciseUseCase.getExerciseBySlug(slug)));
     }
 
     /**
@@ -251,7 +259,9 @@ public class ExerciseController {
     @PostMapping
     public ResponseEntity<ExerciseDetail> createExercise(
             @Parameter(description = "Exercise data") @Valid @RequestBody ExerciseRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(exerciseService.createExercise(request));
+        var created = exerciseUseCase.createExercise(exerciseMapper.toCommand(request));
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(exerciseMapper.toDetailDTO(created));
     }
 
     /**
@@ -313,7 +323,9 @@ public class ExerciseController {
     public ResponseEntity<ExerciseDetail> updateExercise(
             @Parameter(description = "Slug of the exercise") @PathVariable @NotBlank String slug,
             @Parameter(description = "New exercise data") @Valid @RequestBody ExerciseRequest request) {
-        return ResponseEntity.ok(exerciseService.updateExercise(slug, request));
+        var updated = exerciseUseCase.updateExercise(slug, exerciseMapper.toCommand(request));
+
+        return ResponseEntity.ok(exerciseMapper.toDetailDTO(updated));
     }
 
     /**
@@ -361,6 +373,6 @@ public class ExerciseController {
     @DeleteMapping("/{slug}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteExercise(@Parameter(description = "Slug of the exercise") @PathVariable @NotBlank String slug) {
-        exerciseService.deleteExercise(slug);
+        exerciseUseCase.deleteExercise(slug);
     }
 }

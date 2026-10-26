@@ -16,7 +16,7 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestExcepti
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ValidationException;
 import dev.genesshoan.fitnesstrackerapi.common.mapper.ExerciseMetricsMapper;
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseQueryPort;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.ExerciseQueryUseCase;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.routine.RoutineRepository;
@@ -98,7 +98,7 @@ class WorkoutSessionServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private ExerciseQueryPort exerciseQueryPort;
+    private ExerciseQueryUseCase exerciseQueryUseCase;
 
     @Mock
     private WorkoutSessionMapper workoutSessionMapper;
@@ -168,7 +168,7 @@ class WorkoutSessionServiceTest {
 
             when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
                     .thenReturn(Optional.of(session));
-            when(exerciseQueryPort.findByIdAndActiveTrue(exerciseId)).thenReturn(Optional.of(exercise));
+            when(exerciseQueryUseCase.findById(exerciseId)).thenReturn(Optional.of(exercise));
             when(sessionExerciseMapper.toSessionExerciseAddedResponseDTO(any(SessionExercise.class), any()))
                     .thenReturn(response);
 
@@ -204,7 +204,7 @@ class WorkoutSessionServiceTest {
                     .extracting(SessionExercise::getPosition)
                     .containsExactly(1, 3);
             verify(workoutSessionRepository).findForUpdateWithExercises(sessionId, userId);
-            verify(exerciseQueryPort).findByIdAndActiveTrue(exerciseId);
+            verify(exerciseQueryUseCase).findById(exerciseId);
         }
 
         @Test
@@ -233,7 +233,7 @@ class WorkoutSessionServiceTest {
                     .hasMessage("The workout session is already finished");
 
             verify(workoutSessionRepository).findForUpdateWithExercises(sessionId, userId);
-            verifyNoInteractions(exerciseQueryPort, sessionExerciseMapper, sessionSetMapper, sessionSetRepository);
+            verifyNoInteractions(exerciseQueryUseCase, sessionExerciseMapper, sessionSetMapper, sessionSetRepository);
         }
 
         @Test
@@ -277,7 +277,7 @@ class WorkoutSessionServiceTest {
 
             when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
                     .thenReturn(Optional.of(session));
-            when(exerciseQueryPort.findByIdAndActiveTrue(exerciseId)).thenReturn(Optional.of(exercise));
+            when(exerciseQueryUseCase.findById(exerciseId)).thenReturn(Optional.of(exercise));
 
             assertThatThrownBy(() -> workoutSessionService.addNewSessionExercise(sessionId, userId, dto))
                     .isInstanceOf(ValidationException.class)
@@ -300,7 +300,7 @@ class WorkoutSessionServiceTest {
 
             when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
                     .thenReturn(Optional.of(session));
-            when(exerciseQueryPort.findByIdAndActiveTrue(exerciseId)).thenReturn(Optional.empty());
+            when(exerciseQueryUseCase.findById(exerciseId)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> workoutSessionService.addNewSessionExercise(
                             sessionId,
@@ -340,7 +340,7 @@ class WorkoutSessionServiceTest {
 
             when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
                     .thenReturn(Optional.of(session));
-            when(exerciseQueryPort.findByIdAndActiveTrue(exerciseId)).thenReturn(Optional.of(exercise));
+            when(exerciseQueryUseCase.findById(exerciseId)).thenReturn(Optional.of(exercise));
 
             workoutSessionService.addNewSessionExercise(sessionId, userId, dto);
 
@@ -1357,7 +1357,7 @@ class WorkoutSessionServiceTest {
         assertThatThrownBy(() -> workoutSessionService.createWorkoutSessionFromScratch(request, UUID.randomUUID()))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("The completedAt field cannot be null for a completed workout session");
-        verifyNoInteractions(exerciseQueryPort, workoutSessionRepository);
+        verifyNoInteractions(exerciseQueryUseCase, workoutSessionRepository);
     }
 
     @Test
@@ -1373,7 +1373,7 @@ class WorkoutSessionServiceTest {
         assertThatThrownBy(() -> workoutSessionService.createWorkoutSessionFromScratch(request, UUID.randomUUID()))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("completedAt cannot be in the future");
-        verifyNoInteractions(exerciseQueryPort, workoutSessionRepository);
+        verifyNoInteractions(exerciseQueryUseCase, workoutSessionRepository);
     }
 
     @Test
@@ -1389,7 +1389,7 @@ class WorkoutSessionServiceTest {
         assertThatThrownBy(() -> workoutSessionService.createWorkoutSessionFromScratch(request, UUID.randomUUID()))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("The completedAt field can only be provided for a completed workout session");
-        verifyNoInteractions(exerciseQueryPort, workoutSessionRepository);
+        verifyNoInteractions(exerciseQueryUseCase, workoutSessionRepository);
     }
 
     @Test
@@ -1422,7 +1422,7 @@ class WorkoutSessionServiceTest {
         WorkoutSessionResponseDTO response = new WorkoutSessionResponseDTO(
                 UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "session notes", List.of());
 
-        when(exerciseQueryPort.findActiveByIds(eq(List.of(firstExerciseId, secondExerciseId)), any()))
+        when(exerciseQueryUseCase.findByIds(eq(List.of(firstExerciseId, secondExerciseId))))
                 .thenReturn(Map.of(firstExerciseId, firstExercise, secondExerciseId, secondExercise));
         when(userRepository.getReferenceById(userId)).thenReturn(userReference);
         when(workoutSessionRepository.save(any(WorkoutSession.class)))
@@ -1485,8 +1485,7 @@ class WorkoutSessionServiceTest {
         when(lastSet.getReps()).thenReturn(15);
         when(lastSet.getWeightKg()).thenReturn(40.0);
 
-        when(exerciseQueryPort.findActiveByIds(eq(List.of(exerciseId)), any()))
-                .thenReturn(Map.of(exerciseId, exercise));
+        when(exerciseQueryUseCase.findByIds(eq(List.of(exerciseId)))).thenReturn(Map.of(exerciseId, exercise));
         when(sessionSetRepository.findLastSetsByExerciseIdAndUserId(Set.of(exerciseId), userId))
                 .thenReturn(List.of(lastSet));
         when(userRepository.getReferenceById(userId)).thenReturn(userReference);
@@ -1532,8 +1531,7 @@ class WorkoutSessionServiceTest {
         WorkoutSessionResponseDTO response = new WorkoutSessionResponseDTO(
                 UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "session notes", List.of());
 
-        when(exerciseQueryPort.findActiveByIds(eq(List.of(exerciseId)), any()))
-                .thenReturn(Map.of(exerciseId, exercise));
+        when(exerciseQueryUseCase.findByIds(eq(List.of(exerciseId)))).thenReturn(Map.of(exerciseId, exercise));
         when(sessionSetRepository.findLastSetsByExerciseIdAndUserId(Set.of(exerciseId), userId))
                 .thenReturn(List.of());
         when(exerciseMetricsMapper.toDefaultSessionSetRequestDTO(Category.STRENGTH.defaultMetrics()))
@@ -1573,7 +1571,7 @@ class WorkoutSessionServiceTest {
         assertThatThrownBy(() -> workoutSessionService.createWorkoutSessionFromScratch(request, userId))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("A completed workout session must have at least one exercise");
-        verifyNoInteractions(exerciseQueryPort, workoutSessionRepository);
+        verifyNoInteractions(exerciseQueryUseCase, workoutSessionRepository);
     }
 
     @Test
@@ -1586,7 +1584,6 @@ class WorkoutSessionServiceTest {
         WorkoutSessionResponseDTO response = new WorkoutSessionResponseDTO(
                 UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "session notes", List.of());
 
-        when(exerciseFinder.findActiveByIds(eq(List.of()), any())).thenReturn(Map.of());
         when(userRepository.getReferenceById(userId)).thenReturn(userReference);
         when(workoutSessionRepository.save(any(WorkoutSession.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -1627,7 +1624,7 @@ class WorkoutSessionServiceTest {
         when(lastSet.getReps()).thenReturn(15);
         when(lastSet.getWeightKg()).thenReturn(40.0);
 
-        when(exerciseFinder.findActiveByIds(eq(List.of(exerciseId)), any())).thenReturn(Map.of(exerciseId, exercise));
+        when(exerciseQueryUseCase.findByIds(eq(List.of(exerciseId)))).thenReturn(Map.of(exerciseId, exercise));
         when(sessionSetRepository.findLastSetsByExerciseIdAndUserId(Set.of(exerciseId), userId))
                 .thenReturn(List.of(lastSet));
         when(userRepository.getReferenceById(userId)).thenReturn(userReference);
@@ -1668,12 +1665,7 @@ class WorkoutSessionServiceTest {
                         exerciseId,
                         List.of(new SessionSetRequestDTO(1, 8, 20.0, null, null, true)))));
 
-        when(exerciseQueryPort.findActiveByIds(eq(List.of(exerciseId)), any())).thenAnswer(invocation -> {
-            @SuppressWarnings("unchecked")
-            Map<String, List<String>> errors = invocation.getArgument(1);
-            errors.put(exerciseId.toString(), List.of("Exercise does not exist"));
-            return Map.of();
-        });
+        when(exerciseQueryUseCase.findByIds(eq(List.of(exerciseId)))).thenReturn(Map.of());
 
         assertThatThrownBy(() -> workoutSessionService.createWorkoutSessionFromScratch(request, userId))
                 .isInstanceOf(ValidationException.class)
