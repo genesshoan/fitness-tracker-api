@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.application.usecases;
+package dev.genesshoan.fitnesstrackerapi.exercise.application.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -8,8 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.MuscleServicePort;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.MuscleRepositoryPort;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.MuscleMapper;
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.MuscleResponse;
-import dev.genesshoan.fitnesstrackerapi.exercise.mapper.MuscleMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

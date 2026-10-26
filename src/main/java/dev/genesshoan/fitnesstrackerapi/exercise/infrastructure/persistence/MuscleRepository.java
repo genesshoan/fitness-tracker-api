@@ -7,7 +7,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.MuscleRepositoryPort;
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.Muscle;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.Muscle;
 
 public interface MuscleRepository extends JpaRepository<Muscle, UUID>, MuscleRepositoryPort {
 

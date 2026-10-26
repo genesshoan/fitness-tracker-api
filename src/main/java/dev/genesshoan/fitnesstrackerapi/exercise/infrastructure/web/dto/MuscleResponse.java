@@ -2,7 +2,7 @@ package dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto;
 
 import java.util.Set;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.BodyRegion;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.BodyRegion;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Muscle response DTO")

@@ -1,9 +1,8 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.controller;
+package dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web;
 
 import java.util.List;
 import java.util.UUID;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -31,6 +30,7 @@ import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPageRequest;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseServicePort;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

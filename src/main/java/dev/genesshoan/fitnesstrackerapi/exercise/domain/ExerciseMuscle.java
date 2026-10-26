@@ -11,7 +11,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.Muscle;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

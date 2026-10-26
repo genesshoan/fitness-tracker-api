@@ -1,7 +1,7 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.mapper;
+package dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.Muscle;
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.MuscleAsset;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.Muscle;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.MuscleAsset;
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.MuscleAssetResponse;
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.MuscleResponse;
 import org.mapstruct.Builder;

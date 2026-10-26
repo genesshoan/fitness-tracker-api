@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.application.usecases;
+package dev.genesshoan.fitnesstrackerapi.exercise.application.service;
 
 import java.util.HashSet;
 import java.util.List;
@@ -8,7 +8,6 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,14 +19,14 @@ import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPageRequest;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseServicePort;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.ExerciseRepositoryPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.MuscleRepositoryPort;
-import dev.genesshoan.fitnesstrackerapi.exercise.application.usecases.search.ExerciseNameHighlighter;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ExerciseMuscle;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ExerciseMuscleId;
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.Muscle;
-import dev.genesshoan.fitnesstrackerapi.exercise.mapper.ExerciseMapper;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.Muscle;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.ExerciseMapper;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

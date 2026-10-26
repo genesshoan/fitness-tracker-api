@@ -14,7 +14,7 @@ import org.springframework.boot.test.context.TestComponent;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ExerciseMuscle;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.Muscle;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.Muscle;
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.persistence.ExerciseRepository;
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.persistence.MuscleRepository;
 import dev.genesshoan.fitnesstrackerapi.progressrecord.ProgressRecord;

@@ -1,12 +1,12 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.mapper;
+package dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.ExerciseRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.AssetUrlProviderPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.ExerciseDetail;
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.ExerciseListItem;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.ExerciseRequest;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

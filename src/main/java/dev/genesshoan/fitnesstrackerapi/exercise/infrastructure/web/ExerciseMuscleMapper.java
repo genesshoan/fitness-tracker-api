@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.mapper;
+package dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web;
 
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.ExerciseMuscle;
 import org.mapstruct.Builder;

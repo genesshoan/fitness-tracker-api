@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.MuscleAssetRepositoryPort;
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.MuscleAsset;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.MuscleAsset;
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.persistence.projection.MuscleBaseAssetsProjection;
 
 public interface MuscleAssetRepository extends JpaRepository<MuscleAsset, UUID>, MuscleAssetRepositoryPort {

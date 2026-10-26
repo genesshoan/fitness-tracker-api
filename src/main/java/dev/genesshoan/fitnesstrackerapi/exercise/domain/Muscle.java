@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle;
+package dev.genesshoan.fitnesstrackerapi.exercise.domain;
 
 import java.util.HashSet;
 import java.util.Set;
