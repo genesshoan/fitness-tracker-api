@@ -3,7 +3,7 @@ package dev.genesshoan.fitnesstrackerapi.workout.dto;
 import java.util.List;
 import java.util.UUID;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseListItemDTO;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.ExerciseListItem;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Session exercise respones dto")
@@ -17,7 +17,7 @@ public record SessionExerciseResponseDTO(
         String notes,
 
         @Schema(description = "Exercise performed in this session")
-        ExerciseListItemDTO exercise,
+        ExerciseListItem exercise,
 
         @Schema(description = "Sets performed for the exercise")
         List<SessionSetResponseDTO> sets) {}

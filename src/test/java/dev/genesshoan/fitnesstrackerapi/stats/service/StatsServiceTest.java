@@ -18,7 +18,7 @@ import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.Muscl
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.BodyRegion;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.MuscleBaseAssetsDTO;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.MuscleBaseAssets;
 import dev.genesshoan.fitnesstrackerapi.stats.domain.AchievementType;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.AchievementDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPointsDTO;
@@ -586,7 +586,7 @@ class StatsServiceTest {
                                 0.0)));
 
         when(muscleAssetUrlPort.muscleUrl(any())).thenReturn(null);
-        when(muscleAssetUrlPort.findBaseAssets()).thenReturn(new MuscleBaseAssetsDTO(null, null));
+        when(muscleAssetUrlPort.findBaseAssets()).thenReturn(new MuscleBaseAssets(null, null));
 
         MuscleIntensityResponseDTO result = statsService.getMuscleIntensity(userId, from, to);
 
@@ -650,7 +650,7 @@ class StatsServiceTest {
                                 zeroMuscleId, "Zero muscle", "zero-muscle", BodyRegion.OTHER, null, null, null, 0.0)));
 
         when(muscleAssetUrlPort.muscleUrl(any())).thenReturn(null);
-        when(muscleAssetUrlPort.findBaseAssets()).thenReturn(new MuscleBaseAssetsDTO(null, null));
+        when(muscleAssetUrlPort.findBaseAssets()).thenReturn(new MuscleBaseAssets(null, null));
 
         MuscleIntensityResponseDTO result =
                 statsService.getMuscleIntensity(userId, LocalDate.of(1970, 1, 1), LocalDate.of(1970, 1, 1));
@@ -710,7 +710,7 @@ class StatsServiceTest {
                                 1.0)));
 
         when(muscleAssetUrlPort.muscleUrl(any())).thenReturn(null);
-        when(muscleAssetUrlPort.findBaseAssets()).thenReturn(new MuscleBaseAssetsDTO(null, null));
+        when(muscleAssetUrlPort.findBaseAssets()).thenReturn(new MuscleBaseAssets(null, null));
 
         MuscleIntensityResponseDTO result =
                 statsService.getMuscleIntensity(userId, LocalDate.of(1970, 1, 1), LocalDate.of(1970, 1, 1));
@@ -729,7 +729,7 @@ class StatsServiceTest {
                         userId, Instant.parse("2026-01-01T03:00:00Z"), Instant.parse("2026-01-02T03:00:00Z")))
                 .thenReturn(List.of());
 
-        when(muscleAssetUrlPort.findBaseAssets()).thenReturn(new MuscleBaseAssetsDTO(null, null));
+        when(muscleAssetUrlPort.findBaseAssets()).thenReturn(new MuscleBaseAssets(null, null));
 
         statsService.getMuscleIntensity(userId, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 1));
 

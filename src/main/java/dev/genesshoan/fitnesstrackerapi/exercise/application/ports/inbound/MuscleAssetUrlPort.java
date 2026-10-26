@@ -1,6 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.MuscleBaseAssetsDTO;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.MuscleBaseAssets;
 
 /**
  * Outbound port for resolving public URLs of muscle visualization assets.
@@ -16,7 +16,7 @@ public interface MuscleAssetUrlPort {
      *
      * @return projection containing the front and back base assets
      */
-    MuscleBaseAssetsDTO findBaseAssets();
+    MuscleBaseAssets findBaseAssets();
 
     /**
      * Resolves the public URL of a muscle image.

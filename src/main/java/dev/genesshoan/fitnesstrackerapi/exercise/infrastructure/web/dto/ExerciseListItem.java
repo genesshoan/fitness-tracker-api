@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.dto;
+package dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto;
 
 import java.util.UUID;
 
@@ -7,7 +7,7 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Exercise list item DTO")
-public record ExerciseListItemDTO(
+public record ExerciseListItem(
         @Schema(description = "Exercise ID", example = "123e4567-e89b-12d3-a456-426614174000")
         UUID id,
 

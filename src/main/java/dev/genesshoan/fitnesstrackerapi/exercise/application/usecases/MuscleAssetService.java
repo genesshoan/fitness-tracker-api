@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.MuscleAssetUrlPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.AssetUrlProviderPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.MuscleAssetRepositoryPort;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.MuscleBaseAssetsDTO;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.MuscleBaseAssets;
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.persistence.projection.MuscleBaseAssetsProjection;
 import lombok.RequiredArgsConstructor;
 
@@ -20,10 +20,10 @@ public class MuscleAssetService implements MuscleAssetUrlPort {
      * {@inheritDoc}
      */
     @Override
-    public MuscleBaseAssetsDTO findBaseAssets() {
+    public MuscleBaseAssets findBaseAssets() {
         MuscleBaseAssetsProjection objectkeys = muscleAssetRepositoryPort.findBaseAssets();
 
-        return new MuscleBaseAssetsDTO(
+        return new MuscleBaseAssets(
                 assetUrlProviderPort.muscleUrl(objectkeys.getFrontBaseObjectKey()),
                 assetUrlProviderPort.muscleUrl(objectkeys.getBackBaseObjectKey()));
     }

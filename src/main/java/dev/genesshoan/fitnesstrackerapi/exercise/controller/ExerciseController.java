@@ -3,6 +3,7 @@ package dev.genesshoan.fitnesstrackerapi.exercise.controller;
 import java.util.List;
 import java.util.UUID;
 
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -30,10 +31,6 @@ import dev.genesshoan.fitnesstrackerapi.common.utils.CursorPageRequest;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseServicePort;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Difficulty;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseDetailDTO;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseListItemDTO;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseSearchResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -88,7 +85,7 @@ public class ExerciseController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @GetMapping
-    public ResponseEntity<CursorPage<ExerciseListItemDTO, UUID>> getAllExercises(
+    public ResponseEntity<CursorPage<ExerciseListItem, UUID>> getAllExercises(
             @Parameter(description = "Pagination cursor for next page") @RequestParam(required = false) UUID cursor,
             @Parameter(description = "Number of items to return") @RequestParam(required = false) @Max(100) @Positive
                     Integer size,
@@ -115,7 +112,7 @@ public class ExerciseController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = ExerciseSearchResponseDTO.class))),
+                                schema = @Schema(implementation = ExerciseSearchResponse.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Invalid query or limit",
@@ -132,7 +129,7 @@ public class ExerciseController {
                                 schema = @Schema(implementation = ProblemDetail.class)))
     })
     @GetMapping("/search")
-    public ResponseEntity<ExerciseSearchResponseDTO> searchExercises(
+    public ResponseEntity<ExerciseSearchResponse> searchExercises(
             @Parameter(
                             description = "Text to match against exercise name or slug",
                             required = true,
@@ -160,7 +157,7 @@ public class ExerciseController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = ExerciseDetailDTO.class))),
+                                schema = @Schema(implementation = ExerciseDetail.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Invalid request parameters",
@@ -191,7 +188,7 @@ public class ExerciseController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @GetMapping("/{slug}")
-    public ResponseEntity<ExerciseDetailDTO> getExerciseBySlug(
+    public ResponseEntity<ExerciseDetail> getExerciseBySlug(
             @Parameter(description = "Slug of the exercise") @PathVariable @NotBlank String slug) {
         return ResponseEntity.ok(exerciseService.getExerciseBySlug(slug));
     }
@@ -207,7 +204,7 @@ public class ExerciseController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = ExerciseDetailDTO.class))),
+                                schema = @Schema(implementation = ExerciseDetail.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Invalid request parameters",
@@ -252,8 +249,8 @@ public class ExerciseController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @PostMapping
-    public ResponseEntity<ExerciseDetailDTO> createExercise(
-            @Parameter(description = "Exercise data") @Valid @RequestBody ExerciseRequestDTO request) {
+    public ResponseEntity<ExerciseDetail> createExercise(
+            @Parameter(description = "Exercise data") @Valid @RequestBody ExerciseRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(exerciseService.createExercise(request));
     }
 
@@ -268,7 +265,7 @@ public class ExerciseController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = ExerciseDetailDTO.class))),
+                                schema = @Schema(implementation = ExerciseDetail.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Invalid request parameters",
@@ -313,9 +310,9 @@ public class ExerciseController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @PutMapping("/{slug}")
-    public ResponseEntity<ExerciseDetailDTO> updateExercise(
+    public ResponseEntity<ExerciseDetail> updateExercise(
             @Parameter(description = "Slug of the exercise") @PathVariable @NotBlank String slug,
-            @Parameter(description = "New exercise data") @Valid @RequestBody ExerciseRequestDTO request) {
+            @Parameter(description = "New exercise data") @Valid @RequestBody ExerciseRequest request) {
         return ResponseEntity.ok(exerciseService.updateExercise(slug, request));
     }
 

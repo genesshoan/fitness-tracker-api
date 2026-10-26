@@ -1,7 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.exercise.mapper;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.ExerciseMuscle;
-import dev.genesshoan.fitnesstrackerapi.exercise.dto.ExerciseMuscleDTO;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.ExerciseMuscle;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 
@@ -10,5 +9,5 @@ import org.mapstruct.Mapper;
         builder = @Builder(disableBuilder = true),
         uses = {MuscleMapper.class})
 public interface ExerciseMuscleMapper {
-    ExerciseMuscleDTO toExerciseMuscleDto(ExerciseMuscle exerciseMuscle);
+    ExerciseMuscle toExerciseMuscleDto(dev.genesshoan.fitnesstrackerapi.exercise.domain.ExerciseMuscle exerciseMuscle);
 }

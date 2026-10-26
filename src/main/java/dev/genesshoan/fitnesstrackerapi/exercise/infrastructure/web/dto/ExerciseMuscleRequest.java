@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.dto;
+package dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @param impactLevel role of the muscle in the exercise
  */
 @Schema(description = "Muscle association in an exercise write request")
-public record ExerciseMuscleRequestDTO(
+public record ExerciseMuscleRequest(
         @NotBlank @Schema(description = "Slug of an existing muscle", example = "biceps")
         String muscleSlug,
 

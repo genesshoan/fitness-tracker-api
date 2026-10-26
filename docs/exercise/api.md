@@ -96,7 +96,7 @@ Creates an exercise with optional muscle associations. Requires `ADMIN`.
 | difficulty | Difficulty | Yes | `BEGINNER`, `INTERMEDIATE`, or `ADVANCED` |
 | muscles | List | No | `muscleSlug` and `impactLevel`; no duplicate slugs |
 
-Returns `201 Created` with `ExerciseDetailDTO`.
+Returns `201 Created` with `ExerciseDetail`.
 
 ## Update Exercise (`PUT /api/v1/exercises/{slug}`)
 

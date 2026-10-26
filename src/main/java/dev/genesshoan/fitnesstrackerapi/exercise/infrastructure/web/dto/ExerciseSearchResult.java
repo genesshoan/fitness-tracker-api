@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.dto;
+package dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto;
 
 import java.util.UUID;
 
@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @param highlightedName name with the matching text wrapped in {@code <b>} tags
  */
 @Schema(description = "Exercise autocomplete result")
-public record ExerciseSearchResultDTO(
+public record ExerciseSearchResult(
         @Schema(description = "Exercise ID", example = "123e4567-e89b-12d3-a456-426614174000")
         UUID id,
 

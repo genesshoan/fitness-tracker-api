@@ -53,15 +53,15 @@ user-specific key, and returned through a temporary presigned URL.
 
 | Método | Endpoint                 | Auth     | Request | Response                  | Status |
 | ------ | ------------------------ | -------- | ------- | ------------------------- | ------ |
-| GET    | `/api/v1/muscles`        | Required | None    | `Page<MuscleResponseDTO>` | 200    |
-| GET    | `/api/v1/muscles/{slug}` | Required | None    | `MuscleResponseDTO`       | 200    |
+| GET    | `/api/v1/muscles`        | Required | None    | `Page<MuscleResponse>` | 200    |
+| GET    | `/api/v1/muscles/{slug}` | Required | None    | `MuscleResponse`       | 200    |
 
 ## Exercises
 
 | Método | Endpoint                 | Auth     | Request | Response                  | Status |
 | ------ | ------------------------ | -------- | ------- | ------------------------- | ------ |
-| GET    | `/api/v1/exercises`        | Required | None    | `CursorPage<ExerciseListItemDTO>` | 200    |
-| GET    | `/api/v1/exercises/{slug}` | Required | None    | `ExerciseDetailDTO`       | 200    |
+| GET    | `/api/v1/exercises`        | Required | None    | `CursorPage<ExerciseListItem>` | 200    |
+| GET    | `/api/v1/exercises/{slug}` | Required | None    | `ExerciseDetail`       | 200    |
 
 ---
 

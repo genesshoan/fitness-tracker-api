@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.dto;
+package dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * current muscle associations.
  */
 @Schema(description = "Request DTO for creating or updating an exercise")
-public record ExerciseRequestDTO(
+public record ExerciseRequest(
         @NotBlank @Schema(description = "Exercise name", example = "Bicep Curl")
         String name,
 
@@ -37,4 +37,4 @@ public record ExerciseRequestDTO(
         Difficulty difficulty,
 
         @Schema(description = "Muscle associations; replace existing ones on update")
-        List<@Valid ExerciseMuscleRequestDTO> muscles) {}
+        List<@Valid ExerciseMuscleRequest> muscles) {}
