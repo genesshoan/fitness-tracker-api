@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -19,7 +18,7 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestExcepti
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyExistsException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ValidationException;
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseQueryPort;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.ExerciseQueryUseCase;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.RoutineExercise;
@@ -42,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 public class RoutineService {
 
     private final RoutineRepository routineRepository;
-    private final ExerciseQueryPort exerciseQueryPort;
+    private final ExerciseQueryUseCase exerciseQueryUseCase;
     private final RoutineMapper routineMapper;
 
     /**
@@ -171,7 +170,7 @@ public class RoutineService {
 
         var routine = findAndValidateRoutine(routineId, userId);
 
-        var exercise = exerciseQueryPort.findByIdAndActiveTrue(dto.exerciseId()).orElseThrow(() -> {
+        var exercise = exerciseQueryUseCase.findById(dto.exerciseId()).orElseThrow(() -> {
             log.warn("Exercise not found: {}", dto.exerciseId());
             return new ResourceNotFoundException("Exercise not found");
         });
@@ -238,7 +237,7 @@ public class RoutineService {
      * @param routineId  the routine identifier
      * @param position   the 1-based position of the exercise to update
      * @param dto        the updated exercise request data
-     * @param user       the user owning the routine
+     * @param userId       the user owning the routine
      * @return the updated routine
      */
     @Transactional
@@ -248,7 +247,7 @@ public class RoutineService {
 
         var routine = findAndValidateRoutine(routineId, userId);
 
-        var exercise = exerciseQueryPort.findByIdAndActiveTrue(dto.exerciseId()).orElseThrow(() -> {
+        var exercise = exerciseQueryUseCase.findById(dto.exerciseId()).orElseThrow(() -> {
             log.warn("Exercise not found: {}", dto.exerciseId());
             return new ResourceNotFoundException("Exercise not found");
         });
@@ -347,15 +346,13 @@ public class RoutineService {
 
         log.debug("Exercise IDs requested: {}", exerciseIds);
 
-        List<Exercise> exercises = exerciseQueryPort.findAllByIdInAndActiveTrue(exerciseIds);
+        Map<UUID, Exercise> exerciseMap = exerciseQueryUseCase.findByIds(exerciseIds);
 
-        if (exercises.size() != exerciseIds.size()) {
-            log.warn("One or more exercises not found. Expected: {}, Found: {}", exerciseIds.size(), exercises.size());
+        if (exerciseMap.size() != exerciseIds.size()) {
+            log.warn(
+                    "One or more exercises not found. Expected: {}, Found: {}", exerciseIds.size(), exerciseMap.size());
             throw new BadRequestException("One or more exercises not found");
         }
-
-        Map<UUID, Exercise> exerciseMap =
-                exercises.stream().collect(Collectors.toMap(Exercise::getId, Function.identity()));
 
         Map<String, List<String>> errors = new HashMap<>();
 

@@ -6,10 +6,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.MuscleServicePort;
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.MuscleRepositoryPort;
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.MuscleMapper;
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.MuscleResponse;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.mapper.MuscleResultMapper;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.MuscleUseCase;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.result.MuscleResult;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.persistence.MuscleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,27 +24,27 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class MuscleService implements MuscleServicePort {
+public class MuscleService implements MuscleUseCase {
 
-    private final MuscleRepositoryPort muscleRepository;
-    private final MuscleMapper muscleMapper;
+    private final MuscleRepository muscleRepository;
+    private final MuscleResultMapper muscleResultMapper;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Page<MuscleResponse> getMuscles(Pageable pageable) {
+    public Page<MuscleResult> getMuscles(Pageable pageable) {
 
         log.debug("Fetching muscles page={} size={}", pageable.getPageNumber(), pageable.getPageSize());
 
-        return muscleRepository.findAll(pageable).map(muscleMapper::toResponseDTO);
+        return muscleRepository.findAll(pageable).map(muscleResultMapper::toResult);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public MuscleResponse getMuscleBySlug(String slug) {
+    public MuscleResult getMuscleBySlug(String slug) {
 
         log.info("Fetching muscle by slug={}", slug);
 
@@ -53,6 +53,6 @@ public class MuscleService implements MuscleServicePort {
             return new ResourceNotFoundException("Muscle with slug " + slug + " not found");
         });
 
-        return muscleMapper.toResponseDTO(muscle);
+        return muscleResultMapper.toResult(muscle);
     }
 }

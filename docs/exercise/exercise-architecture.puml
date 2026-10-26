@@ -8,6 +8,10 @@ skinparam component {
     BackgroundColor #D6E4F0
     BorderColor #4A90D9
 }
+skinparam interface {
+    BackgroundColor #E8F4E8
+    BorderColor #5AA55A
+}
 skinparam database {
     BackgroundColor #E8E8E8
     BorderColor #888888
@@ -26,10 +30,52 @@ package "exercise module" as exmod {
     component "ExerciseController" as exc {
     }
 
+    component "MuscleController" as muc {
+    }
+
+    interface "ExerciseUseCase" as exuc {
+    }
+
+    interface "ExerciseQueryUseCase" as exquc {
+    }
+
+    interface "MuscleUseCase" as muuc {
+    }
+
+    interface "MuscleAssetUseCase" as mauc {
+    }
+
     component "ExerciseService" as exs {
     }
 
+    component "MuscleService" as mus {
+    }
+
+    component "MuscleAssetService" as mas {
+    }
+
     component "ExerciseRepository" as exr {
+    }
+
+    component "MuscleRepository" as mur {
+    }
+
+    component "MuscleAssetRepository" as mar {
+    }
+
+    component "ExerciseResultMapper" as erm {
+    }
+
+    component "MuscleResultMapper" as mrm {
+    }
+
+    component "ExerciseMapper" as exm {
+    }
+
+    component "MuscleMapper" as mm {
+    }
+
+    component "CatalogAssetUrlProvider" as caup {
     }
 
     database "Exercise Entity\n(exercises table)" as ex {
@@ -41,10 +87,18 @@ package "exercise module" as exmod {
     database "Muscle Entity\n(muscles table)" as mus {
     }
 
-    component "ExerciseMapper" as exm {
+    database "MuscleAsset Entity\n(muscle_assets table)" as musa {
+    }
+}
+
+package "other modules" as othmod {
+    component "RoutineService" as ros {
     }
 
-    component "MuscleMapper" as mm {
+    component "WorkoutSessionService" as wos {
+    }
+
+    component "StatsService" as sts {
     }
 }
 
@@ -70,15 +124,42 @@ skinparam arrowFontSize 10
 HTTPRequest -[hidden]> exc : HTTP\nRequest
 sc ..> exc : authenticated\n@ /api/v1/exercises/**
 
-exc --> exs : 1. call\nservice method
-exs --> exr : 2. query\nfiltered exercises
-exr --> ex : 3. entity\nmapping
-exr --> exm : 4. join entity\nmapping
-exr --> mus : 5. muscle\nmapping
+exc --> exuc : 1. call use case
+exuc --> exs : 2. implemented by
+exs --> exr : 3. query\nfiltered exercises
+exr --> ex : 4. entity\nmapping
+exr --> exm : 5. join entity\nmapping
+exr --> mus : 6. muscle\nmapping
 
-exs --> exm : 6. map to DTOs
-exm --> exm : 7. map to ExerciseListItemDTO\n/ ExerciseDetailDTO
-mm --> mus : 8. map to MuscleResponseDTO
+exs --> erm : 7. map to results
+erm --> caup : 8. resolve asset URLs
+exc --> exm : 9. map results to DTOs
+exm --> mm : 10. map muscle results
+
+muc --> muuc : 1. call use case
+muuc --> mus : 2. implemented by
+mus --> mur : 3. query muscles
+mus --> mrm : 4. map to results
+muc --> mm : 5. map results to DTOs
+
+ros --> exquc : read exercises
+wos --> exquc : read exercises
+sts --> exquc : exercise existence
+sts --> mauc : muscle asset URLs
+exquc --> exs : implemented by
+mauc --> mas : implemented by
+mas --> mar : 6. query base assets
+mas --> caup : 7. resolve asset URLs
+
+note right of exuc
+  Inbound use cases:
+  - ExerciseUseCase
+    catalog reads + ADMIN writes
+  - ExerciseQueryUseCase
+    read view for other modules
+  - MuscleUseCase
+  - MuscleAssetUseCase
+end note
 
 note right of exs
   ExerciseService:
@@ -86,6 +167,8 @@ note right of exs
     cursor pagination + filters
   - getExerciseBySlug()
     detail with muscles
+  - findByIds()
+    exercises keyed by id
 end note
 
 note bottom of exm

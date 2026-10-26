@@ -45,6 +45,26 @@ Use these exact slugs in `muscleSlugs` filters and in `muscles[].muscleSlug` whe
 
 ![Exercise Module Architecture](exercise-architecture.png)
 
+### Module structure
+
+The module follows the same layout as the `auth` and `user` modules: inbound use cases
+under `application/port/in`, their implementation under `application/service`, and the
+HTTP layer under `infrastructure/web`.
+
+| Use case | Purpose | Consumers |
+|----------|---------|-----------|
+| `ExerciseUseCase` | Browse the catalog and maintain exercises (ADMIN only) | `ExerciseController` |
+| `ExerciseQueryUseCase` | Read-only view of the catalog for other modules | `routine`, `workout`, `stats` |
+| `MuscleUseCase` | Browse the muscle directory | `MuscleController` |
+| `MuscleAssetUseCase` | Public URLs of the muscle visualization assets | `stats` |
+
+- Use cases receive `command` records and return `result` records, so the application layer
+  never depends on the web DTOs and never returns a persisted entity.
+- The services talk to the Spring Data repositories directly; no outbound ports are
+  introduced for them.
+- `ExerciseQueryUseCase` is the only contract that exposes an `Exercise` entity, and only
+  because `routine` and `workout` persist a relation to it.
+
 ## Documentation
 
 - [API Reference](api.md) — endpoint details, request/response schemas, error codes

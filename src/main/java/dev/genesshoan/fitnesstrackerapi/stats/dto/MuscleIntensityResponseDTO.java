@@ -4,7 +4,6 @@ package dev.genesshoan.fitnesstrackerapi.stats.dto;
 import java.time.LocalDate;
 import java.util.List;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.MuscleBaseAssets;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Range-relative muscle intensity visualization data")
@@ -16,7 +15,7 @@ public record MuscleIntensityResponseDTO(
         LocalDate to,
 
         @Schema(description = "Base assets used to render the muscle visualization")
-        MuscleBaseAssets baseAssets,
+        MuscleBaseAssetsDTO baseAssets,
 
         @Schema(description = "Every catalog muscle, including muscles with zero intensity")
         List<MuscleIntensityDTO> muscles) {}

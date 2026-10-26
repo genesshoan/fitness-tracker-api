@@ -20,8 +20,8 @@ import dev.genesshoan.fitnesstrackerapi.common.domain.ExerciseMetrics;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.mapper.ExerciseMetricsMapper;
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseQueryPort;
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.MuscleAssetUrlPort;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.ExerciseQueryUseCase;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.MuscleAssetUseCase;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.AchievementCalculator;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.OneRepMaxCalculator;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.StreakCalculator;
@@ -34,6 +34,7 @@ import dev.genesshoan.fitnesstrackerapi.stats.dto.AchievementDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPointDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPointsDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.MonthlyVolumeDTO;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleBaseAssetsDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.OneRepMaxDTO;
@@ -65,9 +66,9 @@ public class StatsService {
 
     private final StatsRepository statsRepository;
     private final WorkoutSessionRepository workoutSessionRepository;
-    private final ExerciseQueryPort exerciseQueryPort;
+    private final ExerciseQueryUseCase exerciseQueryUseCase;
     private final GetUserTimeZoneUseCase getUserTimeZoneUseCase;
-    private final MuscleAssetUrlPort muscleAssetUrlPort;
+    private final MuscleAssetUseCase muscleAssetUseCase;
 
     private final ExerciseMetricsMapper exerciseMetricsMapper;
     private final AchievementMapper achievementMapper;
@@ -180,7 +181,7 @@ public class StatsService {
      */
     public OneRepMaxDTO getOneRepMax(UUID userId, UUID exerciseId) {
 
-        if (!exerciseQueryPort.existsByIdAndActiveTrue(exerciseId)) {
+        if (!exerciseQueryUseCase.existsById(exerciseId)) {
             throw new ResourceNotFoundException("Exercise not found");
         }
 
@@ -211,7 +212,7 @@ public class StatsService {
             throw new BadRequestException("The start date cannot be after the end date");
         }
 
-        if (!exerciseQueryPort.existsByIdAndActiveTrue(exerciseId)) {
+        if (!exerciseQueryUseCase.existsById(exerciseId)) {
             throw new ResourceNotFoundException("Exercise not found");
         }
 
@@ -288,8 +289,8 @@ public class StatsService {
                                     .setScale(1, RoundingMode.HALF_UP)
                                     .doubleValue();
 
-                    String frontAssetUrl = muscleAssetUrlPort.muscleUrl(metadata.frontObjectKey());
-                    String backAssetUrl = muscleAssetUrlPort.muscleUrl(metadata.backObjectKey());
+                    String frontAssetUrl = muscleAssetUseCase.resolveMuscleUrl(metadata.frontObjectKey());
+                    String backAssetUrl = muscleAssetUseCase.resolveMuscleUrl(metadata.backObjectKey());
 
                     return new MuscleIntensityDTO(
                             metadata.muscleId(),
@@ -302,7 +303,13 @@ public class StatsService {
                 })
                 .toList();
 
-        return new MuscleIntensityResponseDTO(from, to, muscleAssetUrlPort.findBaseAssets(), muscles);
+        var baseAssets = muscleAssetUseCase.findBaseAssets();
+
+        return new MuscleIntensityResponseDTO(
+                from,
+                to,
+                new MuscleBaseAssetsDTO(baseAssets.frontBaseAssetUrl(), baseAssets.backBaseAssetUrl()),
+                muscles);
     }
 
     /**

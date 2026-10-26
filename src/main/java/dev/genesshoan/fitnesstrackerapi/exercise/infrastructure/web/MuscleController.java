@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.MuscleServicePort;
+import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.MuscleUseCase;
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.MuscleResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -28,7 +28,9 @@ import org.springdoc.core.annotations.ParameterObject;
 @Tag(name = "Muscles", description = "Endpoints for managing and retrieving muscles")
 public class MuscleController {
 
-    private final MuscleServicePort muscleService;
+    private final MuscleUseCase muscleUseCase;
+
+    private final MuscleMapper muscleMapper;
 
     @Operation(summary = "Gets all muscles", description = "Returns a paginated list of all muscles")
     @ApiResponses(
@@ -57,7 +59,7 @@ public class MuscleController {
             })
     @GetMapping
     public ResponseEntity<Page<MuscleResponse>> getMuscles(@ParameterObject Pageable pageable) {
-        Page<MuscleResponse> muscles = muscleService.getMuscles(pageable);
+        Page<MuscleResponse> muscles = muscleUseCase.getMuscles(pageable).map(muscleMapper::toResponseDTO);
 
         return ResponseEntity.ok(muscles);
     }
@@ -96,8 +98,8 @@ public class MuscleController {
             })
     @GetMapping("/{slug}")
     public ResponseEntity<MuscleResponse> getMuscle(@PathVariable String slug) {
-        var muscle = muscleService.getMuscleBySlug(slug);
+        var muscle = muscleUseCase.getMuscleBySlug(slug);
 
-        return ResponseEntity.ok(muscle);
+        return ResponseEntity.ok(muscleMapper.toResponseDTO(muscle));
     }
 }
