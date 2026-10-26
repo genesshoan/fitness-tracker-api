@@ -1,8 +1,8 @@
 package dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web;
 
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.storage.CatalogAssetUrlProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.AssetUrlProviderPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.ExerciseDetail;
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.ExerciseListItem;
@@ -36,7 +36,7 @@ import org.mapstruct.Mapping;
 public abstract class ExerciseMapper {
 
     @Autowired
-    protected AssetUrlProviderPort assetUrlProviderPort;
+    protected CatalogAssetUrlProvider assetUrlProviderPort;
 
     /**
      * Maps an exercise to its list item representation.
