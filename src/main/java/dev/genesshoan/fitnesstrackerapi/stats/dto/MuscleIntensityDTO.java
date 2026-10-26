@@ -2,7 +2,7 @@ package dev.genesshoan.fitnesstrackerapi.stats.dto;
 
 import java.util.UUID;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.BodyRegion;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.BodyRegion;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**

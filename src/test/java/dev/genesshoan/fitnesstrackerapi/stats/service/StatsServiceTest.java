@@ -15,9 +15,9 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundE
 import dev.genesshoan.fitnesstrackerapi.common.mapper.ExerciseMetricsMapper;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.ExerciseQueryPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.MuscleAssetUrlPort;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.BodyRegion;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.BodyRegion;
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.MuscleBaseAssets;
 import dev.genesshoan.fitnesstrackerapi.stats.domain.AchievementType;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.AchievementDTO;

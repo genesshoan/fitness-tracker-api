@@ -1,12 +1,12 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.application.usecases;
+package dev.genesshoan.fitnesstrackerapi.exercise.application.service;
 
 import org.springframework.stereotype.Service;
 
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.MuscleAssetUrlPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.AssetUrlProviderPort;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound.MuscleAssetRepositoryPort;
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.MuscleBaseAssets;
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.persistence.projection.MuscleBaseAssetsProjection;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.MuscleBaseAssets;
 import lombok.RequiredArgsConstructor;
 
 @Service

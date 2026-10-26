@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle;
+package dev.genesshoan.fitnesstrackerapi.exercise.domain;
 
 /**
  * Body region classification for muscles.

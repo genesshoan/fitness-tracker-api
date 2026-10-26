@@ -1,6 +1,5 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.controller;
+package dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.MuscleResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ProblemDetail;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound.MuscleServicePort;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.MuscleResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

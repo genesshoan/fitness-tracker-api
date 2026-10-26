@@ -6,7 +6,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.Muscle;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.Muscle;
 
 /**
  * Outbound port for muscle persistence operations.

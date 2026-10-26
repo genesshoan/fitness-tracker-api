@@ -1,8 +1,9 @@
 package dev.genesshoan.fitnesstrackerapi.exercise.application.ports.inbound;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.MuscleResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.MuscleResponse;
 
 /**
  * Port for muscle catalog operations.

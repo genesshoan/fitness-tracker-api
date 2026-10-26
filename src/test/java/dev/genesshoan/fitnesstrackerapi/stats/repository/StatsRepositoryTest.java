@@ -10,11 +10,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import dev.genesshoan.fitnesstrackerapi.base.AbstractIntegrationTest;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.BodyRegion;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.BodyRegion;
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.Muscle;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.Muscle;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MonthlyVolumeProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MuscleIntensityProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.VolumeSetProjection;

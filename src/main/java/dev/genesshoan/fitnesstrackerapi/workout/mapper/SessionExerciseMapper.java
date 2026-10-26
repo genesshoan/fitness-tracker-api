@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.mapper.ExerciseMapper;
+import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.ExerciseMapper;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.AchievementDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionExercise;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExerciseAddedResponseDTO;

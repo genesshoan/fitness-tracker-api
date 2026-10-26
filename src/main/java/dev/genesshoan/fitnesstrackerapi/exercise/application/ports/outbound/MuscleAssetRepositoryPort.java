@@ -2,7 +2,7 @@ package dev.genesshoan.fitnesstrackerapi.exercise.application.ports.outbound;
 
 import java.util.Optional;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.MuscleAsset;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.MuscleAsset;
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.persistence.projection.MuscleBaseAssetsProjection;
 
 /**

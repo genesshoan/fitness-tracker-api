@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.infrastructure;
+package dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.storage;
 
 import org.springframework.stereotype.Component;
 

@@ -4,9 +4,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.BodyRegion;
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.Muscle;
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.MuscleAsset;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.BodyRegion;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.Muscle;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.MuscleAsset;
 import net.datafaker.Faker;
 
 public class MuscleBuilder {

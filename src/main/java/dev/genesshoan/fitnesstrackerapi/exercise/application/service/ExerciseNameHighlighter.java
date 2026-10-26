@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.exercise.application.usecases.search;
+package dev.genesshoan.fitnesstrackerapi.exercise.application.service;
 
 import java.util.Locale;
 

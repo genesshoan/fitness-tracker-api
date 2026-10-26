@@ -11,10 +11,10 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.transaction.annotation.Transactional;
 
 import dev.genesshoan.fitnesstrackerapi.base.AbstractIntegrationTest;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.BodyRegion;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.BodyRegion;
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.muscle.Muscle;
+import dev.genesshoan.fitnesstrackerapi.exercise.domain.Muscle;
 import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.ExerciseBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.MuscleBuilder;
