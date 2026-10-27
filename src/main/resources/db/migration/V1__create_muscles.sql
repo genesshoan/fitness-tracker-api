@@ -20,7 +20,6 @@ CREATE TABLE muscle_assets
     object_key   VARCHAR(255)                NOT NULL,
     variant      VARCHAR(255)                NOT NULL,
     view         VARCHAR(255)                NOT NULL,
-    content_type VARCHAR(255),
 
     CONSTRAINT pk_muscle_assets PRIMARY KEY (id),
     CONSTRAINT uk_muscle_assets_object_key UNIQUE (object_key)
