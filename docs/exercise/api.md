@@ -29,6 +29,25 @@ Returns active exercises using cursor pagination and optional filters.
 
 `cursor` must be a valid UUID. A successful response is `200 OK` with a cursor page of exercise list items.
 
+```json
+{
+  "page": [
+    {
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "name": "Bicep Curl",
+      "slug": "bicep-curl",
+      "category": "STRENGTH",
+      "difficulty": "INTERMEDIATE",
+      "thumbnailUrl": "https://cdn.example.com/catalog/exercises/thumbnails/exercises/abc123.webp"
+    }
+  ],
+  "nextCursor": "123e4567-e89b-12d3-a456-426614174000",
+  "hasNext": true
+}
+```
+
+`thumbnailUrl` is `null` when the exercise has no thumbnail assigned.
+
 ## Get Exercise (`GET /api/v1/exercises/{slug}`)
 
 Returns an active exercise and its muscle relationships. `slug` is required and must not be blank.
@@ -47,15 +66,33 @@ Returns an active exercise and its muscle relationships. `slug` is required and 
   "difficulty": "INTERMEDIATE",
   "exerciseMuscles": [
     {
-      "muscle": { "name": "Biceps Brachii", "slug": "biceps", "bodyRegion": "ARMS" },
+      "muscle": {
+        "name": "Biceps Brachii",
+        "slug": "biceps",
+        "bodyRegion": "ARMS",
+        "assets": [
+          {
+            "id": "123e4567-e89b-12d3-a456-426614174001",
+            "objectKey": "muscles/biceps-front.webp",
+            "variant": "male",
+            "view": "FRONT"
+          }
+        ]
+      },
       "impactLevel": "PRIMARY"
     }
   ],
-  "gifUrl": null
+  "gifUrl": "https://cdn.example.com/catalog/exercises/gifs/exercises/abc123.gif"
 }
 ```
 
-`instructions` is an ordered array and defaults to an empty array. `gifUrl` is currently always `null`. The nullable internal `media_object_key` is never exposed and is assigned later by the media pipeline.
+`instructions` is an ordered array and defaults to an empty array.
+
+`gifUrl` and `thumbnailUrl` are resolved from the internal storage keys
+(`media_object_key` and `thumbnail_object_key`) against the configured public catalog
+base URL, so they are `null` only when the exercise has no asset assigned. The internal
+storage keys themselves are never exposed and are assigned by the media pipeline.
+
 
 ## Search Exercises (`GET /api/v1/exercises/search`)
 
@@ -116,7 +153,23 @@ Returns a paginated list of muscles. Use the exact slugs listed in [Muscle slugs
 | size | Integer | No | Number of items per page |
 | sort | String | No | Sort criteria |
 
-Returns `200 OK` with a Spring `Page<MuscleResponseDTO>`.
+Returns `200 OK` with a Spring `Page<MuscleResponse>`.
+
+```json
+{
+  "name": "Biceps Brachii",
+  "slug": "biceps",
+  "bodyRegion": "ARMS",
+  "assets": [
+    {
+      "id": "123e4567-e89b-12d3-a456-426614174001",
+      "objectKey": "muscles/biceps-front.webp",
+      "variant": "male",
+      "view": "FRONT"
+    }
+  ]
+}
+```
 
 ## Get Muscle (`GET /api/v1/muscles/{slug}`)
 

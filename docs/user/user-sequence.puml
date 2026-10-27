@@ -14,7 +14,7 @@ group Get profile
   UserRepository --> UserService : User
   UserService -> ObjectStoragePort : getPresignedUrl(profilePictureKey)
   ObjectStoragePort --> UserService : temporary URL
-  UserService --> Client : UserResponseDTO
+  UserService --> Client : UserResponse
 end
 
 group Upload or replace profile picture
@@ -22,17 +22,19 @@ group Upload or replace profile picture
   UserController -> ProfilePictureUseCase : uploadProfilePicture(userId, file)
   ProfilePictureUseCase -> ObjectStoragePort : upload(stable user key)
   ObjectStoragePort --> ProfilePictureUseCase : stored
-  ProfilePictureUseCase --> Client : ProfilePictureResponseDTO
+  ProfilePictureUseCase --> Client : ProfilePictureResponse
 end
 
-group Change password
-  Client -> UserController : PUT /user/me/password
-  UserController -> UserService : changePassword(userId, request)
+group Change username
+  Client -> UserController : PUT /user/me/username
+  UserController -> UserService : changeUsername(userId, request)
   UserService -> UserRepository : findById(userId)
-  UserService -> PasswordEncoder : matches(old password)
-  PasswordEncoder --> UserService : valid
-  UserService -> PasswordEncoder : encode(new password)
-  UserService -> UserRepository : persist changed hash
+  UserService -> UserRepository : persist new username
   UserService --> Client : 204 No Content
 end
+
+note over Client, UserService
+  Password changes belong to the auth module:
+  PATCH /api/v1/auth/password
+end note
 @enduml

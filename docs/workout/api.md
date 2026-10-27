@@ -12,12 +12,12 @@ All endpoints require JWT authentication and operate only on the authenticated u
 | PATCH | `/api/v1/sessions/{sessionId}/finish` | Complete session |
 | DELETE | `/api/v1/sessions/{sessionId}` | Delete session |
 | POST | `/api/v1/sessions/{sessionId}/exercises` | Add exercise |
-| PATCH | `/api/v1/sessions/{sessionId}/exercises/{exerciseId}/notes` | Update exercise notes |
-| PATCH | `/api/v1/sessions/{sessionId}/exercises/{exerciseId}/position` | Move exercise |
-| DELETE | `/api/v1/sessions/{sessionId}/exercises/{exerciseId}` | Delete exercise |
-| POST | `/api/v1/sessions/{sessionId}/exercises/{exerciseId}/sets` | Add set |
-| PUT | `/api/v1/sessions/{sessionId}/exercises/{exerciseId}/sets/{setId}` | Update set |
-| DELETE | `/api/v1/sessions/{sessionId}/exercises/{exerciseId}/sets/{setId}` | Delete set |
+| PATCH | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/notes` | Update exercise notes |
+| PATCH | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/position` | Move exercise |
+| DELETE | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}` | Delete exercise |
+| POST | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets` | Add set |
+| PUT | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{setId}` | Update set |
+| DELETE | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{setId}` | Delete set |
 
 Create requests require `status` and `startedAt`. A completed request also requires `completedAt` and at least one exercise; `completedAt` cannot be in the future. Exercise and set metrics must match the exercise category.
 

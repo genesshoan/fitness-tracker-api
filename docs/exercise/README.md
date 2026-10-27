@@ -18,7 +18,8 @@ Regular users can read the catalog; exercise creation, full update, and soft del
 
 ## Resources
 
-- **Exercise** — catalog entry with name, slug, description, instructions, category, difficulty, muscle relationships, and a nullable `gifUrl` placeholder. The internal `media_object_key` storage key is never exposed via API.
+- **Exercise** — catalog entry with name, slug, description, instructions, category, difficulty, muscle relationships, and the `gifUrl`/`thumbnailUrl` public asset URLs. The internal `media_object_key` and `thumbnail_object_key` storage keys are never exposed via API.
+- **MuscleAsset** — image that illustrates a muscle, exposed inside `MuscleResponse.assets`
 - **Muscle** — target muscle group with body-region classification and a stable slug used in filters and write requests
 - **ExerciseMuscle** — join entity linking exercises to muscles with impact level (primary, secondary, stabilizer)
 
