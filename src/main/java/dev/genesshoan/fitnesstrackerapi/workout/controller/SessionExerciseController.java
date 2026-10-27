@@ -12,6 +12,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -84,6 +85,7 @@ public class SessionExerciseController {
                                 mediaType = "application/problem+json",
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
+    @PostMapping
     public ResponseEntity<SessionExerciseAddedResponseDTO> addSessionExercise(
             @CurrentUserId UUID userId,
             @Parameter(description = "Workout session id") @PathVariable UUID sessionId,
