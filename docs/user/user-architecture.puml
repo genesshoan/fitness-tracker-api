@@ -1,15 +1,13 @@
 @startuml
 !theme plain
-
 class UserController
 class UserService
 interface UserRepository
 class UserMapper
 class User
-class UserResponseDTO
-class ProfilePictureResponseDTO
-class ChangePasswordRequestDTO
-class ChangeUsernameRequestDTO
+class UserResponse
+class ProfilePictureResponse
+class ChangeUsernameRequest
 class PasswordEncoder
 interface ProfilePictureUseCase
 interface ObjectStoragePort
@@ -21,14 +19,19 @@ UserService --> PasswordEncoder
 UserService --> ProfilePictureUseCase
 ProfilePictureUseCase --> ObjectStoragePort
 UserRepository --> User
-UserMapper --> UserResponseDTO
-UserController ..> ProfilePictureResponseDTO
-UserController ..> ChangePasswordRequestDTO
-UserController ..> ChangeUsernameRequestDTO
+UserMapper --> UserResponse
+UserController ..> ProfilePictureResponse
+UserController ..> ChangeUsernameRequest
 
 note right of UserService
   Identity comes from the
   authenticated principal.
   Passwords are encoded.
+end note
+
+note bottom of UserController
+  Password changes are not
+  part of this module:
+  PATCH /api/v1/auth/password
 end note
 @enduml

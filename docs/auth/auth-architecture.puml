@@ -23,19 +23,46 @@ skinparam package {
 
 package "auth module" as authmod {
 
-    component "AuthController" as ctrl {
+    component "RegistrationController\n(/api/v1/auth)" as regctrl {
     }
 
-    component "AuthService" as svc {
+    component "SessionController\n(/api/v1/auth)" as sessctrl {
+    }
+
+    component "CredentialsController\n(/api/v1/auth)" as credctrl {
+    }
+
+    component "RegistrationService" as regsvc {
+    }
+
+    component "SessionService" as sesssvc {
+    }
+
+    component "CredentialsService" as credsvc {
+    }
+
+    component "VerificationTokenService" as verifsvc {
     }
 
     component "JwtService" as jwt {
     }
 
-    component "TokenRepository" as repo {
+    component "OpaqueTokens" as opaque {
     }
 
-    database "Token Entity\n(tokens table)" as token {
+    component "RefreshTokenRepository" as rtrepo {
+    }
+
+    component "VerificationTokenRepository" as vtrepo {
+    }
+
+    component "RefreshCookieFactory" as cookie {
+    }
+
+    database "RefreshToken Entity\n(refresh_tokens table)" as rt {
+    }
+
+    database "VerificationToken Entity\n(verification_tokens table)" as vt {
     }
 }
 
@@ -58,7 +85,7 @@ package "common module" as commod {
 }
 
 package "config" as cfg {
-    component "SecurityConfig\n(public: /api/v1/auth/**)" as sc {
+    component "SecurityConfig\n(public: register, verify-email,\nresend-verification, login,\nforgot/reset-password, refresh, logout)" as sc {
     }
 
     component "OpenApiConfig\n(Bearer Auth scheme)" as oc {
@@ -68,18 +95,32 @@ package "config" as cfg {
 skinparam arrowColor #4A90D9
 skinparam arrowFontSize 10
 
-HTTPRequest -[hidden]> ctrl : HTTP\nRequest
+HTTPRequest -[hidden]> regctrl : HTTP\nRequest
+HTTPRequest -[hidden]> sessctrl : HTTP\nRequest
+HTTPRequest -[hidden]> credctrl : HTTP\nRequest
 
-sc ..> ctrl : permitAll\n@ /api/v1/auth/**
-jf ..> ctrl : filters\nall requests
+sc ..> regctrl : permitAll
+sc ..> sessctrl : permitAll
+sc ..> credctrl : permitAll\n(forgot/reset)
+jf ..> regctrl : filters\nall requests
 
-ctrl --> svc : 1. call\nservice method
-svc --> jwt : 2. generate /\nparse tokens
-svc --> repo : 3. persist /\nquery refresh\ntokens
-repo --> token : 4. entity\nmapping
-svc --> user : 5. lookup\nuser by email
+regctrl --> regsvc : 1. call\nuse case
+sessctrl --> sesssvc : 1. call\nuse case
+credctrl --> credsvc : 1. call\nuse case
+
+regsvc --> verifsvc : 2. issue\nverification token
+sesssvc --> jwt : 2. generate /\nparse access token
+sesssvc --> opaque : 3. issue opaque\nrefresh token
+sesssvc --> rtrepo : 4. persist /\nquery refresh tokens
+sesssvc --> cookie : 5. build\nrefresh cookie
+credsvc --> verifsvc : 2. consume\nverification token
+credsvc --> rtrepo : 3. revoke\ntoken families
+verifsvc --> vtrepo : 4. persist /\nquery tokens
+rtrepo --> rt : 5. entity\nmapping
+vtrepo --> vt : 5. entity\nmapping
+sesssvc --> user : 6. lookup\nuser by email
 user --> usermod : entity\nreference
-svc --> exc : throws\nexceptions
+regsvc --> exc : throws\nexceptions
 
 cfg ..> sc : security\nfilter chain
 cfg ..> oc : global\nsecurity\nrequirement
@@ -87,18 +128,23 @@ cfg ..> oc : global\nsecurity\nrequirement
 note right of jwt
   Access Token:
   - short-lived, stateless
-  - contains user identity + roles
-
-  Refresh Token:
-  - long-lived, persisted
-  - contains jti + familyId
+  - JWT, contains user
+    identity + roles
 end note
 
-note bottom of repo
+note right of opaque
+  Refresh Token:
+  - opaque random value
+  - only its hash is stored
+  - carries familyId server-side
+end note
+
+note bottom of rt
   Token rotation:
   each refresh revokes
-  old token, persists
-  new one
+  the old token, persists
+  a new one. Reuse revokes
+  the whole family.
 end note
 
 @enduml

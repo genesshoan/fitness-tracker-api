@@ -11,7 +11,7 @@ run ./user/get_me.http
 run ./user/put_username.http
 
 ### Cambia el password del usuario autenticado
-run ./user/put_passworde.http
+run ./user/patch_password.http
 
 ### Lista todos los musculos (paginado)
 run ./muscles/get_muscles.http

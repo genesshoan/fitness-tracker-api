@@ -56,8 +56,12 @@ Seed data populates all three levels (stabilizers were backfilled for free compo
 ### Instructions and Media
 
 - `instructions` — ordered step-by-step execution guide, persisted as a Postgres `TEXT[]` array column and exposed in the detail DTO as a JSON string array (nullable).
-- `media_object_key` — nullable internal object-storage key (e.g. `exercises/abc123.gif`). Infrastructure detail: stored on the entity, **never exposed** in any API response, and assigned later by the media pipeline.
-- `gifUrl` — client-facing placeholder for the demonstration GIF URL. Currently always `null`; real URL resolution (signed or public) from `media_object_key` will be implemented later in the service layer, not in the entity or DTO mapping.
+- `media_object_key` — nullable internal object-storage key (e.g. `exercises/abc123.gif`). Infrastructure detail: stored on the entity, **never exposed** in any API response, and assigned by the media pipeline.
+- `thumbnail_object_key` — nullable internal object-storage key of the exercise thumbnail, with the same guarantees as `media_object_key`.
+- `gifUrl` — public URL of the demonstration GIF, resolved from `media_object_key` against the configured catalog base URL. `null` when the exercise has no media assigned.
+- `thumbnailUrl` — public URL of the exercise thumbnail, resolved from `thumbnail_object_key`. `null` when the exercise has no thumbnail assigned.
+
+Both URLs are resolved in the catalog module and exposed only as absolute URLs; the storage keys never reach the client.
 
 ### Seed Data Review (feature/muscle-enhancement)
 

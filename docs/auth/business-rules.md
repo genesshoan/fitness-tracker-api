@@ -16,14 +16,22 @@ The auth module implements a stateless JWT authentication model:
 | `iat` | Date | Issued at timestamp |
 | `exp` | Date | Expiration timestamp |
 
-### Refresh Token Claims
-| Claim | Type | Description |
-|-------|------|-------------|
-| `sub` | String | User email (username) |
-| `jti` | UUID | Unique token identifier (JWT ID) |
-| `familyId` | UUID | Session identifier for token family grouping |
-| `iat` | Date | Issued at timestamp |
-| `exp` | Date | Expiration timestamp |
+### Refresh Token Record
+The refresh token is **opaque**: a random value whose only server-side
+representation is its SHA-256 hash. It travels in the `refresh_token` cookie,
+never in the response body.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `hash` | BYTEA | SHA-256 hash of the refresh token, unique |
+| `familyId` | UUID | Token family grouping, generated server-side |
+| `revoked` | BOOLEAN | Whether the token has been consumed or revoked |
+| `expiresAt` | TIMESTAMP | Expiration instant |
+| `userId` | UUID | Owner of the session |
+
+Because the hash is what is stored, a database leak cannot be replayed as a
+valid session.
 
 ## Token Lifecycle
 
@@ -41,16 +49,17 @@ The auth module implements a stateless JWT authentication model:
 1. Authenticate via `AuthenticationManager`
 2. Find user by email
 3. Verify email is confirmed (else `EmailNotVerifiedException` → 403)
-4. Generate new token family (UUID)
-5. Create and persist refresh token record
-6. Issue signed access and refresh tokens
+4. Reject the login when the email is not verified (`EmailNotVerifiedException` → 403)
+5. Generate a new token family (UUID)
+6. Generate a random opaque refresh token and persist only its SHA-256 hash
+7. Issue the signed access token and return the refresh token in the `refresh_token` cookie
 
 ### Email Verification Flow
 1. User submits the token received by email to `POST /api/v1/auth/verify-email`
 2. Token is hashed (SHA-256) and looked up
 3. If the token is unknown, expired, already consumed, or belongs to another purpose → `InvalidCodeException` (400)
 4. On success the account is marked as verified and the token is consumed
-5. A new token family is created and access/refresh tokens are issued, so verification completes the login
+5. No tokens are issued: the account is now verified and the user logs in normally
 
 ### Resend Verification Flow
 1. User submits the email to `POST /api/v1/auth/resend-verification`
@@ -71,17 +80,20 @@ The auth module implements a stateless JWT authentication model:
 5. A password changed notification is sent to the account email
 
 ### Refresh Flow
-1. Extract `jti` and `familyId` from refresh token
-2. Look up refresh token in database by `jti`
-3. If token already revoked → revoke entire family and reject (reuse detection)
-4. Mark current token as revoked
-5. Issue new access and refresh tokens with same `familyId`
-6. Persist new refresh token record
+1. Read the incoming refresh token from the `refresh_token` cookie
+2. Hash it with SHA-256 and look up the record by hash
+3. If the token is unknown or expired → reject (`RefreshTokenReuseException` → 401)
+4. If the token was already revoked → revoke the entire family and reject (reuse detection)
+5. Mark the current token as revoked
+6. Issue a new access token and a new opaque refresh token with the same `familyId`
+7. Persist the new refresh token record and set the new `refresh_token` cookie
 
 ### Logout Flow
-1. Extract `familyId` from refresh token
-2. Revoke all tokens with matching `familyId`
-3. No database record deletion; tokens marked revoked
+1. Read the incoming refresh token from the `refresh_token` cookie
+2. Hash it with SHA-256 and look up the record by hash
+3. Revoke the token family the record belongs to
+4. No database record deletion; tokens marked revoked
+5. Clear the `refresh_token` cookie
 
 ## Token Family Rotation
 
@@ -99,7 +111,7 @@ This enables:
 
 If a revoked refresh token is used:
 1. The entire token family is revoked
-2. An `InvalidJwtException` is thrown
+2. A `RefreshTokenReuseException` is thrown
 3. The user must re-authenticate
 
 This is a security measure against token theft.

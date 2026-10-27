@@ -45,6 +45,10 @@ All endpoints require JWT authentication and scope results to the authenticated 
 {
   "from": "2026-09-01",
   "to": "2026-09-30",
+  "baseAssets": {
+    "frontBaseAssetUrl": "https://cdn.example.com/catalog/muscles/images/male_front_base.png",
+    "backBaseAssetUrl": "https://cdn.example.com/catalog/muscles/images/male_back_base.png"
+  },
   "muscles": [
     {
       "id": "123e4567-e89b-12d3-a456-426614174000",

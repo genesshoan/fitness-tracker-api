@@ -7,7 +7,9 @@
 | Browse exercises | `GET /api/v1/exercises` | Pagination params, optional filters |
 | Autocomplete exercise search | `GET /api/v1/exercises/search?q=...&limit=...` | Name or slug search; limit defaults to 10 and may be 1-20 |
 | View exercise details | `GET /api/v1/exercises/{slug}` | Exercise slug |
-| Create, update, or delete exercise (admin) | `POST`, `PUT`, or `DELETE /api/v1/exercises` | `ADMIN` token and request body |
+| Create exercise (admin) | `POST /api/v1/exercises` | `ADMIN` token and request body |
+| Update exercise (admin) | `PUT /api/v1/exercises/{slug}` | `ADMIN` token, exercise slug and request body |
+| Delete exercise (admin) | `DELETE /api/v1/exercises/{slug}` | `ADMIN` token and exercise slug |
 | Browse muscles | `GET /api/v1/muscles` | Pagination params |
 | View muscle details | `GET /api/v1/muscles/{slug}` | Muscle slug |
 
@@ -29,7 +31,9 @@
 ### Exercise Detail
 
 - Display the description and `instructions` as a numbered list; hide the section when empty.
-- Display `gifUrl` when present. It is currently always `null`; do not build a GIF URL client-side from another field.
+- Display `gifUrl` when present; it is `null` when the exercise has no media assigned.
+- Display `thumbnailUrl` in list cards when present; it is `null` when the exercise has no thumbnail assigned.
+- Do not build asset URLs client-side: the server already resolves them from the internal storage keys.
 - Show target muscles with `PRIMARY`, `SECONDARY`, or `STABILIZER` impact levels.
 
 ### Muscle Directory
@@ -84,6 +88,6 @@ All write operations require the `ADMIN` role.
 
 - Send `Authorization: Bearer <token>` on every request.
 - On a 401 response, redirect the user to login.
-- Do not expose or derive values from the internal `media_object_key`.
+- Do not expose or derive values from the internal `media_object_key` or `thumbnail_object_key`.
 
 ![Exercise Sequence Diagram](exercise-sequence.png)

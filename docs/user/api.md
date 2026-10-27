@@ -4,10 +4,9 @@ All endpoints require a valid JWT access token and operate on the authenticated 
 
 | Method | Path | Request | Response |
 |---|---|---|---|
-| GET | `/api/v1/user/me` | none | `UserResponseDTO` |
-| PUT | `/api/v1/user/me/profile-picture` | `multipart/form-data` with `file` | `ProfilePictureResponseDTO` |
-| PUT | `/api/v1/user/me/password` | `ChangePasswordRequestDTO` | `204 No Content` |
-| PUT | `/api/v1/user/me/username` | `ChangeUsernameRequestDTO` | `204 No Content` |
+| GET | `/api/v1/user/me` | none | `UserResponse` |
+| PUT | `/api/v1/user/me/profile-picture` | `multipart/form-data` with `file` | `ProfilePictureResponse` |
+| PUT | `/api/v1/user/me/username` | `ChangeUsernameRequest` | `204 No Content` |
 
 ## Get Profile
 
@@ -55,19 +54,6 @@ Invalid files return `400`. Storage and processing failures return `500` with a
 generic detail; provider messages, local paths, and object-storage keys are not
 exposed.
 
-## Change Password
-
-`PUT /api/v1/user/me/password`
-
-```json
-{
-  "oldPassword": "CurrentPass123!",
-  "newPassword": "NewPass456!"
-}
-```
-
-Both passwords are required and must contain at least eight characters. The old password is verified with the configured password encoder. The new password must differ from the current password.
-
 ## Change Username
 
 `PUT /api/v1/user/me/username`
@@ -79,6 +65,21 @@ Both passwords are required and must contain at least eight characters. The old 
 ```
 
 The username must not be blank, must differ from the current username, and must remain unique. Database uniqueness protects against duplicate usernames.
+
+## Change Password
+
+Password changes belong to the `auth` module, not to `user`:
+
+`PATCH /api/v1/auth/password` with a `PasswordChangeRequest` body
+
+```json
+{
+  "oldPassword": "CurrentPass123!",
+  "newPassword": "NewPass456!"
+}
+```
+
+Both passwords are required and must contain at least eight characters. The old password is verified with the configured password encoder. The new password must differ from the current password. See the [auth API reference](../auth/api.md).
 
 ## Errors
 

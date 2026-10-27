@@ -10,7 +10,7 @@ A production-minded REST API for tracking workouts, routines, body measurements,
 ## Highlights
 
 - JWT authentication with short-lived access tokens and rotating, revocable refresh-token families
-- Exercise and muscle catalog with cursor-based pagination and multi-field filtering
+- Exercise and muscle catalog with cursor-based pagination, multi-field filtering and public asset URLs
 - User-owned routines with ordered exercises and category-specific metric validation
 - Workout sessions that can be created from routines or built from scratch
 - Implicit workout conveniences: position normalization, sequential set numbering, last-set reuse, and category defaults
@@ -25,13 +25,15 @@ A production-minded REST API for tracking workouts, routines, body measurements,
 | --- | --- | --- |
 | `auth` / `security` | Registration, login, JWT validation, refresh rotation, logout, and revocation | [Auth docs](docs/auth/README.md) |
 | `user` | User profile, credentials, and timezone-aware account data | [User docs](docs/user/README.md) |
-| `exercise` | Read-only exercise and muscle catalog | [Exercise docs](docs/exercise/README.md) |
+| `exercise` | Exercise and muscle catalog, with ADMIN-only maintenance | [Exercise docs](docs/exercise/README.md) |
 | `routine` | Reusable ordered workout plans | [Routine docs](docs/routine/README.md) |
 | `workout` | Live and completed workout sessions, exercises, and sets | [Workout docs](docs/workout/README.md) |
 | `progressrecord` | User body measurements and date-range queries | [Progress docs](docs/progress/README.md) |
 | `stats` | Aggregated training metrics and achievements | [Stats docs](docs/stats/README.md) |
 
 The complete endpoint inventory is available in [`docs/endpoints.md`](docs/endpoints.md). All API routes are versioned under `/api/v1`.
+
+![Entity-relationship diagram](docs/er.png)
 
 ## Technical Decisions
 

@@ -1,6 +1,8 @@
 @startuml
 !theme plain
 
+title Entity-Relationship Diagram
+
 entity "users" {
     * id : UUID <<PK>>
     --
@@ -8,17 +10,32 @@ entity "users" {
     * email : VARCHAR <<UK>>
     * password_hash : VARCHAR
     * role : VARCHAR
-    * created_at : TIMESTAMP
-    * updated_at : TIMESTAMP
+    * email_verified : BOOLEAN
+    * timezone : VARCHAR
+    * profile_picture_key : VARCHAR
+    * created_at : TIMESTAMPTZ
+    * updated_at : TIMESTAMPTZ
 }
 
-entity "tokens" {
-    * jti : UUID <<PK>>
+entity "refresh_tokens" {
+    * id : UUID <<PK>>
     --
+    * hash : BYTEA <<UK>>
     * family_id : UUID
     * revoked : BOOLEAN
-    * expires_at : TIMESTAMP
+    * expires_at : TIMESTAMPTZ
     * user_id : UUID <<FK>>
+}
+
+entity "verification_tokens" {
+    * id : UUID <<PK>>
+    --
+    * subject_id : UUID <<FK>>
+    * hash : BYTEA
+    * purpose : VARCHAR
+    * expires_at : TIMESTAMPTZ
+    * used_at : TIMESTAMPTZ
+    * created_at : TIMESTAMPTZ
 }
 
 entity "muscles" {
@@ -27,8 +44,23 @@ entity "muscles" {
     * name : VARCHAR <<UK>>
     * slug : VARCHAR <<UK>>
     * body_region : VARCHAR
+    * created_at : TIMESTAMPTZ
+    * updated_at : TIMESTAMPTZ
+}
+
+entity "muscle_assets" {
+    * id : UUID <<PK>>
+    --
+    * object_key : VARCHAR <<UK>>
+    * variant : VARCHAR
+    * view : VARCHAR
     * created_at : TIMESTAMP
     * updated_at : TIMESTAMP
+}
+
+entity "muscle_asset_mappings" {
+    * muscle_id : UUID <<PK>> <<FK>>
+    * muscle_asset_id : UUID <<PK>> <<FK>>
 }
 
 entity "exercises" {
@@ -36,19 +68,20 @@ entity "exercises" {
     --
     * name : VARCHAR <<UK>>
     * slug : VARCHAR <<UK>>
-    * description : VARCHAR
+    * description : TEXT
     * instructions : TEXT[]
     * media_object_key : VARCHAR <<UK>>
+    * thumbnail_object_key : VARCHAR <<UK>>
     * category : VARCHAR
     * difficulty : VARCHAR
     * active : BOOLEAN
-    * created_at : TIMESTAMP
-    * updated_at : TIMESTAMP
+    * created_at : TIMESTAMPTZ
+    * updated_at : TIMESTAMPTZ
 }
 
 entity "exercise_muscles" {
-    * exercise_id : UUID <<FK>> <<PK>>
-    * muscle_id : UUID <<FK>> <<PK>>
+    * exercise_id : UUID <<PK>> <<FK>>
+    * muscle_id : UUID <<PK>> <<FK>>
     --
     * impact_level : VARCHAR
 }
@@ -60,8 +93,8 @@ entity "routines" {
     * description : TEXT
     * active : BOOLEAN
     * user_id : UUID <<FK>>
-    * created_at : TIMESTAMP
-    * updated_at : TIMESTAMP
+    * created_at : TIMESTAMPTZ
+    * updated_at : TIMESTAMPTZ
     ..
     UK : (name, user_id)
 }
@@ -89,12 +122,11 @@ entity "workout_sessions" {
     * user_id : UUID <<FK>>
     routine_id : UUID <<FK>> NULL
     * status : VARCHAR
-    * startedAt : TIMESTAMP
-    completed_at : TIMESTAMP
+    * started_at : TIMESTAMPTZ
+    completed_at : TIMESTAMPTZ
     notes : TEXT
-    version : INT <<@Version>>
-    * created_at : TIMESTAMP
-    * updated_at : TIMESTAMP
+    * created_at : TIMESTAMPTZ
+    * updated_at : TIMESTAMPTZ
 }
 
 entity "session_exercises" {
@@ -104,8 +136,8 @@ entity "session_exercises" {
     * exercise_id : UUID <<FK>>
     * position : INT
     notes : TEXT
-    * created_at : TIMESTAMP
-    * updated_at : TIMESTAMP
+    * created_at : TIMESTAMPTZ
+    * updated_at : TIMESTAMPTZ
     ..
     UK : (session_id, position)
 }
@@ -120,8 +152,8 @@ entity "session_sets" {
     duration_seconds : INT
     distance_km : DOUBLE PRECISION
     * completed : BOOLEAN
-    * created_at : TIMESTAMP
-    * updated_at : TIMESTAMP
+    * created_at : TIMESTAMPTZ
+    * updated_at : TIMESTAMPTZ
     ..
     UK : (session_exercise_id, set_number)
 }
@@ -130,26 +162,34 @@ entity "progress_records" {
     * id : UUID <<PK>>
     --
     * user_id : UUID <<FK>>
-    * recorded_on : DATE
+    * recorded_at : DATE
     * weight_kg : DOUBLE PRECISION
     body_fat_percentage : DOUBLE PRECISION
-    * created_at : TIMESTAMP
-    * updated_at : TIMESTAMP
+    * created_at : TIMESTAMPTZ
+    * updated_at : TIMESTAMPTZ
     ..
-    UK : (user_id, recorded_on)
+    UK : (user_id, recorded_at)
 }
 
-"exercises" ||--o{ "exercise_muscles" : "has"
-"muscles" ||--o{ "exercise_muscles" : "has"
-"users" ||--o{ "tokens" : "has"
+"users" ||--o{ "refresh_tokens" : "has"
+"users" ||--o{ "verification_tokens" : "has"
 "users" ||--o{ "routines" : "has"
+"users" ||--o{ "workout_sessions" : "has"
+"users" ||--o{ "progress_records" : "has"
 "routines" ||--o{ "routine_exercises" : "has"
+"routines" ||--o{ "workout_sessions" : "starts"
 "exercises" ||--o{ "routine_exercises" : "used in"
-"users" ||--o{ "workout_sessions"
-"routines" ||--o{ "workout_sessions"
-"workout_sessions" ||--o{ "session_exercises"
-"exercises" ||--o{ "session_exercises"
-"session_exercises" ||--o{ "session_sets"
-"users" ||--o{ "progress_records"
+"exercises" ||--o{ "session_exercises" : "performed in"
+"workout_sessions" ||--o{ "session_exercises" : "has"
+"session_exercises" ||--o{ "session_sets" : "has"
+"exercises" ||--o{ "exercise_muscles" : "targets"
+"muscles" ||--o{ "exercise_muscles" : "targeted by"
+"muscles" ||--o{ "muscle_asset_mappings" : "illustrated by"
+"muscle_assets" ||--o{ "muscle_asset_mappings" : "maps to"
+
+note bottom of muscle_assets
+  Legacy column content_type is
+  no longer mapped by the entity.
+end note
 
 @enduml
