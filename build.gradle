@@ -99,14 +99,6 @@ tasks.named('jar') {
     enabled = false
 }
 
-tasks.register('seed', JavaExec) {
-    group = "tools"
-    description = "Generates seed SQL"
-
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'dev.genesshoan.fitnesstrackerapi.infrastructure.script.SeedGenerator'
-}
-
 spotless {
     java {
         palantirJavaFormat('2.97.0')
