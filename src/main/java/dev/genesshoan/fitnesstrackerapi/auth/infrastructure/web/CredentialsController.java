@@ -18,6 +18,8 @@ import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.ForgotPasswo
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.PasswordChangeRequest;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.ResetPasswordRequest;
 import dev.genesshoan.fitnesstrackerapi.common.annotation.CurrentUserId;
+import dev.genesshoan.fitnesstrackerapi.ratelimit.domain.RateLimitPolicy;
+import dev.genesshoan.fitnesstrackerapi.ratelimit.infrastructure.web.RateLimited;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -93,9 +95,17 @@ public class CredentialsController {
                         content =
                                 @Content(
                                         mediaType = "application/problem+json",
+                                        schema = @Schema(implementation = ProblemDetail.class))),
+                @ApiResponse(
+                        responseCode = "429",
+                        description = "Too many password reset requests for this IP address or email",
+                        content =
+                                @Content(
+                                        mediaType = "application/problem+json",
                                         schema = @Schema(implementation = ProblemDetail.class)))
             })
     @PostMapping("/forgot-password")
+    @RateLimited(policy = RateLimitPolicy.PASSWORD_RESET, accountKey = "#dto.email")
     public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest dto) {
         credentialsService.requestPasswordReset(dto.email());
 
