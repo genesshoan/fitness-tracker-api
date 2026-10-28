@@ -63,6 +63,7 @@ public class UserService
         return new UserResponse(
                 profile.email(),
                 profile.username(),
+                profile.createdAt(),
                 profilePictureService.getProfilePictureUrl(user.getProfilePictureKey()));
     }
 

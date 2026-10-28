@@ -310,7 +310,7 @@ public class TestEntityFactory {
     }
 
     public User createAndPersistUser(UserBuilder builder) {
-        return userRepository.save(builder.build());
+        return userRepository.saveAndFlush(builder.build());
     }
 
     public User createAndPersistUser() {
