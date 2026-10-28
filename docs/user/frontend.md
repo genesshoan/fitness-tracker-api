@@ -4,7 +4,7 @@ Keep the user profile and credential screens scoped to the current authenticated
 
 | UI action | Request | Success |
 |---|---|---|
-| Load profile | `GET /api/v1/user/me` | Replace cached username/email and display `profilePictureUrl` |
+| Load profile | `GET /api/v1/user/me` | Replace cached username/email, display `createdAt` and `profilePictureUrl` |
 | Upload profile picture | `PUT /api/v1/user/me/profile-picture` with multipart `file` | Display returned `url` and refresh profile data |
 | Change password | `PATCH /api/v1/auth/password` | Show success and keep the session unless authentication fails |
 | Change username | `PUT /api/v1/user/me/username` | Refresh profile data |

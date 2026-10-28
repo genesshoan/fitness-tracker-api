@@ -38,8 +38,9 @@ read the refresh token from the `refresh_token` cookie.
 | ------ | -------- | ---- | ------- | -------- | ------ |
 | GET | `/api/v1/user/me` | Required | None | `UserResponse` | 200 |
 
-`UserResponse` includes `profilePictureUrl`, a temporary URL for the processed
-profile picture, or `null` when the user has not uploaded one.
+`UserResponse` includes `createdAt`, the account creation timestamp, and
+`profilePictureUrl`, a temporary URL for the processed profile picture, or `null`
+when the user has not uploaded one.
 
 ### Profile picture
 
@@ -125,6 +126,9 @@ Password changes live in the `auth` module (`PATCH /api/v1/auth/password`).
 | ------ | -------- | ---- | ------- | -------- | ------ |
 | POST | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets` | Required | `SessionSetRequestDTO` | `SessionSetResponseDTO` | 201 |
 | PUT | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{sessionSetId}` | Required | `SessionSetRequestDTO` | `SessionSetResponseDTO` | 200 |
+| PATCH | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{sessionSetId}/complete` | Complete set |
+| PATCH | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{sessionSetId}/incomplete` | Mark set as incomplete |
+| PATCH | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{sessionSetId}/incomplete` | Required | None | `SessionSetResponseDTO` | 200 |
 | DELETE | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{sessionSetId}` | Required | None | None | 204 |
 
 ---
