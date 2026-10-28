@@ -59,6 +59,9 @@ app:
     secret-key: test-secret-key
     path-style: true
     presigned-url-expiration: 1h
+ 
+  security:
+    ip-provider: CLOUDFLARE
 
   rate-limit:
     enabled: false
