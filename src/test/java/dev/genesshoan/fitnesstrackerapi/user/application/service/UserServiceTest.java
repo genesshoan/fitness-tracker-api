@@ -1,5 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.user.application.service;
 
+import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,6 +48,7 @@ class UserServiceTest {
     private static final UUID USER_ID = UUID.fromString("01932f4a-1234-7000-8000-123456789abc");
     private static final String EMAIL = "shoan@test.com";
     private static final String USERNAME = "shoan";
+    private static final Instant CREATED_AT = Instant.parse("2026-01-31T10:15:30Z");
 
     @Mock
     private UserRepository userRepository;
@@ -75,7 +77,7 @@ class UserServiceTest {
     @DisplayName("Should return the profile with the profile picture url")
     void getProfile_shouldReturnProfile() {
         // Given
-        UserResponse mapped = new UserResponse(EMAIL, USERNAME, null);
+        UserResponse mapped = new UserResponse(EMAIL, USERNAME, CREATED_AT, null);
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
         when(userMapper.toResponseDTO(user)).thenReturn(mapped);
         when(profilePictureService.getProfilePictureUrl(null)).thenReturn(null);
@@ -94,8 +96,8 @@ class UserServiceTest {
         // Given
         String key = "profile-pictures/" + USER_ID + ".jpg";
         user.setProfilePictureKey(key);
-        UserResponse mapped = new UserResponse(EMAIL, USERNAME, null);
-        UserResponse expected = new UserResponse(EMAIL, USERNAME, "https://storage/picture.jpg");
+        UserResponse mapped = new UserResponse(EMAIL, USERNAME, CREATED_AT, null);
+        UserResponse expected = new UserResponse(EMAIL, USERNAME, CREATED_AT, "https://storage/picture.jpg");
 
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
         when(userMapper.toResponseDTO(user)).thenReturn(mapped);

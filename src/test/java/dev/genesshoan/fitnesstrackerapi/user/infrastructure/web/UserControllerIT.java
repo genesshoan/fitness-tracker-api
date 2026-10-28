@@ -95,6 +95,7 @@ class UserControllerIT extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value(user.getEmail()))
                 .andExpect(jsonPath("$.username").value(user.getUsername()))
+                .andExpect(jsonPath("$.createdAt").exists())
                 .andExpect(jsonPath("$.profilePictureUrl").doesNotExist());
     }
 
