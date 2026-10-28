@@ -17,6 +17,8 @@ All endpoints require JWT authentication and operate only on the authenticated u
 | DELETE | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}` | Delete exercise |
 | POST | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets` | Add set |
 | PUT | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{setId}` | Update set |
+| PATCH | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{setId}/complete` | Complete set |
+| PATCH | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{setId}/incomplete` | Mark set as incomplete |
 | DELETE | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{setId}` | Delete set |
 
 Create requests require `status` and `startedAt`. A completed request also requires `completedAt` and at least one exercise; `completedAt` cannot be in the future. Exercise and set metrics must match the exercise category.

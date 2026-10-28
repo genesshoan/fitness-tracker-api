@@ -112,6 +112,12 @@ run ./workout/add_set.http
 ### Actualiza una serie
 run ./workout/update_set.http
 
+### Marca una serie como completa
+run ./workout/mark_set_complete.http
+
+### Marca una serie como incompleta
+run ./workout/mark_set_incomplete.http
+
 ### Elimina una serie
 run ./workout/delete_set.http
 

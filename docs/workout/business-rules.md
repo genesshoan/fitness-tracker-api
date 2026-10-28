@@ -15,6 +15,8 @@
 - Moving an exercise clamps to the valid range and shifts affected siblings.
 - Deleting an exercise closes the position gap.
 - Set numbers supplied when adding/updating an existing set are ignored; the new set receives the next sequential number.
+- Marking a set incomplete clears its completion state without changing its metrics or number.
+- Marking a set complete sets its completion state without changing its metrics or number.
 - Deleting a set closes the set-number gap. Deleting the sole set removes the parent session exercise.
 
 ## Defaults and Batching

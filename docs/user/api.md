@@ -18,6 +18,7 @@ Returns:
 {
   "email": "user@mail.com",
   "username": "user_123",
+  "createdAt": "2026-01-31T10:15:30Z",
   "profilePictureUrl": "https://storage.example/profile-picture.jpg?signature=..."
 }
 ```
@@ -25,7 +26,7 @@ Returns:
 `profilePictureUrl` is a temporary presigned URL and is `null` when no picture
 has been uploaded. Clients should use the URL for display and request the
 profile again when it expires. The response intentionally excludes the
-password hash, role, timezone, storage key, and internal timestamps.
+password hash, role, timezone, storage key, and the internal updated timestamp.
 
 ## Upload or Replace Profile Picture
 
