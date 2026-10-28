@@ -110,6 +110,7 @@ app:
     ip-provider: CLOUDFLARE
 
   rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
     ipv6-prefix: 64
 
     policies:

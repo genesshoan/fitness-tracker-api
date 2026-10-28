@@ -59,3 +59,6 @@ app:
     secret-key: test-secret-key
     path-style: true
     presigned-url-expiration: 1h
+
+  rate-limit:
+    enabled: false
