@@ -137,6 +137,40 @@ This is a security measure against token theft.
 - Verification tokens (email verification and password reset) are purpose scoped, single use, and stored as SHA-256 hashes
 - A password change or password reset revokes every refresh token of the account
 
+## Rate Limiting
+
+The public credential endpoints listed below are charged to a Bucket4j bucket
+before the controller executes. Two dimensions are enforced:
+
+- **Per IP** — keyed by the client IP resolved from the proxy headers
+  (`CF-Connecting-IP` behind Cloudflare). IPv4-mapped addresses are collapsed to
+  IPv4, IPv6 clients are grouped by `/64`, and malformed or missing addresses
+  share a single `unknown` bucket so they cannot be used to bypass the limit.
+- **Per account** — keyed by the email in the request body, trimmed and
+  lower-cased.
+
+| Policy | Endpoint | IP | Account |
+|--------|----------|----|---------|
+| `LOGIN` | `POST /api/v1/auth/login` | 20 / minute | 5 / 15 minutes |
+| `REGISTRATION` | `POST /api/v1/auth/register` | 5 / hour | 1 / minute and 3 / hour |
+| `EMAIL_VERIFICATION` | `POST /api/v1/auth/resend-verification` | 10 / hour | 1 / 2 minutes and 5 / 12 hours |
+| `PASSWORD_RESET` | `POST /api/v1/auth/forgot-password` | 10 / hour | 1 / minute and 3 / hour |
+
+Rules:
+
+- The quota is consumed **before** the endpoint runs, so failed attempts (wrong
+  password, unknown email, duplicate registration) also count towards the limit.
+- A request only proceeds when every configured band has capacity; otherwise the
+  API responds `429 Too Many Requests` with a `Retry-After` header.
+- `LOGIN` uses continuous (`GREEDY`) refill; the other policies restore their
+  full capacity at the end of the period (`INTERVALLY`).
+- `verify-email`, `reset-password`, `refresh`, `logout` and password change are
+  not rate limited.
+- Buckets are stored in the local Caffeine cache, so limits are per application
+  instance and are reset on restart.
+- `app.rate-limit.enabled` (env `RATE_LIMIT_ENABLED`) turns the whole mechanism
+  off. The `test` profile disables it so integration tests never share buckets.
+
 ## Default Role Assignment
 
 All newly registered users are assigned the `USER` role:
