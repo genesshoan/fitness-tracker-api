@@ -959,6 +959,123 @@ class WorkoutSessionServiceTest {
     }
 
     @Nested
+    @DisplayName("markSessionSetIncomplete")
+    class MarkSessionSetIncomplete {
+        @Test
+        @DisplayName("Should mark a completed set as incomplete and return mapped response")
+        void should_markCompletedSetAsIncomplete_when_sessionIsActive() {
+            UUID userId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            UUID sessionSetId = UUID.randomUUID();
+            SessionSet sessionSet = SessionSetBuilder.aSessionSet(FAKER)
+                    .withId(sessionSetId)
+                    .withSetNumber(1)
+                    .withReps(10)
+                    .withWeightKg(15.0)
+                    .withCompleted(true)
+                    .build();
+            SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(FAKER)
+                    .withSets(List.of(sessionSet))
+                    .forExercise(ExerciseBuilder.anExercise(FAKER)
+                            .withCategory(Category.STRENGTH)
+                            .build())
+                    .build();
+            WorkoutSession session = WorkoutSessionBuilder.aWorkoutSession(FAKER)
+                    .withId(sessionId)
+                    .forUser(UserBuilder.aUser(FAKER).build())
+                    .withExercises(List.of(sessionExercise))
+                    .build();
+            sessionSet.setSessionExercise(sessionExercise);
+            sessionExercise.setWorkoutSession(session);
+
+            when(sessionSetRepository.findForUpdateWithSessionExerciseAndWorkoutSessionAndExercise(
+                            sessionSetId, sessionExercise.getId(), sessionId, userId))
+                    .thenReturn(Optional.of(sessionSet));
+            when(sessionSetMapper.toResponseDTO(eq(sessionSet), anyMap())).thenAnswer(invocation -> {
+                SessionSet set = invocation.getArgument(0);
+                return new SessionSetResponseDTO(
+                        set.getId(),
+                        set.getSetNumber(),
+                        set.getReps(),
+                        set.getWeightKg(),
+                        set.getDurationSeconds(),
+                        set.getDistanceKm(),
+                        set.isCompleted(),
+                        List.of());
+            });
+
+            SessionSetResponseDTO result = workoutSessionService.markSessionSetIncomplete(
+                    sessionId, sessionExercise.getId(), sessionSetId, userId);
+
+            assertThat(sessionSet.isCompleted()).isFalse();
+            assertThat(sessionSet.getReps()).isEqualTo(10);
+            assertThat(sessionSet.getWeightKg()).isEqualTo(15.0);
+            assertThat(result.setNumber()).isEqualTo(1);
+            assertThat(result.reps()).isEqualTo(10);
+            assertThat(result.completed()).isFalse();
+            verifyNoInteractions(statsService);
+        }
+
+        @Test
+        @DisplayName("Should throw bad request exception when session is completed")
+        void should_throwBadRequestException_when_sessionIsCompleted() {
+            UUID userId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            UUID sessionSetId = UUID.randomUUID();
+            SessionSet sessionSet = SessionSetBuilder.aSessionSet(FAKER)
+                    .withId(sessionSetId)
+                    .withCompleted(true)
+                    .build();
+            SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(FAKER)
+                    .withSets(List.of(sessionSet))
+                    .forExercise(ExerciseBuilder.anExercise(FAKER)
+                            .withCategory(Category.STRENGTH)
+                            .build())
+                    .build();
+            WorkoutSession session = WorkoutSessionBuilder.aWorkoutSession(FAKER)
+                    .withId(sessionId)
+                    .withStatus(SessionStatus.COMPLETED)
+                    .forUser(UserBuilder.aUser(FAKER).build())
+                    .withExercises(List.of(sessionExercise))
+                    .build();
+            sessionSet.setSessionExercise(sessionExercise);
+            sessionExercise.setWorkoutSession(session);
+
+            when(sessionSetRepository.findForUpdateWithSessionExerciseAndWorkoutSessionAndExercise(
+                            sessionSetId, sessionExercise.getId(), sessionId, userId))
+                    .thenReturn(Optional.of(sessionSet));
+
+            assertThatThrownBy(() -> workoutSessionService.markSessionSetIncomplete(
+                            sessionId, sessionExercise.getId(), sessionSetId, userId))
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessage("The workout session is already finished");
+
+            assertThat(sessionSet.isCompleted()).isTrue();
+            verifyNoInteractions(sessionSetMapper);
+        }
+
+        @Test
+        @DisplayName("Should throw resource not found exception when session set is missing")
+        void should_throwResourceNotFoundException_when_sessionSetIsMissing() {
+            UUID userId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            UUID sessionExerciseId = UUID.randomUUID();
+            UUID sessionSetId = UUID.randomUUID();
+
+            when(sessionSetRepository.findForUpdateWithSessionExerciseAndWorkoutSessionAndExercise(
+                            sessionSetId, sessionExerciseId, sessionId, userId))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> workoutSessionService.markSessionSetIncomplete(
+                            sessionId, sessionExerciseId, sessionSetId, userId))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage("Session set not found");
+
+            verifyNoInteractions(sessionSetMapper);
+        }
+    }
+
+    @Nested
     @DisplayName("deleteSessionSet")
     class DeleteSessionSet {
         @Test

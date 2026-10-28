@@ -385,6 +385,74 @@ class WorkoutSessionControllerIT extends AbstractIntegrationTest {
         }
     }
 
+    @Nested
+    @DisplayName("PATCH /api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{setId}/incomplete")
+    class MarkSetIncomplete {
+
+        private WorkoutSession session;
+        private SessionExercise sessionExercise;
+        private SessionSet sessionSet;
+
+        @BeforeEach
+        void setUp() {
+            session = persistSessionWithExercises(user, 1);
+            sessionExercise = session.getExercises().get(0);
+            sessionSet = sessionExercise.getSets().get(0);
+        }
+
+        @Test
+        @DisplayName("Should return 200 and clear the completion state while keeping the metrics")
+        void shouldReturn200AndMarkSetIncomplete() throws Exception {
+            sessionSet.setCompleted(true);
+            sessionSetRepository.saveAndFlush(sessionSet);
+
+            mockMvc.perform(patch(
+                                    "/api/v1/sessions/{sessionId}/exercises/{exerciseId}/sets/{setId}/incomplete",
+                                    session.getId(),
+                                    sessionExercise.getId(),
+                                    sessionSet.getId())
+                            .with(asUser(user)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(sessionSet.getId().toString()))
+                    .andExpect(jsonPath("$.completed").value(false))
+                    .andExpect(jsonPath("$.reps").value(sessionSet.getReps()))
+                    .andExpect(jsonPath("$.weightKg").value(sessionSet.getWeightKg()))
+                    .andExpect(jsonPath("$.achievements", hasSize(0)));
+
+            mockMvc.perform(get("/api/v1/sessions/{sessionId}", session.getId()).with(asUser(user)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.exercises[0].sets[0].completed").value(false));
+        }
+
+        @Test
+        @DisplayName("Should return 400 when the session is already completed")
+        void shouldReturn400WhenSessionIsCompleted() throws Exception {
+            mockMvc.perform(patch("/api/v1/sessions/{sessionId}/finish", session.getId())
+                            .with(asUser(user)))
+                    .andExpect(status().isOk());
+
+            mockMvc.perform(patch(
+                                    "/api/v1/sessions/{sessionId}/exercises/{exerciseId}/sets/{setId}/incomplete",
+                                    session.getId(),
+                                    sessionExercise.getId(),
+                                    sessionSet.getId())
+                            .with(asUser(user)))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Should return 404 when the set does not exist")
+        void shouldReturn404WhenSetNotFound() throws Exception {
+            mockMvc.perform(patch(
+                                    "/api/v1/sessions/{sessionId}/exercises/{exerciseId}/sets/{setId}/incomplete",
+                                    session.getId(),
+                                    sessionExercise.getId(),
+                                    UUID.randomUUID())
+                            .with(asUser(user)))
+                    .andExpect(status().isNotFound());
+        }
+    }
+
     @Test
     @DisplayName("Should complete the full routine-to-finished-session workflow")
     void shouldCompleteRoutineToFinishedSessionWorkflow() throws Exception {
