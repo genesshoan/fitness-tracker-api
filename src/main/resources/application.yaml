@@ -38,6 +38,12 @@ spring:
       max-file-size: 5MB
       max-request-size: 6MB
 
+server:
+  forward-headers-strategy: native
+  tomcat:
+    remoteip:
+      internal-proxies: "127\\.0\\.0\\.1|::1"
+
 logging:
   level:
     org:
@@ -99,3 +105,37 @@ app:
     from-name: ${MAIL_FROM_NAME}
     logo-url: ${MAIL_LOGO_URL}
     frontend-url: ${FRONTEND_URL}
+
+  security:
+    ip-provider: CLOUDFLARE
+
+  rate-limit:
+    ipv6-prefix: 64
+
+    policies:
+      LOGIN:
+        ip:
+          - { capacity: 20, period: 1m }
+        account:
+          - { capacity: 5, period: 15m }
+
+      REGISTRATION:
+        ip:
+          - { capacity: 5, period: 1h, refill: INTERVALLY }
+        account:
+          - { capacity: 1, period: 1m, refill: INTERVALLY }
+          - { capacity: 3, period: 1h, refill: INTERVALLY }
+
+      EMAIL_VERIFICATION:
+        ip:
+          - { capacity: 10, period: 1h }
+        account:
+          - { capacity: 1, period: 2m, refill: INTERVALLY }
+          - { capacity: 5, period: 12h, refill: INTERVALLY }
+
+      PASSWORD_RESET:
+        ip:
+          - { capacity: 10, period: 1h }
+        account:
+          - { capacity: 1, period: 1m, refill: INTERVALLY }
+          - { capacity: 3, period: 1h, refill: INTERVALLY }
