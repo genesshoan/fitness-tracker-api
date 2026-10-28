@@ -458,6 +458,43 @@ public class WorkoutSessionService {
         return toSessionSetResponseDTO(sessionSet, userId);
     }
 
+    /** Marks a set as complete without changing its metrics or number. */
+    @Transactional
+    public SessionSetResponseDTO markSessionSetComplete(
+            UUID workoutSessionId, UUID sessionExerciseId, UUID sessionSetId, UUID userId) {
+
+        log.debug(
+                "Marking session set: {} as complete from exercise: {}, session: {} and user: {}",
+                sessionSetId,
+                sessionExerciseId,
+                workoutSessionId,
+                userId);
+
+        SessionSet sessionSet = getOrThrowResourceNotFound(
+                sessionSetRepository.findForUpdateWithSessionExerciseAndWorkoutSessionAndExercise(
+                        sessionSetId, sessionExerciseId, workoutSessionId, userId),
+                "Session set",
+                sessionSetId);
+
+        if (sessionSet.getSessionExercise().getWorkoutSession().getStatus() == SessionStatus.COMPLETED) {
+            log.warn(
+                    "Invalid session set {} complete attempt: The session {} is already finished",
+                    sessionSetId,
+                    workoutSessionId);
+            throw new BadRequestException("The workout session is already finished");
+        }
+
+        sessionSet.setCompleted(true);
+
+        log.info(
+                "Session set: {} marked as complete from exercise: {} and session: {}",
+                sessionSetId,
+                sessionExerciseId,
+                workoutSessionId);
+
+        return toSessionSetResponseDTO(sessionSet, userId);
+    }
+
     /** Marks a set as incomplete without changing its metrics or number. */
     @Transactional
     public SessionSetResponseDTO markSessionSetIncomplete(

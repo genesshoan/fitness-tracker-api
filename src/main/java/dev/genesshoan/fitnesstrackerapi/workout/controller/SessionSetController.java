@@ -193,6 +193,56 @@ public class SessionSetController {
     }
 
     @Operation(
+            summary = "Mark session set as complete",
+            description = "Mark a session set as complete without changing its metrics or number")
+    @ApiResponses({
+        @ApiResponse(
+                responseCode = "200",
+                description = "Session set marked as complete successfully",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema = @Schema(implementation = SessionSetResponseDTO.class))),
+        @ApiResponse(
+                responseCode = "400",
+                description = "Workout session is already completed",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "404",
+                description = "Workout session, exercise or set not found",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+        @ApiResponse(
+                responseCode = "500",
+                description = "Internal server error",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemDetail.class))),
+    })
+    @PatchMapping("/{sessionSetId}/complete")
+    public ResponseEntity<SessionSetResponseDTO> markSessionSetComplete(
+            @CurrentUserId UUID userId,
+            @Parameter(description = "Workout session id") @PathVariable UUID sessionId,
+            @Parameter(description = "Session exercise id") @PathVariable UUID sessionExerciseId,
+            @Parameter(description = "Session set id") @PathVariable UUID sessionSetId) {
+        return ResponseEntity.ok(
+                workoutSessionService.markSessionSetComplete(sessionId, sessionExerciseId, sessionSetId, userId));
+    }
+
+    @Operation(
             summary = "Delete session set",
             description = "Delete session set from a workout session exercise for the authenticated user")
     @ApiResponses({
