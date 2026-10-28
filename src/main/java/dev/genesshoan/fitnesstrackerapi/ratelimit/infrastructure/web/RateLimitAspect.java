@@ -9,6 +9,7 @@ import org.springframework.context.expression.MethodBasedEvaluationContext;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.Ordered;
 import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -36,14 +37,26 @@ public class RateLimitAspect {
     private final ExpressionParser parser = new SpelExpressionParser();
     private final ParameterNameDiscoverer nameDiscoverer = new DefaultParameterNameDiscoverer();
 
-    @Around("@annotation(rateLimited)")
-    public Object check(ProceedingJoinPoint pjp, RateLimited rateLimited) throws Throwable {
+    @Around("@annotation(RateLimited)")
+    public Object check(ProceedingJoinPoint pjp) throws Throwable {
+        Method method = resolveMethod(pjp);
+        RateLimited rateLimited = AnnotatedElementUtils.findMergedAnnotation(method, RateLimited.class);
+        if (rateLimited == null) {
+            throw new IllegalStateException("@RateLimited not found on " + method);
+        }
+
         String ip = ipResolver.resolve(currentRequest());
-        String accountId = resolveAccountId(pjp, rateLimited);
+        String accountId = resolveAccountId(pjp, method, rateLimited);
 
         rateLimitService.consume(rateLimited.policy(), ip, accountId);
 
         return pjp.proceed();
+    }
+
+    private Method resolveMethod(ProceedingJoinPoint pjp) {
+        MethodSignature signature = (MethodSignature) pjp.getSignature();
+        return AopUtils.getMostSpecificMethod(
+                signature.getMethod(), pjp.getTarget().getClass());
     }
 
     private HttpServletRequest currentRequest() {
@@ -54,15 +67,12 @@ public class RateLimitAspect {
         return servletAttributes.getRequest();
     }
 
-    private String resolveAccountId(ProceedingJoinPoint pjp, RateLimited rateLimited) {
+    private String resolveAccountId(ProceedingJoinPoint pjp, Method method, RateLimited rateLimited) {
         String accountKey = rateLimited.accountKey().trim();
         if (accountKey.isEmpty()) {
             return null;
         }
 
-        MethodSignature signature = (MethodSignature) pjp.getSignature();
-        Method method = AopUtils.getMostSpecificMethod(
-                signature.getMethod(), pjp.getTarget().getClass());
         var context = new MethodBasedEvaluationContext(pjp.getTarget(), method, pjp.getArgs(), nameDiscoverer);
 
         String accountId = parser.parseExpression(accountKey).getValue(context, String.class);
