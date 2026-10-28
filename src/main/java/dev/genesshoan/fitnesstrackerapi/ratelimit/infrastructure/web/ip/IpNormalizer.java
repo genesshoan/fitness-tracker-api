@@ -9,6 +9,23 @@ import inet.ipaddr.IPAddressString;
 import inet.ipaddr.IncompatibleAddressException;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Normalizes client addresses before they are used as rate limit bucket keys.
+ *
+ * <p>Normalization prevents trivial bypasses:
+ * <ul>
+ * <li>IPv4-mapped IPv6 values ({@code ::ffff:a.b.c.d}) are collapsed to their
+ * IPv4 form, so the same client is not split across two keys.</li>
+ * <li>IPv6 addresses are reduced to their {@code /prefix} network (default
+ * {@code /64}), so rotating the host part of the address does not reset the
+ * limit.</li>
+ * <li>Missing, blank or malformed values map to a shared {@code unknown} key
+ * instead of being used verbatim, so they cannot be used to create arbitrarily
+ * many buckets.</li>
+ * </ul>
+ *
+ * @see RateLimitProperties#ipv6Prefix()
+ */
 @Component
 @RequiredArgsConstructor
 public class IpNormalizer {
@@ -18,6 +35,13 @@ public class IpNormalizer {
 
     private final RateLimitProperties properties;
 
+    /**
+     * Normalizes an address into a stable bucket key.
+     *
+     * @param ip raw address, possibly {@code null}, blank or malformed
+     * @return the canonical IPv4 address, the canonical IPv6 prefix block, or the
+     *     shared {@code unknown} fallback
+     */
     public String normalize(String ip) {
         if (ip == null || ip.isBlank()) return UNKNOWN_IP;
 
