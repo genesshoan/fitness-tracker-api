@@ -107,7 +107,7 @@ app:
     frontend-url: ${FRONTEND_URL}
 
   security:
-    ip-provider: CLOUDFLARE
+    ip-provider: ${IP_PROVIDER}
 
   rate-limit:
     enabled: ${RATE_LIMIT_ENABLED:true}
