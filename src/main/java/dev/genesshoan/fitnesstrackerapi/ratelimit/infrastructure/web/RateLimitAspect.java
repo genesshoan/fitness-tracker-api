@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.aop.support.AopUtils;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.expression.MethodBasedEvaluationContext;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.Ordered;
@@ -29,6 +30,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 @Aspect
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
+@ConditionalOnProperty(prefix = "app.rate-limit", name = "enabled", havingValue = "true", matchIfMissing = true)
 @RequiredArgsConstructor
 public class RateLimitAspect {
 
