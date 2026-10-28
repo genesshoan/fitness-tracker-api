@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 import dev.genesshoan.fitnesstrackerapi.auth.application.service.SessionService;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.LoginRequest;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.TokenResponse;
+import dev.genesshoan.fitnesstrackerapi.ratelimit.domain.RateLimitPolicy;
+import dev.genesshoan.fitnesstrackerapi.ratelimit.infrastructure.web.RateLimited;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -77,9 +79,17 @@ public class SessionController {
                         content =
                                 @Content(
                                         mediaType = "application/problem+json",
+                                        schema = @Schema(implementation = ProblemDetail.class))),
+                @ApiResponse(
+                        responseCode = "429",
+                        description = "Too many login attempts for this IP address or account",
+                        content =
+                                @Content(
+                                        mediaType = "application/problem+json",
                                         schema = @Schema(implementation = ProblemDetail.class)))
             })
     @PostMapping("/login")
+    @RateLimited(policy = RateLimitPolicy.LOGIN, accountKey = "#dto.email")
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest dto) {
         var tokens = sessionService.login(dto.email(), dto.password());
 

@@ -17,6 +17,8 @@ import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.MessageRespo
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.RegisterRequest;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.ResendVerificationEmailRequest;
 import dev.genesshoan.fitnesstrackerapi.auth.infrastructure.web.dto.VerifyEmailRequest;
+import dev.genesshoan.fitnesstrackerapi.ratelimit.domain.RateLimitPolicy;
+import dev.genesshoan.fitnesstrackerapi.ratelimit.infrastructure.web.RateLimited;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -72,9 +74,17 @@ public class RegistrationController {
                         content =
                                 @Content(
                                         mediaType = "application/problem+json",
+                                        schema = @Schema(implementation = ProblemDetail.class))),
+                @ApiResponse(
+                        responseCode = "429",
+                        description = "Too many registration attempts for this IP address or email",
+                        content =
+                                @Content(
+                                        mediaType = "application/problem+json",
                                         schema = @Schema(implementation = ProblemDetail.class)))
             })
     @PostMapping("/register")
+    @RateLimited(policy = RateLimitPolicy.REGISTRATION, accountKey = "#dto.email")
     public ResponseEntity<MessageResponse> register(@Valid @RequestBody RegisterRequest dto) {
         RegisterCommand command = new RegisterCommand(dto.username(), dto.password(), dto.email(), dto.timezone());
 
@@ -121,9 +131,17 @@ public class RegistrationController {
                         content =
                                 @Content(
                                         mediaType = "application/problem+json",
+                                        schema = @Schema(implementation = ProblemDetail.class))),
+                @ApiResponse(
+                        responseCode = "429",
+                        description = "Too many verification email requests for this IP address or email",
+                        content =
+                                @Content(
+                                        mediaType = "application/problem+json",
                                         schema = @Schema(implementation = ProblemDetail.class)))
             })
     @PostMapping("/resend-verification")
+    @RateLimited(policy = RateLimitPolicy.EMAIL_VERIFICATION, accountKey = "#dto.email")
     public ResponseEntity<Void> resendVerificationEmail(@Valid @RequestBody ResendVerificationEmailRequest dto) {
         registrationService.resendVerificationEmail(dto.email());
 
