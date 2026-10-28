@@ -132,13 +132,17 @@ The frontend must handle these error responses:
 |----------|--------|-----------------|
 | `POST /api/v1/auth/register` | 400 | Show field-level validation errors |
 | `POST /api/v1/auth/register` | 409 | Show "Username or email already exists" |
+| `POST /api/v1/auth/register` | 429 | Show "Too many attempts", disable the form until `Retry-After` elapses |
 | `POST /api/v1/auth/verify-email` | 400 | Show "Invalid or expired verification link", offer resend |
 | `POST /api/v1/auth/resend-verification` | 400 | Show field-level validation error |
+| `POST /api/v1/auth/resend-verification` | 429 | Show "Too many attempts", disable the form until `Retry-After` elapses |
 | `POST /api/v1/auth/forgot-password` | 400 | Show field-level validation error |
+| `POST /api/v1/auth/forgot-password` | 429 | Show "Too many attempts", disable the form until `Retry-After` elapses |
 | `POST /api/v1/auth/reset-password` | 400 | Show "Invalid or expired password reset link", offer a new request |
 | `POST /api/v1/auth/login` | 400 | Show field-level validation error |
 | `POST /api/v1/auth/login` | 401 | Show "Invalid email or password" |
 | `POST /api/v1/auth/login` | 403 | Show "Please verify your email address first", offer resend |
+| `POST /api/v1/auth/login` | 429 | Show "Too many login attempts", disable the form until `Retry-After` elapses |
 | `POST /api/v1/auth/refresh` | 400 | Clear the session, show "Session expired, log in again" |
 | `POST /api/v1/auth/refresh` | 401 | Clear the session, show "Session expired, log in again" |
 | `POST /api/v1/auth/refresh` | 403 | Missing or invalid CSRF token, reload the page and retry |
@@ -146,6 +150,10 @@ The frontend must handle these error responses:
 | `DELETE /api/v1/auth/logout` | 403 | Missing or invalid CSRF token, clear the session anyway |
 | `PATCH /api/v1/auth/password` | 400 | Show field-level validation error |
 | `PATCH /api/v1/auth/password` | 401 | Show "Current password is incorrect" (or redirect to login if unauthenticated) |
+
+Rate-limited endpoints respond `429` with a `Retry-After` header (seconds). The
+quota is charged before the endpoint runs, so failed attempts also count. See
+[Rate Limiting](api.md#rate-limiting) for the exact limits.
 
 ## Authentication Sequence
 

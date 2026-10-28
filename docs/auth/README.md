@@ -16,6 +16,7 @@ Key responsibilities:
 - Revoke refresh token families on logout, password change or detected misuse
 - Run the forgot-password and reset-password flows
 - Enforce unique username and email constraints
+- Throttle credential endpoints per IP and per account (see [Rate Limiting](business-rules.md#rate-limiting))
 
 The module operates in a stateless manner for access tokens: they are not stored server-side and are validated via cryptographic signature. Refresh tokens are opaque random values whose SHA-256 hash is persisted, enabling server-side revocation, rotation, and session tracking without the token ever being readable from the database. The refresh token travels in an HTTP-only `refresh_token` cookie, never in the response body.
 

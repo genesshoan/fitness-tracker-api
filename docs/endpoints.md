@@ -28,6 +28,10 @@ read the refresh token from the `refresh_token` cookie.
 `TokenResponse` carries the access token in the body; the refresh token is set in the
 `refresh_token` cookie.
 
+`register`, `resend-verification`, `forgot-password` and `login` are rate limited
+per IP and per email, and return `429` with a `Retry-After` header when the quota
+is exhausted. See [Rate Limiting](auth/api.md#rate-limiting) for the limits.
+
 ---
 
 ## User

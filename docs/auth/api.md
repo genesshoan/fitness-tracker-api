@@ -2,17 +2,84 @@
 
 ## Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/v1/auth/register` | Register a new user |
-| POST | `/api/v1/auth/verify-email` | Verify email address with token |
-| POST | `/api/v1/auth/resend-verification` | Resend verification email |
-| POST | `/api/v1/auth/forgot-password` | Request a password reset email |
-| POST | `/api/v1/auth/reset-password` | Reset the password with a reset token |
-| POST | `/api/v1/auth/login` | Authenticate user and get tokens |
-| POST | `/api/v1/auth/refresh` | Refresh access token using refresh token cookie |
-| DELETE | `/api/v1/auth/logout` | Logout and revoke refresh token family |
-| PATCH | `/api/v1/auth/password` | Change the authenticated user's password |
+| Method | Path | Description | Rate limited |
+|--------|------|-------------|--------------|
+| POST | `/api/v1/auth/register` | Register a new user | IP + email |
+| POST | `/api/v1/auth/verify-email` | Verify email address with token | No |
+| POST | `/api/v1/auth/resend-verification` | Resend verification email | IP + email |
+| POST | `/api/v1/auth/forgot-password` | Request a password reset email | IP + email |
+| POST | `/api/v1/auth/reset-password` | Reset the password with a reset token | No |
+| POST | `/api/v1/auth/login` | Authenticate user and get tokens | IP + email |
+| POST | `/api/v1/auth/refresh` | Refresh access token using refresh token cookie | No |
+| DELETE | `/api/v1/auth/logout` | Logout and revoke refresh token family | No |
+| PATCH | `/api/v1/auth/password` | Change the authenticated user's password | No |
+
+---
+
+## Rate Limiting
+
+The public credential endpoints are protected with Bucket4j. Before the
+controller runs, every request is charged to two buckets:
+
+- **IP bucket** — keyed by the client IP resolved from the proxy headers
+  (`CF-Connecting-IP` behind Cloudflare). IPv4-mapped addresses (`::ffff:a.b.c.d`)
+  are collapsed to IPv4, and IPv6 clients are grouped by `/64` so rotating the
+  host part of the address does not reset the limit.
+- **Account bucket** — keyed by the normalized email in the request body
+  (trimmed and lower-cased). It limits attempts against one account even when the
+  attacker rotates IP addresses.
+
+A request is processed only when every configured bucket has capacity. If any
+bucket is exhausted the API returns `429` and the request never reaches the
+service layer. The quota is charged before the endpoint runs, so failed attempts
+(wrong password, unknown email, duplicate registration) also count.
+
+| Policy | Endpoint | IP limit | Account limit |
+|--------|----------|----------|---------------|
+| `LOGIN` | `POST /api/v1/auth/login` | 20 / minute | 5 / 15 minutes |
+| `REGISTRATION` | `POST /api/v1/auth/register` | 5 / hour | 1 / minute and 3 / hour |
+| `EMAIL_VERIFICATION` | `POST /api/v1/auth/resend-verification` | 10 / hour | 1 / 2 minutes and 5 / 12 hours |
+| `PASSWORD_RESET` | `POST /api/v1/auth/forgot-password` | 10 / hour | 1 / minute and 3 / hour |
+
+Limits without an explicit refill type (`LOGIN`) use continuous refill, so the
+quota recovers token by token over the period. The others use `INTERVALLY`:
+capacity is restored in full at the end of the period. When a policy declares
+more than one band, all of them must have capacity.
+
+### 429 Response
+
+The response is a `ProblemDetail` (`Content-Type: application/problem+json`)
+with a `Retry-After` header in seconds.
+
+```http
+HTTP/1.1 429 Too Many Requests
+Content-Type: application/problem+json
+Retry-After: 60
+```
+
+```json
+{
+  "type": "about:blank",
+  "title": "Too many requests",
+  "status": 429,
+  "detail": "Too many requests, retry later",
+  "timestamp": "2026-01-01T12:00:00Z",
+  "path": "/api/v1/auth/login"
+}
+```
+
+Clients should wait for `Retry-After` seconds before retrying.
+
+### Configuration
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `RATE_LIMIT_ENABLED` (`app.rate-limit.enabled`) | `true` | Enables or disables the rate limit aspect. The `test` profile sets it to `false` so integration tests do not share buckets between classes. |
+| `app.rate-limit.ipv6-prefix` | `64` | Prefix used to group IPv6 clients. |
+
+The limits live under `app.rate-limit.policies` in `application.yaml`. Only the
+four endpoints above are rate limited; `verify-email`, `reset-password`,
+`refresh`, `logout` and `password` change are not.
 
 ---
 
@@ -21,6 +88,8 @@
 **Description:** Creates a new user account with username, email, password, and timezone. A verification email is sent. No access token is returned until email is verified.
 
 **Public endpoint** — does not require authentication.
+
+**Rate limit:** `REGISTRATION` — 5 requests/hour per IP, 1/minute and 3/hour per email.
 
 **Request Body:**
 ```json
@@ -48,6 +117,7 @@
 **Error Responses:**
 - `400` – Invalid request data (missing fields, wrong format, invalid timezone)
 - `409` – Username or email already registered
+- `429` – Too many registration attempts for this IP or email (see [Rate Limiting](#rate-limiting))
 
 ---
 
@@ -84,6 +154,8 @@ The refresh token is returned in an `HttpOnly`, `Secure` cookie named `refresh_t
 
 **Public endpoint** — does not require authentication.
 
+**Rate limit:** `EMAIL_VERIFICATION` — 10 requests/hour per IP, 1/2 minutes and 5/12 hours per email.
+
 **Request Body:**
 ```json
 {
@@ -97,6 +169,7 @@ The refresh token is returned in an `HttpOnly`, `Secure` cookie named `refresh_t
 
 **Error Responses:**
 - `400` – Invalid request data (invalid email format)
+- `429` – Too many verification email requests for this IP or email (see [Rate Limiting](#rate-limiting))
 
 ---
 
@@ -106,6 +179,8 @@ The refresh token is returned in an `HttpOnly`, `Secure` cookie named `refresh_t
 
 **Public endpoint** — does not require authentication.
 
+**Rate limit:** `PASSWORD_RESET` — 10 requests/hour per IP, 1/minute and 3/hour per email.
+
 **Request Body:**
 ```json
 {
@@ -119,6 +194,7 @@ The refresh token is returned in an `HttpOnly`, `Secure` cookie named `refresh_t
 
 **Error Responses:**
 - `400` – Invalid request data (invalid email format)
+- `429` – Too many password reset requests for this IP or email (see [Rate Limiting](#rate-limiting))
 
 ---
 
@@ -151,6 +227,8 @@ The refresh token is returned in an `HttpOnly`, `Secure` cookie named `refresh_t
 
 **Public endpoint** — does not require authentication.
 
+**Rate limit:** `LOGIN` — 20 requests/minute per IP, 5/15 minutes per email.
+
 **Request Body:**
 ```json
 {
@@ -172,6 +250,7 @@ The refresh token is returned in an `HttpOnly`, `Secure` cookie named `refresh_t
 - `401` – Invalid credentials (wrong email/password)
 - `400` – Missing or malformed request
 - `403` – Email address has not been verified (use `/api/v1/auth/verify-email` or `/api/v1/auth/resend-verification`)
+- `429` – Too many login attempts for this IP or email (see [Rate Limiting](#rate-limiting))
 
 ---
 
