@@ -73,7 +73,7 @@ All endpoints require authentication via Bearer token. The authenticated user's 
         "slug": "bench-press",
         "category": "STRENGTH",
         "difficulty": "INTERMEDIATE",
-        "thumbnailUrl": "https://cdn.example.com/catalog/exercises/thumbnails/exercises/abc123.webp"
+        "thumbnailUrl": "https://cdn.example.com/catalog/exercise-thumbnails/abc123.webp"
       },
       "position": 1,
       "defaultRestSeconds": 60,
@@ -144,7 +144,7 @@ All endpoints require authentication via Bearer token. The authenticated user's 
         "slug": "bench-press",
         "category": "STRENGTH",
         "difficulty": "INTERMEDIATE",
-        "thumbnailUrl": "https://cdn.example.com/catalog/exercises/thumbnails/exercises/abc123.webp"
+        "thumbnailUrl": "https://cdn.example.com/catalog/exercise-thumbnails/abc123.webp"
       },
       "position": 1,
       "defaultRestSeconds": 60,
@@ -211,7 +211,7 @@ All endpoints require authentication via Bearer token. The authenticated user's 
         "slug": "bench-press",
         "category": "STRENGTH",
         "difficulty": "INTERMEDIATE",
-        "thumbnailUrl": "https://cdn.example.com/catalog/exercises/thumbnails/exercises/abc123.webp"
+        "thumbnailUrl": "https://cdn.example.com/catalog/exercise-thumbnails/abc123.webp"
       },
       "position": 1,
       "defaultRestSeconds": 60,
@@ -295,7 +295,7 @@ All endpoints require authentication via Bearer token. The authenticated user's 
         "slug": "bench-press",
         "category": "STRENGTH",
         "difficulty": "INTERMEDIATE",
-        "thumbnailUrl": "https://cdn.example.com/catalog/exercises/thumbnails/exercises/abc123.webp"
+        "thumbnailUrl": "https://cdn.example.com/catalog/exercise-thumbnails/abc123.webp"
       },
       "position": 1,
       "defaultRestSeconds": 60,
@@ -361,7 +361,7 @@ The authenticated user must own the routine. Inactive routines are treated as no
         "slug": "bench-press",
         "category": "STRENGTH",
         "difficulty": "INTERMEDIATE",
-        "thumbnailUrl": "https://cdn.example.com/catalog/exercises/thumbnails/exercises/abc123.webp"
+        "thumbnailUrl": "https://cdn.example.com/catalog/exercise-thumbnails/abc123.webp"
       },
       "position": 1,
       "defaultRestSeconds": 60,

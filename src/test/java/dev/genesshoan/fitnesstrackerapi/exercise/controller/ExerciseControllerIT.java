@@ -107,7 +107,7 @@ public class ExerciseControllerIT extends AbstractIntegrationTest {
     void getExerciseBySlug_ShouldReturn200WithMusclesPopulated() throws Exception {
         var exercise = testEntityFactory.createAndPersistExerciseWithMuscles(2, ImpactLevel.PRIMARY);
 
-        var expectedGifUrl = "https://cdn.test.example.com/catalog/exercises/gifs/" + exercise.getMediaObjectKey();
+        var expectedGifUrl = "https://cdn.test.example.com/catalog/" + exercise.getMediaObjectKey();
 
         mockMvc.perform(get("/api/v1/exercises/{slug}", exercise.getSlug()))
                 .andExpect(status().isOk())

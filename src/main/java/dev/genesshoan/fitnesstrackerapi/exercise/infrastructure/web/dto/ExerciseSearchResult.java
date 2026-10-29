@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @param slug URL-friendly exercise identifier
  * @param category exercise category
  * @param highlightedName name with the matching text wrapped in {@code <b>} tags
+ * @param thumbnailUrl public URL of the exercise thumbnail, or {@code null} when it has no thumbnail
  */
 @Schema(description = "Exercise autocomplete result")
 public record ExerciseSearchResult(
@@ -29,4 +30,7 @@ public record ExerciseSearchResult(
         Category category,
 
         @Schema(description = "Display name with the matching text highlighted", example = "<b>Barbell</b> Bench Press")
-        String highlightedName) {}
+        String highlightedName,
+
+        @Schema(description = "Public URL of the exercise thumbnail")
+        String thumbnailUrl) {}

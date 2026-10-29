@@ -79,6 +79,9 @@ public abstract class ExerciseMapper {
      * @param suggestion the suggestion to map
      * @return the search result DTO
      */
+    @Mapping(
+            target = "thumbnailUrl",
+            expression = "java(assetUrlProvider.exerciseThumbnailUrl(suggestion.thumbnailObjectKey()))")
     public abstract ExerciseSearchResult toSearchResultDTO(ExerciseSuggestion suggestion);
 
     /**

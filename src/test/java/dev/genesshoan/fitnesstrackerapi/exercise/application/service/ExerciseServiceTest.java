@@ -467,7 +467,8 @@ class ExerciseServiceTest {
                         "Barbell Bench Press",
                         "barbell-bench-press",
                         exercise.getCategory(),
-                        "<b>Barbell</b> Bench Press"));
+                        "<b>Barbell</b> Bench Press",
+                        exercise.getThumbnailObjectKey()));
     }
 
     @Test

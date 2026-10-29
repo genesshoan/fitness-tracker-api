@@ -26,6 +26,7 @@
 - Debounce input before calling `GET /api/v1/exercises/search`.
 - Send the user's text as `q` and optionally set `limit` between 1 and 20.
 - Render `highlightedName` as trusted server-generated markup, or use `name` and highlight the matching text in the client.
+- Display `thumbnailUrl` as the suggestion thumbnail when present; it is `null` when the exercise has no thumbnail assigned.
 - An empty `results` array means that no active exercise matched the query.
 
 ### Exercise Detail

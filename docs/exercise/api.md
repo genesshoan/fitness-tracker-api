@@ -38,7 +38,7 @@ Returns active exercises using cursor pagination and optional filters.
       "slug": "bicep-curl",
       "category": "STRENGTH",
       "difficulty": "INTERMEDIATE",
-      "thumbnailUrl": "https://cdn.example.com/catalog/exercises/thumbnails/exercises/abc123.webp"
+      "thumbnailUrl": "https://cdn.example.com/catalog/exercise-thumbnails/abc123.webp"
     }
   ],
   "nextCursor": "123e4567-e89b-12d3-a456-426614174000",
@@ -82,7 +82,7 @@ Returns an active exercise and its muscle relationships. `slug` is required and 
       "impactLevel": "PRIMARY"
     }
   ],
-  "gifUrl": "https://cdn.example.com/catalog/exercises/gifs/exercises/abc123.gif"
+  "gifUrl": "https://cdn.example.com/catalog/exercises/abc123.gif"
 }
 ```
 
@@ -111,13 +111,14 @@ Searches active exercises by name or slug for autocomplete suggestions. The quer
       "name": "Barbell Bench Press",
       "slug": "barbell-bench-press",
       "category": "STRENGTH",
-      "highlightedName": "<b>Barbell</b> Bench Press"
+      "highlightedName": "<b>Barbell</b> Bench Press",
+      "thumbnailUrl": "https://cdn.example.com/catalog/exercise-thumbnails/abc123.webp"
     }
   ]
 }
 ```
 
-Results contain only active exercises and are ordered alphabetically by name. The `highlightedName` field is intended for rendering the matching fragment in the autocomplete UI.
+Results contain only active exercises and are ordered alphabetically by name. The `highlightedName` field is intended for rendering the matching fragment in the autocomplete UI. The `thumbnailUrl` field is resolved from the exercise thumbnail storage key against the configured public catalog base URL, and is `null` when the exercise has no thumbnail assigned.
 
 ## Create Exercise (`POST /api/v1/exercises`)
 
