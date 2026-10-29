@@ -21,7 +21,7 @@ public class CatalogAssetUrlProvider {
      * @return public URL of the exercise GIF, or {@code null} if the object key is {@code null}
      */
     public String exerciseGifUrl(String objectKey) {
-        return build(properties.exercise().gifs(), objectKey);
+        return build(objectKey);
     }
 
     /**
@@ -31,7 +31,7 @@ public class CatalogAssetUrlProvider {
      * @return public URL of the exercise thumbnail, or {@code null} if the object key is {@code null}
      */
     public String exerciseThumbnailUrl(String objectKey) {
-        return build(properties.exercise().thumbnails(), objectKey);
+        return build(objectKey);
     }
 
     /**
@@ -41,14 +41,14 @@ public class CatalogAssetUrlProvider {
      * @return public URL of the muscle image, or {@code null} if the object key is {@code null}
      */
     public String muscleUrl(String objectKey) {
-        return build(properties.muscle().images(), objectKey);
+        return build(objectKey);
     }
 
-    private String build(String path, String objectKey) {
+    private String build(String objectKey) {
         if (objectKey == null) {
             return null;
         }
 
-        return properties.baseUrl() + "/" + path + "/" + objectKey;
+        return properties.baseUrl() + "/" + objectKey;
     }
 }
