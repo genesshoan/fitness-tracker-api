@@ -221,7 +221,8 @@ public class ExerciseService implements ExerciseUseCase, ExerciseQueryUseCase {
                 exercise.getName(),
                 exercise.getSlug(),
                 exercise.getCategory(),
-                ExerciseNameHighlighter.highlight(exercise.getName(), query));
+                ExerciseNameHighlighter.highlight(exercise.getName(), query),
+                exercise.getThumbnailObjectKey());
     }
 
     private String escapeLike(String query) {
