@@ -87,9 +87,6 @@ app:
     get:
       catalog:
         base-url: ${STORAGE_CATALOG_BASE_URL}
-        exercise:
-          gifs: ${STORAGE_CATALOG_EXERCISE_GIF}
-          thumbnails: ${STORAGE_CATALOG_EXERCISE_THUMBNAIL}
 
   storage:
     endpoint: ${STORAGE_ENDPOINT}

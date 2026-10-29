@@ -45,11 +45,6 @@ app:
     get:
       catalog:
         base-url: https://cdn.test.example.com/catalog
-        exercise:
-          gifs: exercises/gifs
-          thumbnails: exercises/thumbnails
-        muscle:
-          images: muscles/images
 
   storage:
     endpoint: http://localhost:9000
