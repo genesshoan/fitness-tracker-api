@@ -181,6 +181,19 @@ public class WorkoutSessionRepositoryTest extends AbstractPostgresTest {
     }
 
     @Test
+    @DisplayName("Should find a session without exercises for update")
+    void findForUpdateWithExercises_ShouldFindSessionWithoutExercises() {
+        User user = testEntityFactory.createAndPersistUser();
+        WorkoutSession session = testEntityFactory.createAndPersistWorkoutSession(user);
+
+        var result = workoutSessionRepository.findForUpdateWithExercises(session.getId(), user.getId());
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo(session.getId());
+        assertThat(result.get().getExercises()).isEmpty();
+    }
+
+    @Test
     @DisplayName("Should return empty for findForUpdateWithExercises when ids are missing")
     void findForUpdateWithExercises_ShouldReturnEmptyWhenIdsAreMissing() {
         var result = workoutSessionRepository.findForUpdateWithExercises(UUID.randomUUID(), UUID.randomUUID());
