@@ -25,11 +25,19 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<WorkoutSession> findForUpdateByIdAndUserId(UUID sessionId, UUID userId);
 
+    /**
+     * Locks the session and loads its exercises.
+     *
+     * <p>The join has to be an outer one, a session without exercises is a
+     * valid session and the first exercise is added to it right after it is
+     * created. An inner join would hide those sessions and make them look
+     * like they did not exist.
+     */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
-        SELECT ws
+        SELECT DISTINCT ws
         FROM WorkoutSession ws
-        JOIN FETCH ws.exercises
+        LEFT JOIN FETCH ws.exercises
         WHERE ws.id = :id
             AND ws.user.id = :userId
         """)
