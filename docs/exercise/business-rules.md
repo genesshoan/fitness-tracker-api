@@ -74,6 +74,24 @@ The `seeds/exercises.yml` catalog was biomechanically reviewed:
 - `difficulty` was left untouched (all `INTERMEDIATE` in source data)
 - `V6__seed_exercise_muscle_data.sql` is regenerated from the YAML via `./gradlew seed` (note: each run generates new UUIDs)
 
+### Exercise Names
+
+The display name of an exercise has its first letter in capital and the rest in lower case (`Barbell bench press`). The catalog source data is fully lower case, so `V16__capitalize_exercise_names.sql` normalizes the seeded rows after `V6` inserts them.
+
+- Only the first letter is capitalized; the rest of the name keeps its original casing.
+- The first letter is the first alphabetic character, so names that start with a digit keep their leading part (`3/4 Sit-up`).
+- The `slug` is not modified by the migration: it is the stable public identifier of the exercise and is already lower case.
+- Search and the name highlighting are case-insensitive, so the normalization does not change how exercises are found or rendered.
+
+### Exercise Name Encoding
+
+The degree sign of the "45°" exercises was mis-encoded when the catalog was parsed: the UTF-8 bytes were decoded as Latin-1 and stored again as UTF-8, so `°` came out as `Â°`, and in a few names as `Ð²Â°`. `V17__fix_exercise_name_encoding.sql` replaces both corrupted sequences by the degree sign again.
+
+- Both the `name` and the `description` are repaired; the `slug` never contained the degree sign and is not touched.
+- The description keeps its original casing: only the encoding is fixed, the capitalization rule applies to the name only.
+- The migration is written with the `E'\uXXXX'` escape syntax so that the file itself only contains ASCII and cannot be mis-encoded again.
+- `V6__seed_exercise_muscle_data.sql` is left untouched on purpose: changing an already applied migration breaks the Flyway checksum validation.
+
 ### Data Loading
 
 - `GET /api/v1/exercises/{slug}` loads exercise muscles eagerly via `@EntityGraph`
@@ -96,3 +114,5 @@ Each exercise category defines validation rules for exercise metrics:
 | STRENGTH | reps > 0, weightKg > 0, no distance or duration | reps=8, weightKg=5 |
 | CARDIO | durationSeconds > 0 or distanceKm > 0, no reps or weight | durationSeconds=30 |
 | MOBILITY | durationSeconds > 0, no reps, weight, or distance | durationSeconds=30 |
+
+
