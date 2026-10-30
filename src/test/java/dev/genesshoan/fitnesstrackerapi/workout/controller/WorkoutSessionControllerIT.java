@@ -517,6 +517,61 @@ class WorkoutSessionControllerIT extends AbstractIntegrationTest {
         }
     }
 
+    @Nested
+    @DisplayName("POST /api/v1/sessions/{sessionId}/exercises")
+    class AddSessionExercise {
+
+        @Test
+        @DisplayName("Should return 201 and add the exercise to a session that has none")
+        void shouldReturn201WhenSessionHasNoExercises() throws Exception {
+            var exercise = testEntityFactory.createAndPersistExercise();
+            WorkoutSession emptySession = testEntityFactory.createAndPersistWorkoutSession(user);
+
+            mockMvc.perform(post("/api/v1/sessions/{sessionId}/exercises", emptySession.getId())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"exerciseId\":\"" + exercise.getId() + "\"}")
+                            .with(asUser(user)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.newExercise.id").isNotEmpty())
+                    .andExpect(jsonPath("$.newExercise.position").value(1))
+                    .andExpect(jsonPath("$.newExercise.exercise.id")
+                            .value(exercise.getId().toString()));
+
+            mockMvc.perform(get("/api/v1/sessions/{sessionId}", emptySession.getId())
+                            .with(asUser(user)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.exercises", hasSize(1)))
+                    .andExpect(jsonPath("$.exercises[0].exercise.id")
+                            .value(exercise.getId().toString()));
+        }
+
+        @Test
+        @DisplayName("Should return 404 when the session does not exist")
+        void shouldReturn404WhenSessionNotFound() throws Exception {
+            var exercise = testEntityFactory.createAndPersistExercise();
+
+            mockMvc.perform(post("/api/v1/sessions/{sessionId}/exercises", UUID.randomUUID())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"exerciseId\":\"" + exercise.getId() + "\"}")
+                            .with(asUser(user)))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("Should return 404 when the session belongs to another user")
+        void shouldReturn404WhenSessionBelongsToAnotherUser() throws Exception {
+            var exercise = testEntityFactory.createAndPersistExercise();
+            User otherUser = testEntityFactory.createAndPersistUser();
+            WorkoutSession otherSession = testEntityFactory.createAndPersistWorkoutSession(otherUser);
+
+            mockMvc.perform(post("/api/v1/sessions/{sessionId}/exercises", otherSession.getId())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"exerciseId\":\"" + exercise.getId() + "\"}")
+                            .with(asUser(user)))
+                    .andExpect(status().isNotFound());
+        }
+    }
+
     @Test
     @DisplayName("Should complete the full routine-to-finished-session workflow")
     void shouldCompleteRoutineToFinishedSessionWorkflow() throws Exception {
