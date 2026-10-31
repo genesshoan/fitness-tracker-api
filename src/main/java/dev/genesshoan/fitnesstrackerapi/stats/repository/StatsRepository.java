@@ -23,6 +23,7 @@ import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MonthlyVolum
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MuscleIntensityProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.OneRepMaxProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.RankedSetProjection;
+import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.TrainingMetricsProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.VolumeSetProjection;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
 import lombok.RequiredArgsConstructor;
@@ -92,6 +93,11 @@ public class StatsRepository {
     /**
      * Loads distinct completed session timestamps before a boundary.
      *
+     * <p>Only completed sessions are considered. The application keeps
+     * {@code completed_at} set only on completed sessions, so the status filter
+     * is what makes the intent explicit and protects the query from a session
+     * that carries a completion timestamp without having been completed.</p>
+     *
      * @return timestamps in ascending order; duplicate calendar days remain
      *         until the service converts them to the user's timezone
      */
@@ -101,16 +107,72 @@ public class StatsRepository {
                 SELECT DISTINCT ws.completed_at
                 FROM workout_sessions ws
                 WHERE ws.user_id = :userId
+                    AND ws.status = :completedStatus
                     AND ws.completed_at < :beforeCompletedAt
                 ORDER BY ws.completed_at ASC
             """;
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("userId", userId)
-                .addValue("beforeCompletedAt", Timestamp.from(beforeCompletedAt));
+                .addValue("beforeCompletedAt", Timestamp.from(beforeCompletedAt))
+                .addValue("completedStatus", SessionStatus.COMPLETED.name());
 
         return jdbcTemplate.query(
                 sql, params, (rs, rowNum) -> rs.getTimestamp("completed_at").toInstant());
+    }
+
+    /**
+     * Aggregates the training totals of a user over every completed session.
+     *
+     * <p>Only completed sessions and completed sets are counted. The volume is
+     * the sum of weight times repetitions, so a set without weight or without
+     * repetitions contributes nothing to it, while it still counts as a set, a
+     * repetition of its own, or a distinct exercise.</p>
+     *
+     * @param userId owner of the sessions
+     * @return the aggregated totals
+     */
+    public TrainingMetricsProjection getTrainingMetrics(UUID userId) {
+
+        String sql = """
+                WITH completed_sessions AS (
+                    SELECT ws.id
+                    FROM workout_sessions ws
+                    WHERE ws.user_id = :userId
+                        AND ws.status = :completedStatus
+                ),
+                completed_sets AS (
+                    SELECT ss.reps, ss.weight_kg, ss.duration_seconds, ss.distance_km, se.exercise_id
+                    FROM session_sets ss
+                    JOIN session_exercises se ON ss.session_exercise_id = se.id
+                    JOIN completed_sessions cs ON cs.id = se.session_id
+                    WHERE ss.completed = true
+                )
+                SELECT
+                    (SELECT COUNT(*) FROM completed_sessions) AS total_workouts,
+                    (SELECT COUNT(*) FROM completed_sets) AS total_sets,
+                    (SELECT COALESCE(SUM(reps), 0) FROM completed_sets) AS total_reps,
+                    (SELECT COALESCE(SUM(weight_kg * reps), 0) FROM completed_sets) AS total_volume_kg,
+                    (SELECT COALESCE(SUM(duration_seconds), 0) FROM completed_sets) AS total_training_seconds,
+                    (SELECT COALESCE(SUM(distance_km), 0) FROM completed_sets) AS total_distance_km,
+                    (SELECT COUNT(DISTINCT exercise_id) FROM completed_sets) AS distinct_exercises
+                """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("userId", userId)
+                .addValue("completedStatus", SessionStatus.COMPLETED.name());
+
+        return jdbcTemplate.queryForObject(
+                sql,
+                params,
+                (rs, rowNum) -> new TrainingMetricsProjection(
+                        rs.getLong("total_workouts"),
+                        rs.getLong("total_sets"),
+                        rs.getLong("total_reps"),
+                        rs.getDouble("total_volume_kg"),
+                        rs.getLong("total_training_seconds"),
+                        rs.getDouble("total_distance_km"),
+                        rs.getLong("distinct_exercises")));
     }
 
     /**

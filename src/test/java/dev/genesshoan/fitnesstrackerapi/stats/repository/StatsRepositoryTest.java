@@ -17,6 +17,7 @@ import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Muscle;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MonthlyVolumeProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MuscleIntensityProjection;
+import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.TrainingMetricsProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.VolumeSetProjection;
 import dev.genesshoan.fitnesstrackerapi.testdata.TestEntityFactory;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.ExerciseBuilder;
@@ -133,6 +134,90 @@ class StatsRepositoryTest extends AbstractIntegrationTest {
 
         assertThat(statsRepository.getTrainedDatesBeforeAsc(otherUser.getId(), completedAt.plusSeconds(1)))
                 .isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should ignore a session that carries a completion timestamp without being completed")
+    void getTrainedDatesBeforeAsc_shouldIgnoreSessionsThatAreNotCompleted() {
+        User user = testEntityFactory.createAndPersistUser();
+        Instant completedAt = Instant.parse("2026-09-10T10:00:00Z");
+        persistSession(user, SessionStatus.IN_PROGRESS, completedAt, completedAt);
+
+        assertThat(statsRepository.getTrainedDatesBeforeAsc(user.getId(), completedAt.plusSeconds(1)))
+                .isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should aggregate the training totals of the completed sessions")
+    void getTrainingMetrics_shouldAggregateTheCompletedTraining() {
+        User user = testEntityFactory.createAndPersistUser();
+        Exercise firstExercise = testEntityFactory.createAndPersistExercise();
+        Exercise secondExercise = testEntityFactory.createAndPersistExercise();
+
+        Instant startedAt = Instant.parse("2026-09-10T10:00:00Z");
+        WorkoutSession session = persistCompletedSession(user, startedAt, startedAt.plusSeconds(3600));
+
+        SessionExercise firstSessionExercise =
+                testEntityFactory.createAndPersistSessionExercise(session, firstExercise);
+        persistSet(firstSessionExercise, 1, 10, 100.0, null, null, true);
+        persistSet(firstSessionExercise, 2, 8, 50.0, 60, null, true);
+
+        SessionExercise secondSessionExercise =
+                testEntityFactory.createAndPersistSessionExercise(session, secondExercise);
+        persistSet(secondSessionExercise, 1, 5, 20.0, null, 2.5, true);
+
+        TrainingMetricsProjection metrics = statsRepository.getTrainingMetrics(user.getId());
+
+        assertThat(metrics.totalWorkouts()).isEqualTo(1);
+        assertThat(metrics.totalSets()).isEqualTo(3);
+        assertThat(metrics.totalReps()).isEqualTo(23);
+        assertThat(metrics.totalVolumeKg()).isEqualTo(1500.0);
+        assertThat(metrics.totalTrainingSeconds()).isEqualTo(60);
+        assertThat(metrics.totalDistanceKm()).isEqualTo(2.5);
+        assertThat(metrics.distinctExercises()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("Should ignore in-progress sessions and sets that are not completed")
+    void getTrainingMetrics_shouldIgnoreIncompleteTraining() {
+        User user = testEntityFactory.createAndPersistUser();
+        Exercise exercise = testEntityFactory.createAndPersistExercise();
+
+        Instant startedAt = Instant.parse("2026-09-10T10:00:00Z");
+        WorkoutSession completedSession = persistCompletedSession(user, startedAt, startedAt.plusSeconds(3600));
+        SessionExercise completedExercise =
+                testEntityFactory.createAndPersistSessionExercise(completedSession, exercise);
+        persistSet(completedExercise, 1, 10, 100.0, null, null, true);
+
+        WorkoutSession inProgressSession = persistSession(user, SessionStatus.IN_PROGRESS, startedAt, null);
+        SessionExercise inProgressExercise =
+                testEntityFactory.createAndPersistSessionExercise(inProgressSession, exercise);
+        persistSet(inProgressExercise, 1, 10, 100.0, null, null, true);
+        persistSet(completedExercise, 2, 10, 100.0, null, null, false);
+
+        TrainingMetricsProjection metrics = statsRepository.getTrainingMetrics(user.getId());
+
+        assertThat(metrics.totalWorkouts()).isEqualTo(1);
+        assertThat(metrics.totalSets()).isEqualTo(1);
+        assertThat(metrics.totalReps()).isEqualTo(10);
+        assertThat(metrics.totalVolumeKg()).isEqualTo(1000.0);
+        assertThat(metrics.distinctExercises()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("Should return zeroed totals for a user without training")
+    void getTrainingMetrics_shouldReturnZeroesForAUserWithoutTraining() {
+        User user = testEntityFactory.createAndPersistUser();
+
+        TrainingMetricsProjection metrics = statsRepository.getTrainingMetrics(user.getId());
+
+        assertThat(metrics.totalWorkouts()).isZero();
+        assertThat(metrics.totalSets()).isZero();
+        assertThat(metrics.totalReps()).isZero();
+        assertThat(metrics.totalVolumeKg()).isZero();
+        assertThat(metrics.totalTrainingSeconds()).isZero();
+        assertThat(metrics.totalDistanceKm()).isZero();
+        assertThat(metrics.distinctExercises()).isZero();
     }
 
     @Test
