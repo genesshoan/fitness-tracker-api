@@ -1,0 +1,88 @@
+@startuml
+!theme plain
+
+title Entity-Relationship Diagram - Gamification
+
+entity "achievement_definitions" {
+    * id : UUID <<PK>>
+    --
+    * code : VARCHAR <<UK>>
+    * name : VARCHAR
+    description : TEXT
+    * category : VARCHAR
+    * tier : VARCHAR
+    * rule_type : VARCHAR
+    * metric : VARCHAR
+    * operator : VARCHAR
+    threshold : DOUBLE PRECISION
+    * scope : VARCHAR
+    icon_key : VARCHAR
+    * sort_order : INT
+    * active : BOOLEAN
+    * created_at : TIMESTAMPTZ
+    * updated_at : TIMESTAMPTZ
+}
+
+entity "user_achievements" {
+    * id : UUID <<PK>>
+    --
+    * user_id : UUID <<FK>>
+    * achievement_definition_id : UUID <<FK>>
+    exercise_id : UUID <<FK>> NULL
+    progress_value : DOUBLE PRECISION
+    * unlocked : BOOLEAN
+    unlocked_at : TIMESTAMPTZ
+    source_session_id : UUID <<FK>> NULL
+    source_set_id : UUID <<FK>> NULL
+    * seen : BOOLEAN
+    seen_at : TIMESTAMPTZ
+    * created_at : TIMESTAMPTZ
+    * updated_at : TIMESTAMPTZ
+    ..
+    UK : (user_id, achievement_definition_id, exercise_id) NULLS NOT DISTINCT
+}
+
+entity "personal_records" {
+    * id : UUID <<PK>>
+    --
+    * user_id : UUID <<FK>>
+    * exercise_id : UUID <<FK>>
+    * metric : VARCHAR
+    weight_kg : DOUBLE PRECISION NULL
+    * value : DOUBLE PRECISION
+    set_id : UUID <<FK>> NULL
+    session_id : UUID <<FK>> NULL
+    * achieved_at : TIMESTAMPTZ
+    * created_at : TIMESTAMPTZ
+    * updated_at : TIMESTAMPTZ
+    ..
+    UK : (user_id, exercise_id, metric, weight_kg) NULLS NOT DISTINCT
+}
+
+entity "users" {
+    * id : UUID <<PK>>
+}
+
+entity "exercises" {
+    * id : UUID <<PK>>
+}
+
+entity "workout_sessions" {
+    * id : UUID <<PK>>
+}
+
+entity "session_sets" {
+    * id : UUID <<PK>>
+}
+
+"users" ||--o{ "user_achievements" : "unlocks"
+"achievement_definitions" ||--o{ "user_achievements" : "instantiated as"
+"exercises" ||--o{ "user_achievements" : "scopes"
+"users" ||--o{ "personal_records" : "holds"
+"exercises" ||--o{ "personal_records" : "measured on"
+"workout_sessions" ||--o{ "user_achievements" : "source session"
+"session_sets" ||--o{ "user_achievements" : "source set"
+"session_sets" ||--o{ "personal_records" : "source set"
+"workout_sessions" ||--o{ "personal_records" : "source session"
+
+@enduml
