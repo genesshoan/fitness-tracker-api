@@ -12,7 +12,7 @@ import dev.genesshoan.fitnesstrackerapi.testdata.TestEntityFactory;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import(TestEntityFactory.class)
+@Import({TestEntityFactory.class, FlywayTestConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public abstract class AbstractIntegrationTest extends AbstractContainerTest {
 

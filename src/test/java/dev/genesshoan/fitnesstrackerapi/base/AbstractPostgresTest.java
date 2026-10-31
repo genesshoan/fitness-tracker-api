@@ -9,6 +9,6 @@ import dev.genesshoan.fitnesstrackerapi.testdata.TestEntityFactory;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import(TestEntityFactory.class)
+@Import({TestEntityFactory.class, FlywayTestConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public abstract class AbstractPostgresTest extends AbstractContainerTest {}
