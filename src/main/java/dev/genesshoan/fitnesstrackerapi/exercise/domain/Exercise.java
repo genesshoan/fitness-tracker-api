@@ -58,14 +58,14 @@ public class Exercise extends BaseEntity {
     /**
      * Human-readable description of the exercise.
      */
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
     /**
      * Step-by-step instructions for performing the exercise.
      */
     @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "instructions", nullable = false)
+    @Column(name = "instructions", nullable = false, columnDefinition = "TEXT[]")
     private List<String> instructions;
 
     /**
