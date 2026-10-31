@@ -72,7 +72,7 @@ public class RoutineExercise {
     private Double defaultDistanceKm;
 
     /** Optional notes for performing this exercise in the routine. */
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String notes;
 
     /** The routine containing this exercise assignment. */
