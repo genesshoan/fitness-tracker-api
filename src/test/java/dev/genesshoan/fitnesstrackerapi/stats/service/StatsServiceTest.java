@@ -19,6 +19,7 @@ import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.result.Musc
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.BodyRegion;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
+import dev.genesshoan.fitnesstrackerapi.stats.application.port.in.result.TrainingSnapshot;
 import dev.genesshoan.fitnesstrackerapi.stats.domain.AchievementType;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.AchievementDTO;
 import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPointsDTO;
@@ -35,6 +36,7 @@ import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MonthlyVolum
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MuscleIntensityProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.OneRepMaxProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.RankedSetProjection;
+import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.TrainingMetricsProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.VolumeSetProjection;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.SessionExerciseBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.SessionSetBuilder;
@@ -56,6 +58,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -120,6 +123,57 @@ class StatsServiceTest {
         StreakDTO result = statsService.getCurrentStreak(userId, reference);
 
         assertThat(result).isEqualTo(new StreakDTO(0, 0, null));
+    }
+
+    @Test
+    @DisplayName("Should build the training snapshot with the aggregates and the longest streak")
+    void getSnapshot_shouldCombineTheAggregatesAndTheLongestStreak() {
+        UUID userId = UUID.randomUUID();
+        when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.of(SAO_PAULO));
+        when(statsRepository.getTrainingMetrics(userId))
+                .thenReturn(new TrainingMetricsProjection(12, 40, 300, 5000.0, 7200, 15.5, 6));
+        when(statsRepository.getTrainedDatesBeforeAsc(eq(userId), any()))
+                .thenReturn(List.of(
+                        Instant.parse("2026-09-10T01:00:00Z"),
+                        Instant.parse("2026-09-11T01:00:00Z"),
+                        Instant.parse("2026-09-12T01:00:00Z")));
+
+        TrainingSnapshot snapshot = statsService.getSnapshot(userId);
+
+        assertThat(snapshot.totalWorkouts()).isEqualTo(12);
+        assertThat(snapshot.totalSets()).isEqualTo(40);
+        assertThat(snapshot.totalReps()).isEqualTo(300);
+        assertThat(snapshot.totalVolumeKg()).isEqualTo(5000.0);
+        assertThat(snapshot.totalTrainingSeconds()).isEqualTo(7200);
+        assertThat(snapshot.totalDistanceKm()).isEqualTo(15.5);
+        assertThat(snapshot.distinctExercises()).isEqualTo(6);
+        assertThat(snapshot.longestStreak()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("Should return an empty snapshot for a user without training")
+    void getSnapshot_shouldReturnZeroesForAUserWithoutTraining() {
+        UUID userId = UUID.randomUUID();
+        when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.of(UTC));
+        when(statsRepository.getTrainingMetrics(userId))
+                .thenReturn(new TrainingMetricsProjection(0, 0, 0, 0.0, 0, 0.0, 0));
+        when(statsRepository.getTrainedDatesBeforeAsc(eq(userId), any())).thenReturn(List.of());
+
+        TrainingSnapshot snapshot = statsService.getSnapshot(userId);
+
+        assertThat(snapshot.totalWorkouts()).isZero();
+        assertThat(snapshot.totalSets()).isZero();
+        assertThat(snapshot.longestStreak()).isZero();
+    }
+
+    @Test
+    @DisplayName("Should fail to build a snapshot for a user without a timezone")
+    void getSnapshot_shouldFailForAUserWithoutTimezone() {
+        UUID userId = UUID.randomUUID();
+        when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> statsService.getSnapshot(userId)).isInstanceOf(ResourceNotFoundException.class);
+        verifyNoInteractions(statsRepository);
     }
 
     @Test

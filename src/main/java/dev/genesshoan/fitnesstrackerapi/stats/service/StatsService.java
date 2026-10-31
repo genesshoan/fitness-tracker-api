@@ -22,6 +22,8 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundE
 import dev.genesshoan.fitnesstrackerapi.common.mapper.ExerciseMetricsMapper;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.ExerciseQueryUseCase;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.MuscleAssetUseCase;
+import dev.genesshoan.fitnesstrackerapi.stats.application.port.in.TrainingMetricsUseCase;
+import dev.genesshoan.fitnesstrackerapi.stats.application.port.in.result.TrainingSnapshot;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.AchievementCalculator;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.OneRepMaxCalculator;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.StreakCalculator;
@@ -45,6 +47,7 @@ import dev.genesshoan.fitnesstrackerapi.stats.repository.StatsRepository;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MuscleIntensityProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.OneRepMaxProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.RankedSetProjection;
+import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.TrainingMetricsProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.VolumeSetProjection;
 import dev.genesshoan.fitnesstrackerapi.user.application.port.in.GetUserTimeZoneUseCase;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
@@ -62,7 +65,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class StatsService {
+public class StatsService implements TrainingMetricsUseCase {
 
     private final StatsRepository statsRepository;
     private final WorkoutSessionRepository workoutSessionRepository;
@@ -72,6 +75,47 @@ public class StatsService {
 
     private final ExerciseMetricsMapper exerciseMetricsMapper;
     private final AchievementMapper achievementMapper;
+
+    /**
+     * Builds the training snapshot of a user.
+     *
+     * <p>The aggregates come from the training history, and the longest streak
+     * is computed from the local days the user trained, in the timezone of the
+     * user.</p>
+     *
+     * @param userId the user the aggregates belong to
+     * @return the training aggregates of the user
+     * @throws ResourceNotFoundException if the user does not exist
+     */
+    @Override
+    public TrainingSnapshot getSnapshot(UUID userId) {
+
+        ZoneId userZoneId =
+                getUserTimeZoneUseCase.getUserTimezoneById(userId).orElseThrow(ResourceNotFoundException::new);
+
+        TrainingMetricsProjection metrics = statsRepository.getTrainingMetrics(userId);
+
+        Instant referenceInstant = Instant.now();
+
+        List<LocalDate> activeDaysAscending =
+                statsRepository.getTrainedDatesBeforeAsc(userId, referenceInstant).stream()
+                        .map(i -> i.atZone(userZoneId).toLocalDate())
+                        .distinct()
+                        .toList();
+
+        StreakResult streakResult = StreakCalculator.calculate(
+                activeDaysAscending, referenceInstant.atZone(userZoneId).toLocalDate());
+
+        return new TrainingSnapshot(
+                metrics.totalWorkouts(),
+                metrics.totalSets(),
+                metrics.totalReps(),
+                metrics.totalVolumeKg(),
+                metrics.totalTrainingSeconds(),
+                metrics.totalDistanceKm(),
+                metrics.distinctExercises(),
+                streakResult.longestStreak());
+    }
 
     /**
      * Calculates the current and longest consecutive workout-day streak.
