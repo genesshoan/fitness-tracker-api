@@ -339,6 +339,13 @@ CREATE INDEX idx_user_achievements_unseen
     ON user_achievements (user_id, seen);
 ```
 
+> **`progress_value` solo aplica a las reglas de umbral.** Es el mejor valor
+> alcanzado hacia el umbral y nunca decrece. Una regla de récord personal no
+> lleva progreso: o está desbloqueada o no, y su marca actual se lee de
+> `personal_records`, que es la fuente de verdad y siempre está al día aunque el
+> usuario borre la sesión que la estableció. La API expone ese valor como
+> `currentValue`.
+
 ### 5.4 `V22__seed_achievement_definitions.sql`
 
 Catálogo inicial. Los umbrales se añaden sin código; los récords personales son las
@@ -469,43 +476,49 @@ Sigue la convención de los módulos ya refactorizados (`auth`, `exercise`):
 
 ```text
 src/main/java/dev/genesshoan/fitnesstrackerapi/gamification/
-├── domain/
-│   ├── AchievementDefinition.java        (entidad JPA)
-│   ├── UserAchievement.java               (entidad JPA)
-│   ├── PersonalRecord.java                (entidad JPA)
-│   ├── PersonalRepsRecord.java            (entidad JPA)
+├── domain/                                  ✅ PR 1
+│   ├── AchievementDefinition.java           (entidad JPA)
+│   ├── UserAchievement.java                 (entidad JPA)
+│   ├── PersonalRecord.java                  (entidad JPA)
 │   ├── AchievementCategory.java
 │   ├── AchievementTier.java
 │   ├── RuleType.java
 │   ├── AchievementMetric.java
+│   ├── PersonalRecordMetric.java
 │   ├── ComparisonOperator.java
 │   └── AchievementScope.java
-├── application/
+├── application/                             ⏳ PR 3 en adelante
 │   ├── port/
 │   │   ├── in/
 │   │   │   ├── EvaluateAchievementsUseCase.java
 │   │   │   ├── AchievementCatalogUseCase.java
 │   │   │   └── AchievementFeedUseCase.java
 │   │   └── out/
-│   │       ├── AchievementDefinitionRepository.java
-│   │       ├── UserAchievementRepository.java
-│   │       ├── PersonalRecordRepository.java
 │   │       └── TrainingMetricsPort.java
 │   ├── service/
 │   │   ├── AchievementEvaluationService.java
 │   │   ├── AchievementQueryService.java
 │   │   └── PersonalRecordEvaluator.java    ← la parte de reglas en código
 │   └── exception/
-├── infrastructure/
-│   ├── persistence/
-│   │   ├── entity/…
-│   │   ├── repository/…
-│   │   └── adapter/TrainingMetricsAdapter.java
-│   └── web/
-│       ├── AchievementController.java
-│       ├── dto/…
-│       └── mapper/…
+└── infrastructure/
+    ├── persistence/                         ✅ PR 1
+    │   ├── AchievementDefinitionRepository.java
+    │   ├── UserAchievementRepository.java
+    │   └── PersonalRecordRepository.java
+    └── web/                                 ⏳ PR 5
+        ├── AchievementController.java
+        ├── dto/…
+        └── mapper/…
 ```
+
+Los repositorios son interfaces de Spring Data que viven en `infrastructure/persistence`
+y que los servicios del propio módulo usan directamente, igual que hacen `exercise`
+y `auth`. `application/port/out/` queda reservado para los puertos que cruzan
+módulos, que en este caso es solo `TrainingMetricsPort`.
+
+Las referencias a otras entidades (usuario, ejercicio, sesión, set) son `UUID` sueltos
+y no asociaciones, para que el módulo no dependa de las entidades de `user`,
+`exercise` ni `workout` (§8.3).
 
 ### 8.2 Puertos
 
@@ -638,7 +651,8 @@ con `user_achievements`.
     "scope": "PER_EXERCISE",
     "exerciseId": "6f1c…",
     "exerciseName": "Press de banca",
-    "progressValue": 92.5,
+    "progressValue": null,
+    "currentValue": 92.5,
     "progressRatio": null,
     "unlocked": true,
     "unlockedAt": "2026-10-28T18:03:00Z",
@@ -963,6 +977,5 @@ más simple y suficiente.
 - [ADR-0009: arquitectura hexagonal pragmática](../adr/0009-adopt-pragmatic-hexagonal-architecture.md)
 - [ADR-0007: listeners transaccionales para efectos post-commit](../adr/0007-use-transactional-event-listener-for-post-commit.md)
 - [ADR-0012: persistir los logros en vez de calcularlos en vuelo](../adr/0012-persist-achievements-instead-of-computing-them-on-demand.md)
-- [ADR-0013: Flyway como fuente de verdad del esquema](../adr/0013-make-flyway-the-single-source-of-truth-for-the-database-schema.md)
 - [Reglas de negocio de stats](../stats/business-rules.md)
 - [Documentación del módulo workout](../workout/README.md)
