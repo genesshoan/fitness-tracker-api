@@ -70,9 +70,13 @@ Con el modelo actual no se puede construir, sin cambios de fondo:
 ### 2.4 Semánticas que conviene corregir de paso
 
 - `findRankedSets` no filtra por `ws.status = 'COMPLETED'`: un set de una sesión
-  `IN_PROGRESS` ya puede establecer un récord personal.
-- `getTrainedDatesBeforeAsc` (usada para las rachas) tampoco filtra por estado, de
-  modo que una sesión sin terminar cuenta como día de entrenamiento.
+  `IN_PROGRESS` ya puede establecer un récord personal. Verificado: hay sets
+  completados en sesiones sin terminar.
+- `getTrainedDatesBeforeAsc` (usada para las rachas) tampoco filtraba por estado.
+  En la práctica no cambiaba el resultado, porque la aplicación solo fija
+  `completed_at` en sesiones completadas y la comparación con `NULL` ya las
+  excluía, pero el invariante vive en la capa de aplicación y no en la base de
+  datos. El filtro por estado hace la intención explícita y protege la consulta.
 - `updateSessionSet` y `markSetIncomplete` permiten cambiar métricas de un set ya
   completado mientras la sesión sigue `IN_PROGRESS`. Con estado persistido, eso
   invalida récords y exige recomputarlos (ver §7.4).
@@ -556,6 +560,12 @@ public interface TrainingMetricsUseCase {
 }
 ```
 
+`TrainingSnapshot` vive en `stats/application/port/in/result/`, siguiendo la
+convención del módulo `exercise`. `StatsService` implementa el port, como
+`ExerciseService` implementa `ExerciseQueryUseCase`. El módulo `gamification`
+consume este contrato, y no la clase concreta, para no depender de la
+implementación.
+
 ### 8.3 Grafo de dependencias resultante
 
 ```text
@@ -797,7 +807,7 @@ Cada PR es vertical, revisable y migrable por separado.
 | --- | --- | --- | --- |
 | 0 | `fix/test-schema-ownership` ✅ | Flyway como fuente de verdad del esquema en los tests, `V18` y alineación de las entidades | `V18` |
 | 1 | `feature/gamification-schema` | Tablas, entidades, repositorios e índices únicos | `V19`–`V22` |
-| 2 | `feature/gamification-metrics` | `TrainingMetricsUseCase` en `stats`, `TrainingSnapshot`, corrección del filtro de `status` en la racha | – |
+| 2 | `feature/gamification-metrics` | `TrainingMetricsUseCase` en `stats`, `TrainingSnapshot`, filtro de estado explícito en la racha | – |
 | 3 | `feature/gamification-evaluator` | `AchievementEvaluationService`, `PersonalRecordEvaluator`, `EvaluateAchievementsUseCase` | – |
 | 4 | `feature/gamification-wiring` | Invocación desde `workout` (sesión completada, set completado, operaciones destructivas) | – |
 | 5 | `feature/gamification-api` | Controller, DTOs, feed, marcar vistos, summary | – |
