@@ -10,10 +10,10 @@ class AchievementCalculator
 class OneRepMaxCalculator
 class VolumeCalculator
 class StreakCalculator
-class SessionVolumeDTO
-class OneRepMaxDTO
-class StreakDTO
-class ExerciseProgressPointsDTO
+class SessionVolume
+class OneRepMax
+class Streak
+class ExerciseProgressPoints
 
 StatsController --> StatsService
 StatsService --> StatsRepository
@@ -23,10 +23,10 @@ StatsService --> AchievementCalculator
 StatsService --> OneRepMaxCalculator
 StatsService --> VolumeCalculator
 StatsService --> StreakCalculator
-StatsService --> SessionVolumeDTO
-StatsService --> OneRepMaxDTO
-StatsService --> StreakDTO
-StatsService --> ExerciseProgressPointsDTO
+StatsService --> SessionVolume
+StatsService --> OneRepMax
+StatsService --> Streak
+StatsService --> ExerciseProgressPoints
 
 note right of StatsRepository
   JDBC projections

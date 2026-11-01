@@ -4,12 +4,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
-import dev.genesshoan.fitnesstrackerapi.common.domain.ExerciseMetrics;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.mapper.ExerciseMetricsMapper;
@@ -17,36 +14,23 @@ import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.ExerciseQue
 import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.MuscleAssetUseCase;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.result.MuscleBaseAssetsResult;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.BodyRegion;
-import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
 import dev.genesshoan.fitnesstrackerapi.stats.application.port.in.result.TrainingSnapshot;
-import dev.genesshoan.fitnesstrackerapi.stats.domain.AchievementType;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.AchievementDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPointsDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.MonthlyVolumeDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.OneRepMaxDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.SessionVolumeDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.StreakDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.mapper.AchievementMapper;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPoints;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.MonthlyVolume;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensity;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityResponse;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.OneRepMax;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.SessionVolume;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.Streak;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.StatsRepository;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.ExerciseProgressProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MonthlyVolumeProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MuscleIntensityProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.OneRepMaxProjection;
-import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.RankedSetProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.TrainingMetricsProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.VolumeSetProjection;
-import dev.genesshoan.fitnesstrackerapi.testdata.builder.SessionExerciseBuilder;
-import dev.genesshoan.fitnesstrackerapi.testdata.builder.SessionSetBuilder;
-import dev.genesshoan.fitnesstrackerapi.testdata.builder.UserBuilder;
-import dev.genesshoan.fitnesstrackerapi.testdata.builder.WorkoutSessionBuilder;
 import dev.genesshoan.fitnesstrackerapi.user.application.port.in.GetUserTimeZoneUseCase;
-import dev.genesshoan.fitnesstrackerapi.user.domain.User;
-import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
-import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
-import dev.genesshoan.fitnesstrackerapi.workout.repository.WorkoutSessionRepository;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -59,7 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -75,9 +59,6 @@ class StatsServiceTest {
     private StatsRepository statsRepository;
 
     @Mock
-    private WorkoutSessionRepository workoutSessionRepository;
-
-    @Mock
     private ExerciseQueryUseCase exerciseQueryUseCase;
 
     @Mock
@@ -85,9 +66,6 @@ class StatsServiceTest {
 
     @Mock
     private ExerciseMetricsMapper exerciseMetricsMapper;
-
-    @Mock
-    private AchievementMapper achievementMapper;
 
     @Mock
     private MuscleAssetUseCase muscleAssetUseCase;
@@ -104,7 +82,7 @@ class StatsServiceTest {
         when(statsRepository.getTrainedDatesBeforeAsc(userId, reference))
                 .thenReturn(List.of(Instant.parse("2026-09-11T23:00:00Z"), Instant.parse("2026-09-12T23:00:00Z")));
 
-        StreakDTO result = statsService.getCurrentStreak(userId, reference);
+        Streak result = statsService.getCurrentStreak(userId, reference);
 
         assertThat(result.currentStreak()).isEqualTo(2);
         assertThat(result.longestStreak()).isEqualTo(2);
@@ -120,9 +98,9 @@ class StatsServiceTest {
         when(getUserTimeZoneUseCase.getUserTimezoneById(userId)).thenReturn(Optional.of(UTC));
         when(statsRepository.getTrainedDatesBeforeAsc(userId, reference)).thenReturn(List.of());
 
-        StreakDTO result = statsService.getCurrentStreak(userId, reference);
+        Streak result = statsService.getCurrentStreak(userId, reference);
 
-        assertThat(result).isEqualTo(new StreakDTO(0, 0, null));
+        assertThat(result).isEqualTo(new Streak(0, 0, null));
     }
 
     @Test
@@ -188,7 +166,7 @@ class StatsServiceTest {
                         Instant.parse("2026-09-10T12:00:00Z"),
                         Instant.parse("2026-09-11T12:00:00Z")));
 
-        StreakDTO result = statsService.getCurrentStreak(userId, reference);
+        Streak result = statsService.getCurrentStreak(userId, reference);
 
         assertThat(result.currentStreak()).isZero();
         assertThat(result.longestStreak()).isEqualTo(3);
@@ -207,7 +185,7 @@ class StatsServiceTest {
                         Instant.parse("2026-09-12T20:00:00Z"),
                         Instant.parse("2026-09-12T23:00:00Z")));
 
-        StreakDTO result = statsService.getCurrentStreak(userId, reference);
+        Streak result = statsService.getCurrentStreak(userId, reference);
 
         assertThat(result.currentStreak()).isEqualTo(1);
         assertThat(result.longestStreak()).isEqualTo(1);
@@ -231,11 +209,11 @@ class StatsServiceTest {
     void calculateSessionVolume_shouldReturnCalculatedVolume() {
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        when(workoutSessionRepository.existsByIdAndUserId(sessionId, userId)).thenReturn(true);
+        when(statsRepository.existsSession(sessionId, userId)).thenReturn(true);
         when(statsRepository.getSetsForVolume(sessionId, userId))
                 .thenReturn(List.of(new VolumeSetProjection(50.0, 10), new VolumeSetProjection(40.0, 5)));
 
-        SessionVolumeDTO result = statsService.calculateSessionVolume(sessionId, userId);
+        SessionVolume result = statsService.calculateSessionVolume(sessionId, userId);
 
         assertThat(result.volumeKg()).isEqualTo(700.0);
         verify(statsRepository).getSetsForVolume(sessionId, userId);
@@ -251,7 +229,7 @@ class StatsServiceTest {
                 .thenReturn(700.0);
 
         assertThat(statsService.calculateVolume(userId, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31)))
-                .isEqualTo(new SessionVolumeDTO(700.0));
+                .isEqualTo(new SessionVolume(700.0));
     }
 
     @Test
@@ -264,7 +242,7 @@ class StatsServiceTest {
                 .thenReturn(List.of(new MonthlyVolumeProjection("2026-01", 500.0)));
 
         assertThat(statsService.getMonthlyVolume(userId, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31)))
-                .containsExactly(new MonthlyVolumeDTO("2026-01", 500.0));
+                .containsExactly(new MonthlyVolume("2026-01", 500.0));
     }
 
     @Test
@@ -338,7 +316,7 @@ class StatsServiceTest {
                 .thenReturn(List.of());
 
         assertThat(statsService.getExerciseProgress(userId, exerciseId, from, to))
-                .isEqualTo(new ExerciseProgressPointsDTO(exerciseId, List.of()));
+                .isEqualTo(new ExerciseProgressPoints(exerciseId, List.of()));
     }
 
     @Test
@@ -395,13 +373,14 @@ class StatsServiceTest {
     void calculateSessionVolume_shouldThrowWhenSessionDoesNotBelongToUser() {
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        when(workoutSessionRepository.existsByIdAndUserId(sessionId, userId)).thenReturn(false);
+        when(statsRepository.existsSession(sessionId, userId)).thenReturn(false);
 
         assertThatThrownBy(() -> statsService.calculateSessionVolume(sessionId, userId))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Workout session not found");
 
-        verifyNoInteractions(statsRepository);
+        verify(statsRepository).existsSession(sessionId, userId);
+        verify(statsRepository, never()).getSetsForVolume(any(UUID.class), any(UUID.class));
     }
 
     @Test
@@ -413,9 +392,9 @@ class StatsServiceTest {
         when(statsRepository.getSetForOneRepMax(userId, exerciseId))
                 .thenReturn(Optional.of(new OneRepMaxProjection(100.0)));
 
-        OneRepMaxDTO result = statsService.getOneRepMax(userId, exerciseId);
+        OneRepMax result = statsService.getOneRepMax(userId, exerciseId);
 
-        assertThat(result).isEqualTo(new OneRepMaxDTO(exerciseId, 100.0));
+        assertThat(result).isEqualTo(new OneRepMax(exerciseId, 100.0));
     }
 
     @Test
@@ -455,7 +434,7 @@ class StatsServiceTest {
                 .thenReturn(
                         List.of(new ExerciseProgressProjection(Instant.parse("2026-01-15T01:00:00Z"), 80.0, 5, 93.33)));
 
-        ExerciseProgressPointsDTO result = statsService.getExerciseProgress(userId, exerciseId, from, to);
+        ExerciseProgressPoints result = statsService.getExerciseProgress(userId, exerciseId, from, to);
 
         assertThat(result.exerciseId()).isEqualTo(exerciseId);
         assertThat(result.progress()).hasSize(1);
@@ -463,156 +442,6 @@ class StatsServiceTest {
         assertThat(result.progress().getFirst().weightKg()).isEqualTo(80.0);
         assertThat(result.progress().getFirst().reps()).isEqualTo(5);
         assertThat(result.progress().getFirst().estimatedOneRepMax()).isEqualTo(93.33);
-    }
-
-    @Test
-    @DisplayName("Should return no achievements for an incomplete set")
-    void calculateForSet_shouldReturnEmptyForIncompleteSet() {
-        SessionSet set =
-                SessionSetBuilder.aSessionSet(FAKER).withCompleted(false).build();
-
-        assertThat(statsService.calculateForSet(set, UUID.randomUUID())).isEmpty();
-
-        verifyNoInteractions(statsRepository, exerciseMetricsMapper, achievementMapper);
-    }
-
-    @Test
-    @DisplayName("Should map achievements for a completed set")
-    void calculateForSet_shouldMapCompletedSetAchievements() {
-        UUID userId = UUID.randomUUID();
-        UUID exerciseId = UUID.randomUUID();
-        Exercise exercise = mock(Exercise.class);
-        when(exercise.getId()).thenReturn(exerciseId);
-        User user = UserBuilder.aUser(FAKER).withId(userId).build();
-        WorkoutSession session =
-                WorkoutSessionBuilder.aWorkoutSession(FAKER).forUser(user).build();
-        var sessionExercise = SessionExerciseBuilder.aSessionExercise(FAKER)
-                .forExercise(exercise)
-                .forWorkoutSession(session)
-                .build();
-        SessionSet set = SessionSetBuilder.aSessionSet(FAKER)
-                .forSessionExercise(sessionExercise)
-                .withCompleted(true)
-                .build();
-        List<AchievementDTO> expected = List.of();
-        when(statsRepository.findRankedSets(any(), any(), any())).thenReturn(Map.of());
-        when(exerciseMetricsMapper.toExerciseMetrics(set)).thenReturn(new ExerciseMetrics(10, 50.0, null, null));
-        when(achievementMapper.toDtos(any())).thenReturn(expected);
-
-        assertThat(statsService.calculateForSet(set, userId)).isEqualTo(expected);
-        verify(achievementMapper).toDtos(any());
-    }
-
-    @Test
-    @DisplayName("Should return mapped achievements for a new personal record")
-    void calculateForSet_shouldReturnMappedAchievements() {
-        UUID userId = UUID.randomUUID();
-        UUID exerciseId = UUID.randomUUID();
-        Exercise exercise = mock(Exercise.class);
-        when(exercise.getId()).thenReturn(exerciseId);
-        User user = UserBuilder.aUser(FAKER).withId(userId).build();
-        WorkoutSession session =
-                WorkoutSessionBuilder.aWorkoutSession(FAKER).forUser(user).build();
-        var sessionExercise = SessionExerciseBuilder.aSessionExercise(FAKER)
-                .forExercise(exercise)
-                .forWorkoutSession(session)
-                .build();
-        SessionSet set = SessionSetBuilder.aSessionSet(FAKER)
-                .forSessionExercise(sessionExercise)
-                .withCompleted(true)
-                .build();
-        AchievementDTO expectedAchievement = new AchievementDTO(AchievementType.NEW_MAX_WEIGHT, 50.0, null, null, null);
-        when(statsRepository.findRankedSets(any(), any(), any())).thenReturn(Map.of());
-        when(exerciseMetricsMapper.toExerciseMetrics(set)).thenReturn(new ExerciseMetrics(10, 50.0, null, null));
-        when(achievementMapper.toDtos(any())).thenReturn(List.of(expectedAchievement));
-
-        assertThat(statsService.calculateForSet(set, userId)).containsExactly(expectedAchievement);
-    }
-
-    @Test
-    @DisplayName("Should return no achievements when the session has no completed sets")
-    void calculateForSession_shouldReturnEmptyWhenNoCompletedSetsExist() {
-        User user = UserBuilder.aUser(FAKER).build();
-        WorkoutSession session =
-                WorkoutSessionBuilder.aWorkoutSession(FAKER).forUser(user).build();
-
-        assertThat(statsService.calculateForSession(session, user.getId())).isEmpty();
-
-        verifyNoInteractions(statsRepository, exerciseMetricsMapper, achievementMapper);
-    }
-
-    @Test
-    @DisplayName("Should calculate achievements for completed sets in a session")
-    void calculateForSession_shouldReturnAchievementsBySetId() {
-        UUID userId = UUID.randomUUID();
-        UUID exerciseId = UUID.randomUUID();
-        Exercise exercise = mock(Exercise.class);
-        when(exercise.getId()).thenReturn(exerciseId);
-        User user = UserBuilder.aUser(FAKER).withId(userId).build();
-        WorkoutSession session =
-                WorkoutSessionBuilder.aWorkoutSession(FAKER).forUser(user).build();
-        var sessionExercise = SessionExerciseBuilder.aSessionExercise(FAKER)
-                .forExercise(exercise)
-                .forWorkoutSession(session)
-                .build();
-        SessionSet completedSet = SessionSetBuilder.aSessionSet(FAKER)
-                .forSessionExercise(sessionExercise)
-                .withCompleted(true)
-                .build();
-        SessionSet incompleteSet = SessionSetBuilder.aSessionSet(FAKER)
-                .forSessionExercise(sessionExercise)
-                .withSetNumber(2)
-                .withCompleted(false)
-                .build();
-        sessionExercise.addSet(completedSet);
-        sessionExercise.addSet(incompleteSet);
-        session.addExerciseAt(sessionExercise, 1);
-        AchievementDTO achievement = new AchievementDTO(AchievementType.NEW_MAX_WEIGHT, 50.0, null, null, null);
-
-        when(statsRepository.findRankedSets(userId, Set.of(exerciseId), session.getStartedAt()))
-                .thenReturn(Map.of());
-        when(exerciseMetricsMapper.toExerciseMetrics(completedSet))
-                .thenReturn(new ExerciseMetrics(10, 50.0, null, null));
-        when(achievementMapper.toDtos(any())).thenReturn(List.of(achievement));
-
-        assertThat(statsService.calculateForSession(session, userId))
-                .containsEntry(completedSet.getId(), List.of(achievement));
-        verify(exerciseMetricsMapper).toExerciseMetrics(completedSet);
-    }
-
-    @Test
-    @DisplayName("Should use existing records when calculating session achievements")
-    void calculateForSession_shouldCompareAgainstExistingRecords() {
-        UUID userId = UUID.randomUUID();
-        UUID exerciseId = UUID.randomUUID();
-        UUID previousSetId = UUID.randomUUID();
-        UUID previousSessionId = UUID.randomUUID();
-        Exercise exercise = mock(Exercise.class);
-        when(exercise.getId()).thenReturn(exerciseId);
-        User user = UserBuilder.aUser(FAKER).withId(userId).build();
-        WorkoutSession session =
-                WorkoutSessionBuilder.aWorkoutSession(FAKER).forUser(user).build();
-        var sessionExercise = SessionExerciseBuilder.aSessionExercise(FAKER)
-                .forExercise(exercise)
-                .forWorkoutSession(session)
-                .build();
-        SessionSet set = SessionSetBuilder.aSessionSet(FAKER)
-                .forSessionExercise(sessionExercise)
-                .withCompleted(true)
-                .build();
-        sessionExercise.addSet(set);
-        session.addExerciseAt(sessionExercise, 1);
-        AchievementDTO achievement =
-                new AchievementDTO(AchievementType.NEW_MAX_WEIGHT, 60.0, 50.0, previousSetId, previousSessionId);
-        when(statsRepository.findRankedSets(any(), any(), any()))
-                .thenReturn(Map.of(
-                        exerciseId,
-                        List.of(new RankedSetProjection(
-                                previousSetId, previousSessionId, exerciseId, 50.0, 10, 5.0, 30, 1, 1, 1, 1, 1))));
-        when(exerciseMetricsMapper.toExerciseMetrics(set)).thenReturn(new ExerciseMetrics(12, 60.0, 40, 6.0));
-        when(achievementMapper.toDtos(any())).thenReturn(List.of(achievement));
-
-        assertThat(statsService.calculateForSession(session, userId)).containsEntry(set.getId(), List.of(achievement));
     }
 
     @Test
@@ -642,15 +471,15 @@ class StatsServiceTest {
         when(muscleAssetUseCase.resolveMuscleUrl(any())).thenReturn(null);
         when(muscleAssetUseCase.findBaseAssets()).thenReturn(new MuscleBaseAssetsResult(null, null));
 
-        MuscleIntensityResponseDTO result = statsService.getMuscleIntensity(userId, from, to);
+        MuscleIntensityResponse result = statsService.getMuscleIntensity(userId, from, to);
 
         assertThat(result.from()).isEqualTo(from);
         assertThat(result.to()).isEqualTo(to);
         assertThat(result.muscles())
                 .containsExactly(
-                        new MuscleIntensityDTO(
+                        new MuscleIntensity(
                                 firstMuscleId, "First muscle", "first-muscle", BodyRegion.ARMS, null, null, 0.0),
-                        new MuscleIntensityDTO(
+                        new MuscleIntensity(
                                 secondMuscleId, "Second muscle", "second-muscle", BodyRegion.LEGS, null, null, 0.0));
     }
 
@@ -706,12 +535,12 @@ class StatsServiceTest {
         when(muscleAssetUseCase.resolveMuscleUrl(any())).thenReturn(null);
         when(muscleAssetUseCase.findBaseAssets()).thenReturn(new MuscleBaseAssetsResult(null, null));
 
-        MuscleIntensityResponseDTO result =
+        MuscleIntensityResponse result =
                 statsService.getMuscleIntensity(userId, LocalDate.of(1970, 1, 1), LocalDate.of(1970, 1, 1));
 
         assertThat(result.muscles())
                 .containsExactly(
-                        new MuscleIntensityDTO(
+                        new MuscleIntensity(
                                 weightedMuscleId,
                                 "Weighted muscle",
                                 "weighted-muscle",
@@ -719,9 +548,9 @@ class StatsServiceTest {
                                 null,
                                 null,
                                 10.0),
-                        new MuscleIntensityDTO(
+                        new MuscleIntensity(
                                 highestMuscleId, "Highest muscle", "highest-muscle", BodyRegion.LEGS, null, null, 4.5),
-                        new MuscleIntensityDTO(
+                        new MuscleIntensity(
                                 zeroMuscleId, "Zero muscle", "zero-muscle", BodyRegion.OTHER, null, null, 0.0));
     }
 
@@ -766,7 +595,7 @@ class StatsServiceTest {
         when(muscleAssetUseCase.resolveMuscleUrl(any())).thenReturn(null);
         when(muscleAssetUseCase.findBaseAssets()).thenReturn(new MuscleBaseAssetsResult(null, null));
 
-        MuscleIntensityResponseDTO result =
+        MuscleIntensityResponse result =
                 statsService.getMuscleIntensity(userId, LocalDate.of(1970, 1, 1), LocalDate.of(1970, 1, 1));
 
         assertThat(result.muscles().getFirst().intensity()).isEqualTo(1.1);
@@ -802,7 +631,7 @@ class StatsServiceTest {
 
         when(muscleAssetUseCase.findBaseAssets()).thenReturn(new MuscleBaseAssetsResult(null, null));
 
-        MuscleIntensityResponseDTO result =
+        MuscleIntensityResponse result =
                 statsService.getMuscleIntensity(userId, LocalDate.of(1970, 1, 1), LocalDate.of(1970, 1, 1));
 
         assertThat(result.muscles()).isEmpty();

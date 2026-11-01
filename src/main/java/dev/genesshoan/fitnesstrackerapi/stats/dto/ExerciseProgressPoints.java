@@ -7,8 +7,8 @@ import java.util.UUID;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Exercise progression over a date range")
-public record ExerciseProgressPointsDTO(
+public record ExerciseProgressPoints(
         @Schema(description = "Exercise id") UUID exerciseId,
 
         @Schema(description = "Progress points ordered chronologically")
-        List<ExerciseProgressPointDTO> progress) {}
+        List<ExerciseProgressPoint> progress) {}

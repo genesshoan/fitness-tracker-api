@@ -2,7 +2,6 @@ package dev.genesshoan.fitnesstrackerapi.stats.repository;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import dev.genesshoan.fitnesstrackerapi.base.AbstractIntegrationTest;
+import dev.genesshoan.fitnesstrackerapi.common.domain.SessionStatus;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.BodyRegion;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
@@ -28,7 +28,6 @@ import dev.genesshoan.fitnesstrackerapi.testdata.builder.WorkoutSessionBuilder;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionExercise;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
-import dev.genesshoan.fitnesstrackerapi.common.domain.SessionStatus;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -46,56 +45,6 @@ class StatsRepositoryTest extends AbstractIntegrationTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
-
-    @Test
-    @DisplayName("Should find ranked completed sets before a session")
-    void findRankedSets_shouldGroupTopSetsByExercise() {
-        User user = testEntityFactory.createAndPersistUser();
-        Exercise exercise =
-                testEntityFactory.createAndPersistExercise(ExerciseBuilder.anExercise(testEntityFactory.faker()));
-        Instant startedAt = Instant.parse("2026-09-13T10:00:00Z");
-        WorkoutSession session = persistCompletedSession(user, startedAt, startedAt.plusSeconds(3600));
-        SessionExercise sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
-        testEntityFactory.createAndPersistSessionSet(SessionSetBuilder.aSessionSet(testEntityFactory.faker())
-                .forSessionExercise(sessionExercise)
-                .withWeightKg(100.0)
-                .withReps(5)
-                .withCompleted(true));
-
-        var result = statsRepository.findRankedSets(user.getId(), Set.of(exercise.getId()), startedAt.plusSeconds(1));
-
-        assertThat(result).containsKey(exercise.getId());
-        assertThat(result.get(exercise.getId())).anySatisfy(set -> {
-            assertThat(set.weightKg()).isEqualTo(100.0);
-            assertThat(set.reps()).isEqualTo(5);
-            assertThat(set.rnWeight()).isEqualTo(1);
-        });
-    }
-
-    @Test
-    @DisplayName("Should return no ranked sets when no exercises are requested")
-    void findRankedSets_shouldReturnEmptyForNoExerciseIds() {
-        assertThat(statsRepository.findRankedSets(UUID.randomUUID(), Set.of(), Instant.now()))
-                .isEmpty();
-    }
-
-    @Test
-    @DisplayName("Should not return ranked sets for another user")
-    void findRankedSets_shouldFilterByUser() {
-        User owner = testEntityFactory.createAndPersistUser();
-        User otherUser = testEntityFactory.createAndPersistUser();
-        Exercise exercise = testEntityFactory.createAndPersistExercise();
-        Instant startedAt = Instant.parse("2026-09-13T10:00:00Z");
-        WorkoutSession session = persistCompletedSession(owner, startedAt, startedAt.plusSeconds(3600));
-        SessionExercise sessionExercise = testEntityFactory.createAndPersistSessionExercise(session, exercise);
-        testEntityFactory.createAndPersistSessionSet(SessionSetBuilder.aSessionSet(testEntityFactory.faker())
-                .forSessionExercise(sessionExercise)
-                .withCompleted(true));
-
-        assertThat(statsRepository.findRankedSets(
-                        otherUser.getId(), Set.of(exercise.getId()), startedAt.plusSeconds(1)))
-                .isEmpty();
-    }
 
     @Test
     @DisplayName("Should return trained dates in ascending order")

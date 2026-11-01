@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @param volumeKg total kilogram-repetitions for the month
  */
 @Schema(description = "Monthly strength volume")
-public record MonthlyVolumeDTO(
+public record MonthlyVolume(
         @Schema(description = "Calendar month", example = "2026-09")
         String month,
 

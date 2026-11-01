@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.genesshoan.fitnesstrackerapi.common.annotation.CurrentUserId;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPointsDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.MonthlyVolumeDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.OneRepMaxDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.SessionVolumeDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.StreakDTO;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPoints;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.MonthlyVolume;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityResponse;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.OneRepMax;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.SessionVolume;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.Streak;
 import dev.genesshoan.fitnesstrackerapi.stats.service.StatsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -53,7 +53,7 @@ public class StatsController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = SessionVolumeDTO.class))),
+                                schema = @Schema(implementation = SessionVolume.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Invalid session ID",
@@ -84,7 +84,7 @@ public class StatsController {
                                 schema = @Schema(implementation = ProblemDetail.class)))
     })
     @GetMapping(value = "/volume", params = "sessionId")
-    public ResponseEntity<SessionVolumeDTO> getSessionVolume(
+    public ResponseEntity<SessionVolume> getSessionVolume(
             @CurrentUserId UUID userId,
             @Parameter(description = "Workout session id", required = true) @RequestParam UUID sessionId) {
         return ResponseEntity.ok(statsService.calculateSessionVolume(sessionId, userId));
@@ -108,7 +108,7 @@ public class StatsController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = SessionVolumeDTO.class))),
+                                schema = @Schema(implementation = SessionVolume.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Invalid date range",
@@ -127,7 +127,7 @@ public class StatsController {
     @GetMapping(
             value = "/volume",
             params = {"from", "to"})
-    public ResponseEntity<SessionVolumeDTO> getVolume(
+    public ResponseEntity<SessionVolume> getVolume(
             @CurrentUserId UUID userId,
             @Parameter(
                             description = "Inclusive start date in the user's timezone",
@@ -162,7 +162,7 @@ public class StatsController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                array = @ArraySchema(schema = @Schema(implementation = MonthlyVolumeDTO.class)))),
+                                array = @ArraySchema(schema = @Schema(implementation = MonthlyVolume.class)))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Invalid date range",
@@ -179,7 +179,7 @@ public class StatsController {
                                 schema = @Schema(implementation = ProblemDetail.class)))
     })
     @GetMapping("/volume/monthly")
-    public ResponseEntity<List<MonthlyVolumeDTO>> getMonthlyVolume(
+    public ResponseEntity<List<MonthlyVolume>> getMonthlyVolume(
             @CurrentUserId UUID userId,
             @Parameter(
                             description = "Inclusive start date in the user's timezone",
@@ -203,10 +203,7 @@ public class StatsController {
         @ApiResponse(
                 responseCode = "200",
                 description = "Estimated one-repetition maximum retrieved successfully",
-                content =
-                        @Content(
-                                mediaType = "application/json",
-                                schema = @Schema(implementation = OneRepMaxDTO.class))),
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = OneRepMax.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Invalid exercise ID",
@@ -237,7 +234,7 @@ public class StatsController {
                                 schema = @Schema(implementation = ProblemDetail.class)))
     })
     @GetMapping("/1rm")
-    public ResponseEntity<OneRepMaxDTO> getOneRepMax(
+    public ResponseEntity<OneRepMax> getOneRepMax(
             @CurrentUserId UUID userId,
             @Parameter(description = "Exercise id", required = true) @RequestParam UUID exerciseId) {
         return ResponseEntity.ok(statsService.getOneRepMax(userId, exerciseId));
@@ -250,7 +247,7 @@ public class StatsController {
         @ApiResponse(
                 responseCode = "200",
                 description = "Workout streak retrieved successfully",
-                content = @Content(mediaType = "application/json", schema = @Schema(implementation = StreakDTO.class))),
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = Streak.class))),
         @ApiResponse(
                 responseCode = "401",
                 description = "Unauthorized",
@@ -267,7 +264,7 @@ public class StatsController {
                                 schema = @Schema(implementation = ProblemDetail.class)))
     })
     @GetMapping("/streak")
-    public ResponseEntity<StreakDTO> getCurrentStreak(@CurrentUserId UUID userId) {
+    public ResponseEntity<Streak> getCurrentStreak(@CurrentUserId UUID userId) {
         return ResponseEntity.ok(statsService.getCurrentStreak(userId, Instant.now()));
     }
 
@@ -281,7 +278,7 @@ public class StatsController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = ExerciseProgressPointsDTO.class))),
+                                schema = @Schema(implementation = ExerciseProgressPoints.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Invalid exercise ID or date range",
@@ -312,7 +309,7 @@ public class StatsController {
                                 schema = @Schema(implementation = ProblemDetail.class)))
     })
     @GetMapping("/progress")
-    public ResponseEntity<ExerciseProgressPointsDTO> getExerciseProgress(
+    public ResponseEntity<ExerciseProgressPoints> getExerciseProgress(
             @CurrentUserId UUID userId,
             @Parameter(description = "Exercise id", required = true) @RequestParam UUID exerciseId,
             @Parameter(
@@ -341,7 +338,7 @@ public class StatsController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = MuscleIntensityResponseDTO.class))),
+                                schema = @Schema(implementation = MuscleIntensityResponse.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Invalid date range",
@@ -365,7 +362,7 @@ public class StatsController {
                                 schema = @Schema(implementation = ProblemDetail.class)))
     })
     @GetMapping("/muscle-intensity")
-    public ResponseEntity<MuscleIntensityResponseDTO> getMuscleIntensity(
+    public ResponseEntity<MuscleIntensityResponse> getMuscleIntensity(
             @CurrentUserId UUID userId,
             @Parameter(
                             description = "Inclusive start of the date range in the user's timezone",

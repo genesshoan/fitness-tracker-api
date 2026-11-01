@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "User workout streak statistics")
-public record StreakDTO(
+public record Streak(
         @Schema(description = "Number of consecutive active days ending today or yesterday", example = "5")
         int currentStreak,
 

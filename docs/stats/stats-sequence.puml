@@ -13,7 +13,7 @@ group Session volume
   StatsRepository --> StatsService : completed weighted sets
   StatsService -> Calculator : sum(weight * reps)
   Calculator --> StatsService : volume
-  StatsService --> Client : SessionVolumeDTO
+  StatsService --> Client : SessionVolume
 end
 
 group Session achievements
