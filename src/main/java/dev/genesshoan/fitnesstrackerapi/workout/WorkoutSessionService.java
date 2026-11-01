@@ -624,18 +624,18 @@ public class WorkoutSessionService {
     private WorkoutSessionResponse toWorkoutSessionResponse(
             WorkoutSession session, List<UnlockedAchievementResult> unlocked) {
 
-        return workoutSessionMapper.toWorkoutSessionResponse(session, toUnlockedAchievementD(unlocked), Map.of());
+        return workoutSessionMapper.toWorkoutSessionResponse(session, toUnlockedAchievements(unlocked), Map.of());
     }
 
     private SessionSetResponse toSessionSetResponse(SessionSet sessionSet, List<UnlockedAchievementResult> unlocked) {
 
         Map<UUID, List<UnlockedAchievement>> achievementsBySetId =
-                unlocked.isEmpty() ? Map.of() : Map.of(sessionSet.getId(), toUnlockedAchievementD(unlocked));
+                unlocked.isEmpty() ? Map.of() : Map.of(sessionSet.getId(), toUnlockedAchievements(unlocked));
 
         return sessionSetMapper.toResponse(sessionSet, achievementsBySetId);
     }
 
-    private List<UnlockedAchievement> toUnlockedAchievementD(List<UnlockedAchievementResult> unlocked) {
+    private List<UnlockedAchievement> toUnlockedAchievements(List<UnlockedAchievementResult> unlocked) {
         return unlocked.stream()
                 .map(result -> new UnlockedAchievement(
                         result.id(),
