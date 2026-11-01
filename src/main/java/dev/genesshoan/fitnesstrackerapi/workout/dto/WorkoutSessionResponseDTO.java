@@ -23,4 +23,7 @@ public record WorkoutSessionResponseDTO(
         @Schema(description = "Workout session notes") String notes,
 
         @Schema(description = "Exercise performed for the workout session")
-        List<SessionExerciseResponseDTO> exercises) {}
+        List<SessionExerciseResponseDTO> exercises,
+
+        @Schema(description = "Achievements unlocked by the event that produced this response")
+        List<UnlockedAchievementDTO> achievements) {}

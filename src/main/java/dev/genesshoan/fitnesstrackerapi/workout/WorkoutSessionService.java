@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -24,10 +25,10 @@ import dev.genesshoan.fitnesstrackerapi.common.error.exception.ValidationExcepti
 import dev.genesshoan.fitnesstrackerapi.common.mapper.ExerciseMetricsMapper;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.ExerciseQueryUseCase;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
+import dev.genesshoan.fitnesstrackerapi.gamification.application.port.in.EvaluateAchievementsUseCase;
+import dev.genesshoan.fitnesstrackerapi.gamification.application.port.in.result.UnlockedAchievementResult;
 import dev.genesshoan.fitnesstrackerapi.routine.RoutineRepository;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.AchievementDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.service.StatsService;
 import dev.genesshoan.fitnesstrackerapi.user.infrastructure.persistence.UserRepository;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionExercise;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
@@ -40,6 +41,7 @@ import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExercisePositionDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExerciseRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionSetRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionSetResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.UnlockedAchievementDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionListItemDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionResponseDTO;
@@ -66,14 +68,13 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional(readOnly = true)
 public class WorkoutSessionService {
 
-    private final StatsService statsService;
-
     private final WorkoutSessionRepository workoutSessionRepository;
     private final SessionExerciseRepository sessionExerciseRepository;
     private final SessionSetRepository sessionSetRepository;
     private final RoutineRepository routineRepository;
     private final UserRepository userRepository;
     private final ExerciseQueryUseCase exerciseQueryUseCase;
+    private final EvaluateAchievementsUseCase evaluateAchievementsUseCase;
 
     private final WorkoutSessionMapper workoutSessionMapper;
     private final SessionExerciseMapper sessionExerciseMapper;
@@ -100,7 +101,7 @@ public class WorkoutSessionService {
                 "Workout session",
                 sessionId);
 
-        return toWorkoutSessionResponseDTO(workoutSession, userId);
+        return toWorkoutSessionResponseDTO(workoutSession, List.of());
     }
 
     /**
@@ -143,7 +144,7 @@ public class WorkoutSessionService {
 
         log.info("Created workout session: {} from routine: {} from user: {}", session.getId(), routineId, userId);
 
-        return toWorkoutSessionResponseDTO(saved, userId);
+        return toWorkoutSessionResponseDTO(saved, List.of());
     }
 
     /**
@@ -183,9 +184,15 @@ public class WorkoutSessionService {
 
         WorkoutSession saved = workoutSessionRepository.save(workoutSession);
 
+        List<UnlockedAchievementResult> unlocked = List.of();
+        if (saved.getStatus() == SessionStatus.COMPLETED) {
+            workoutSessionRepository.flush();
+            unlocked = evaluateAchievementsUseCase.onSessionCompleted(userId, saved.getId());
+        }
+
         log.info("Created workout session: {} for user: {}", workoutSession.getId(), userId);
 
-        return toWorkoutSessionResponseDTO(saved, userId);
+        return toWorkoutSessionResponseDTO(saved, unlocked);
     }
 
     /** Updates notes on an in-progress user-owned session. */
@@ -224,9 +231,13 @@ public class WorkoutSessionService {
 
         session.finish();
 
+        workoutSessionRepository.flush();
+
+        List<UnlockedAchievementResult> unlocked = evaluateAchievementsUseCase.onSessionCompleted(userId, sessionId);
+
         log.info("Completed session workout: {} from user: {}", sessionId, userId);
 
-        return toWorkoutSessionResponseDTO(session, userId);
+        return toWorkoutSessionResponseDTO(session, unlocked);
     }
 
     /** Permanently deletes a user-owned workout session and its children. */
@@ -236,9 +247,17 @@ public class WorkoutSessionService {
         log.debug("Deleting session workout: {} from user: {}", sessionId, userId);
 
         WorkoutSession session = getOrThrowResourceNotFound(
-                workoutSessionRepository.findForUpdateByIdAndUserId(sessionId, userId), "Workout session", sessionId);
+                workoutSessionRepository.findForUpdateWithExercises(sessionId, userId), "Workout session", sessionId);
+
+        List<UUID> exerciseIds = session.getExercises().stream()
+                .map(sessionExercise -> sessionExercise.getExercise().getId())
+                .distinct()
+                .toList();
 
         workoutSessionRepository.delete(session);
+        workoutSessionRepository.flush();
+
+        exerciseIds.forEach(exerciseId -> evaluateAchievementsUseCase.refreshExerciseRecords(userId, exerciseId));
 
         log.info("Deleted session workout: {} from user: {}", sessionId, userId);
     }
@@ -374,7 +393,12 @@ public class WorkoutSessionService {
             throw new BadRequestException("The workout session is already finished");
         }
 
+        UUID exerciseId = sessionExercise.getExercise().getId();
+
         workoutSession.removeExercise(sessionExercise);
+        workoutSessionRepository.flush();
+
+        evaluateAchievementsUseCase.refreshExerciseRecords(userId, exerciseId);
 
         log.info("Session exercise: {} removed successfully from session: {}", sessionExerciseId, workoutSessionId);
 
@@ -419,7 +443,7 @@ public class WorkoutSessionService {
 
         SessionSet saved = sessionSetRepository.save(sessionSet);
 
-        return toSessionSetResponseDTO(saved, userId);
+        return toSessionSetResponseDTO(saved, List.of());
     }
 
     /** Updates set metrics and completion state without changing its number. */
@@ -453,9 +477,23 @@ public class WorkoutSessionService {
                     + sessionSet.getSessionExercise().getExercise().getCategory());
         }
 
+        boolean wasCompleted = sessionSet.isCompleted();
+        boolean metricsChanged = hasDifferentMetrics(sessionSet, dto);
+
         applySessionSetUpdate(sessionSet, dto);
 
-        return toSessionSetResponseDTO(sessionSet, userId);
+        List<UnlockedAchievementResult> unlocked = List.of();
+
+        if (!wasCompleted && sessionSet.isCompleted()) {
+            sessionSetRepository.flush();
+            unlocked = evaluateAchievementsUseCase.onSetCompleted(userId, workoutSessionId, sessionSetId);
+        } else if (wasCompleted && (!sessionSet.isCompleted() || metricsChanged)) {
+            sessionSetRepository.flush();
+            evaluateAchievementsUseCase.refreshExerciseRecords(
+                    userId, sessionSet.getSessionExercise().getExercise().getId());
+        }
+
+        return toSessionSetResponseDTO(sessionSet, unlocked);
     }
 
     /** Marks a set as complete without changing its metrics or number. */
@@ -486,13 +524,18 @@ public class WorkoutSessionService {
 
         sessionSet.setCompleted(true);
 
+        sessionSetRepository.flush();
+
+        List<UnlockedAchievementResult> unlocked =
+                evaluateAchievementsUseCase.onSetCompleted(userId, workoutSessionId, sessionSetId);
+
         log.info(
                 "Session set: {} marked as complete from exercise: {} and session: {}",
                 sessionSetId,
                 sessionExerciseId,
                 workoutSessionId);
 
-        return toSessionSetResponseDTO(sessionSet, userId);
+        return toSessionSetResponseDTO(sessionSet, unlocked);
     }
 
     /** Marks a set as incomplete without changing its metrics or number. */
@@ -523,13 +566,18 @@ public class WorkoutSessionService {
 
         sessionSet.setCompleted(false);
 
+        sessionSetRepository.flush();
+
+        evaluateAchievementsUseCase.refreshExerciseRecords(
+                userId, sessionSet.getSessionExercise().getExercise().getId());
+
         log.info(
                 "Session set: {} marked as incomplete from exercise: {} and session: {}",
                 sessionSetId,
                 sessionExerciseId,
                 workoutSessionId);
 
-        return toSessionSetResponseDTO(sessionSet, userId);
+        return toSessionSetResponseDTO(sessionSet, List.of());
     }
 
     /** Removes a set, closing its number gap; a sole set removes the exercise. */
@@ -559,24 +607,46 @@ public class WorkoutSessionService {
         SessionSet sessionSet =
                 getOrThrowResourceNotFound(sessionExercise.findSet(sessionSetId), "Session set", sessionSetId);
 
+        boolean wasCompleted = sessionSet.isCompleted();
+        UUID exerciseId = sessionExercise.getExercise().getId();
+
         if (sessionExercise.getSetCount() > 1) {
             sessionExercise.removeSet(sessionSet);
         } else {
             sessionExerciseRepository.delete(sessionExercise);
         }
+        sessionExerciseRepository.flush();
+
+        if (wasCompleted) {
+            evaluateAchievementsUseCase.refreshExerciseRecords(userId, exerciseId);
+        }
     }
 
-    private WorkoutSessionResponseDTO toWorkoutSessionResponseDTO(WorkoutSession session, UUID userId) {
-        return workoutSessionMapper.toWorkoutSessionResponseDTO(
-                session, statsService.calculateForSession(session, userId));
+    private WorkoutSessionResponseDTO toWorkoutSessionResponseDTO(
+            WorkoutSession session, List<UnlockedAchievementResult> unlocked) {
+
+        return workoutSessionMapper.toWorkoutSessionResponseDTO(session, toUnlockedAchievementDTOs(unlocked), Map.of());
     }
 
-    private SessionSetResponseDTO toSessionSetResponseDTO(SessionSet sessionSet, UUID userId) {
-        Map<UUID, List<AchievementDTO>> achievementsBySetId = sessionSet.isCompleted()
-                ? Map.of(sessionSet.getId(), statsService.calculateForSet(sessionSet, userId))
-                : Map.of();
+    private SessionSetResponseDTO toSessionSetResponseDTO(
+            SessionSet sessionSet, List<UnlockedAchievementResult> unlocked) {
+
+        Map<UUID, List<UnlockedAchievementDTO>> achievementsBySetId =
+                unlocked.isEmpty() ? Map.of() : Map.of(sessionSet.getId(), toUnlockedAchievementDTOs(unlocked));
 
         return sessionSetMapper.toResponseDTO(sessionSet, achievementsBySetId);
+    }
+
+    private List<UnlockedAchievementDTO> toUnlockedAchievementDTOs(List<UnlockedAchievementResult> unlocked) {
+        return unlocked.stream()
+                .map(result -> new UnlockedAchievementDTO(
+                        result.id(),
+                        result.code(),
+                        result.name(),
+                        result.tier(),
+                        result.exerciseId(),
+                        result.unlockedAt()))
+                .toList();
     }
 
     private SessionSetRequestDTO resolveDefaultsSetForExistingExercise(SessionExercise sessionExercise, UUID userId) {
@@ -595,6 +665,14 @@ public class WorkoutSessionService {
                         1, lsp.getReps(), lsp.getWeightKg(), lsp.getDurationSeconds(), lsp.getDistanceKm(), false))
                 .orElseGet(() -> exerciseMetricsMapper.toDefaultSessionSetRequestDTO(
                         exercise.getCategory().defaultMetrics()));
+    }
+
+    private boolean hasDifferentMetrics(SessionSet sessionSet, SessionSetRequestDTO dto) {
+
+        return !Objects.equals(sessionSet.getReps(), dto.reps())
+                || !Objects.equals(sessionSet.getWeightKg(), dto.weightKg())
+                || !Objects.equals(sessionSet.getDurationSeconds(), dto.durationSeconds())
+                || !Objects.equals(sessionSet.getDistanceKm(), dto.distanceKm());
     }
 
     private void applySessionSetUpdate(SessionSet sessionSet, SessionSetRequestDTO dto) {
