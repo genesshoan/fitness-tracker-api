@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dev.genesshoan.fitnesstrackerapi.base.AbstractIntegrationTest;
+import dev.genesshoan.fitnesstrackerapi.common.domain.SessionStatus;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
@@ -21,7 +22,6 @@ import dev.genesshoan.fitnesstrackerapi.testdata.builder.SessionSetBuilder;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionExercise;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
-import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
 import dev.genesshoan.fitnesstrackerapi.workout.repository.SessionExerciseRepository;
 import dev.genesshoan.fitnesstrackerapi.workout.repository.SessionSetRepository;

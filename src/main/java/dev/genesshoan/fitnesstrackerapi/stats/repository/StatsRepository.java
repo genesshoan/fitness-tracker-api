@@ -25,7 +25,7 @@ import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.OneRepMaxPro
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.RankedSetProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.TrainingMetricsProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.VolumeSetProjection;
-import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
+import dev.genesshoan.fitnesstrackerapi.common.domain.SessionStatus;
 import lombok.RequiredArgsConstructor;
 
 /**
