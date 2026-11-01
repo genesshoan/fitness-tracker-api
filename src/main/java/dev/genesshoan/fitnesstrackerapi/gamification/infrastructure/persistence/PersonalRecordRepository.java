@@ -59,6 +59,14 @@ public interface PersonalRecordRepository extends JpaRepository<PersonalRecord, 
     List<PersonalRecord> findByUserIdAndExerciseId(UUID userId, UUID exerciseId);
 
     /**
+     * Finds all the records of one user.
+     *
+     * @param userId the user the records belong to
+     * @return the records of the user
+     */
+    List<PersonalRecord> findByUserId(UUID userId);
+
+    /**
      * Finds all the records of the specified exercises.
      *
      * @param userId the user the records belong to
