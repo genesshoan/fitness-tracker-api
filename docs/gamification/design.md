@@ -422,10 +422,20 @@ sobre las fechas locales distintas.
 | Evento | Dispara | Ámbito |
 | --- | --- | --- |
 | Sesión completada (`IN_PROGRESS` → `COMPLETED`) | umbrales + récords de los ejercicios de la sesión | usuario |
+| Sesión creada ya completada | umbrales + récords de los ejercicios de la sesión | usuario |
 | Set marcado como completado | récords del ejercicio de ese set | usuario + ejercicio |
 | Set editado / marcado como incompleto / borrado | recálculo de los récords del ejercicio | usuario + ejercicio |
 | Ejercicio eliminado de la sesión | recálculo de los récords del ejercicio | usuario + ejercicio |
-| Sesión eliminada | recálculo de los récords de los ejercicios afectados + reevaluación de umbrales | usuario |
+| Sesión eliminada | recálculo de los récords de los ejercicios afectados | usuario |
+
+> Al eliminar una sesión **no** se reevalúan los umbrales, y no hace falta: el
+> progreso de un logro de umbral nunca decrece y un desbloqueo no se revoca, así
+> que reevaluar después de un borrado no puede cambiar nada. Los récords sí se
+> recalculan, porque su valor depende de qué sesiones existen.
+
+> La evaluación lee los sets por JDBC, así que el módulo `workout` **vacía la
+> transacción** (`flush`) antes de invocar la evaluación. Si no, la evaluación
+> leería el estado anterior al cambio.
 
 ### 7.2 Sesión completada
 
@@ -591,9 +601,14 @@ implementación.
                   session_sets)
 ```
 
+El módulo `workout` invoca la evaluación a través del puerto
+`EvaluateAchievementsUseCase`, y ya no depende del módulo `stats`: el camino de
+cálculo en vuelo se retiró en la PR 4, que es lo que rompe el ciclo.
+
 Desaparecen los dos imports cruzados actuales:
 `workout → stats` (por `StatsService`) y `stats → workout` (por
-`WorkoutSessionRepository` y las entidades `WorkoutSession`/`SessionSet`).
+`WorkoutSessionRepository` y las entidades `WorkoutSession`/`SessionSet`). El
+segundo se retira en la PR 6, que elimina el código muerto que queda en `stats`.
 
 ---
 
@@ -611,8 +626,9 @@ Desaparecen los dos imports cruzados actuales:
 | `stats/service/StatsService.java` | Quitar `calculateForSession` y `calculateForSet`; añadir `getSnapshot` (implementa `TrainingMetricsUseCase`) |
 | `stats/repository/StatsRepository.java` | Quitar `findRankedSets`; añadir la query de agregados; **corregir** el filtro de `status = 'COMPLETED'` en `getTrainedDatesBeforeAsc`; sustituir `workoutSessionRepository.existsByIdAndUserId` por una comprobación en SQL |
 | `workout/WorkoutSessionService.java` | Sustituir `StatsService` por `EvaluateAchievementsUseCase`; invocar en §7.1; quitar el cálculo del DTO |
-| `workout/dto/SessionSetResponseDTO.java` | `achievements` → `newAchievements` (insignias recién desbloqueadas: `code`, `name`, `tier`, `unlockedAt`) |
-| `workout/mapper/SessionSetMapper.java`, `SessionExerciseMapper.java`, `WorkoutSessionMapper.java` | Quitar el `@Context Map<UUID, List<AchievementDTO>>` |
+| `workout/dto/SessionSetResponseDTO.java` | `achievements` pasa a llevar `UnlockedAchievementDTO` (insignias recién desbloqueadas) |
+| `workout/dto/WorkoutSessionResponseDTO.java` | Nuevo campo `achievements` con las insignias que desbloqueó el evento |
+| `workout/mapper/SessionSetMapper.java`, `SessionExerciseMapper.java`, `WorkoutSessionMapper.java` | El `@Context` pasa a `Map<UUID, List<UnlockedAchievementDTO>>` |
 | `common/domain/ExerciseMetrics.java` | Se reutiliza en `gamification` sin cambios |
 | `src/test/.../stats/calculator/AchievementCalculatorTest.java` | **Eliminar** (o reescribir contra el evaluador nuevo) |
 | `src/test/.../stats/calculator/OneRepMaxCalculatorTest.java` | Actualizar el paquete |
@@ -630,6 +646,17 @@ Hay dos opciones y conviene decidirla explícitamente:
 
 La opción 1 es la recomendada: conserva el feedback en vivo sin obligar al
 frontend a hacer una segunda llamada.
+
+Implementada en la PR 4. El campo `achievements` del set y el nuevo campo
+`achievements` de la sesión llevan `UnlockedAchievementDTO`, que describe una
+insignia desbloqueada (`code`, `name`, `tier`, `exerciseId`, `unlockedAt`) en
+lugar del récord que se batió (`type`, `value`, `previousValue`). Es un cambio
+del contrato de la API: el frontend deja de recibir el valor anterior del récord
+y recibe la insignia que se ganó.
+
+En las lecturas (abrir una sesión o un set) la lista va vacía: los desbloqueos
+son un evento, no un estado que se vuelva a leer. El historial de insignias lo
+sirve la API de gamificación.
 
 ---
 
@@ -821,7 +848,7 @@ Cada PR es vertical, revisable y migrable por separado.
 | 1 | `feature/gamification-schema` | Tablas, entidades, repositorios e índices únicos | `V19`–`V22` |
 | 2 | `feature/gamification-metrics` | `TrainingMetricsUseCase` en `stats`, `TrainingSnapshot`, filtro de estado explícito en la racha | – |
 | 3 | `feature/gamification-evaluator` | `AchievementEvaluationService`, `PersonalRecordEvaluator`, `EvaluateAchievementsUseCase`, `TrainingSetRepository` y el traslado de `OneRepMaxCalculator` a `common/calculator/` | – |
-| 4 | `feature/gamification-wiring` | Invocación desde `workout` (sesión completada, set completado, operaciones destructivas) | – |
+| 4 | `feature/gamification-wiring` | Invocación desde `workout` (sesión completada, set completado, operaciones destructivas) y paso de los desbloqueos a la respuesta | – |
 | 5 | `feature/gamification-api` | Controller, DTOs, feed, marcar vistos, summary | – |
 | 6 | `feature/gamification-decouple-stats` | Borrado del camino de cálculo en vuelo; `stats` deja de depender de `workout` y `workout` de `stats` | – |
 | 7 | `docs/gamification` | `docs/gamification/{README,api,business-rules,frontend}.md`, `docs/er.puml`, `docs/endpoints.md`, `README.md` | – |
