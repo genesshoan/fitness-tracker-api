@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @param backBaseAssetUrl  the public URL of the back view base asset
  */
 @Schema(description = "Base assets used for the muscle intensity visualization")
-public record MuscleBaseAssetsDTO(
+public record MuscleBaseAssets(
         @Schema(
                 description = "Front view base asset URL",
                 example = "https://cdn.example.com/muscles/male/front/male_front_base.png")

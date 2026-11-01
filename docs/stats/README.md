@@ -1,6 +1,6 @@
 # Statistics Module
 
-Provides user-scoped monthly and session workout volume, estimated one-repetition maximum, streak, progression, muscle-intensity visualization, and achievement data.
+Provides user-scoped monthly and session workout volume, estimated one-repetition maximum, streak, progression, and muscle-intensity visualization.
 
 ![Statistics architecture](stats-architecture.png)
 

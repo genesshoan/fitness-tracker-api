@@ -1,20 +1,16 @@
 package dev.genesshoan.fitnesstrackerapi.stats.repository;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import dev.genesshoan.fitnesstrackerapi.common.domain.SessionStatus;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.BodyRegion;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
@@ -22,73 +18,21 @@ import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.ExerciseProg
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MonthlyVolumeProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MuscleIntensityProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.OneRepMaxProjection;
-import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.RankedSetProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.TrainingMetricsProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.VolumeSetProjection;
-import dev.genesshoan.fitnesstrackerapi.common.domain.SessionStatus;
 import lombok.RequiredArgsConstructor;
 
 /**
  * JDBC queries for aggregate workout statistics.
  *
  * <p>Queries are user-scoped and use set/session completion flags and time
- * boundaries explicitly. {@link #findRankedSets} is the batch query used to
- * load all personal-record candidates for multiple exercises at once.
+ * boundaries explicitly.
  */
 @Repository
 @RequiredArgsConstructor
 public class StatsRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
-
-    /**
-     * Loads the top historical set candidates for every requested exercise.
-     *
-     * @param userId owner of the sessions
-     * @param exerciseIds exercise IDs to rank
-     * @param beforeStartedAt exclusive session start boundary
-     * @return candidates grouped by exercise ID
-     */
-    public Map<UUID, List<RankedSetProjection>> findRankedSets(
-            UUID userId, Set<UUID> exerciseIds, Instant beforeStartedAt) {
-
-        if (exerciseIds.isEmpty()) {
-            return Map.of();
-        }
-
-        String sql = """
-                WITH base AS (
-                    SELECT ss.id, ss.weight_kg, ss.reps, ss.distance_km, ss.duration_seconds,
-                        se.exercise_id, ws.id AS session_id
-                    FROM session_sets ss
-                    JOIN session_exercises se ON ss.session_exercise_id = se.id
-                    JOIN workout_sessions ws ON se.session_id = ws.id
-                    WHERE ws.user_id = :userId
-                        AND se.exercise_id IN (:exerciseIds)
-                        AND ss.completed = true
-                        AND ws.started_at < :beforeStartedAt
-                ),
-                ranked AS (
-                    SELECT *,
-                        ROW_NUMBER() OVER (PARTITION BY exercise_id ORDER BY weight_kg DESC NULLS LAST) AS rn_weight,
-                        ROW_NUMBER() OVER (PARTITION BY exercise_id ORDER BY weight_kg * (1 + reps / 30.0) DESC NULLS LAST) AS rn_1rm,
-                        ROW_NUMBER() OVER (PARTITION BY exercise_id ORDER BY distance_km DESC NULLS LAST) AS rn_distance,
-                        ROW_NUMBER() OVER (PARTITION BY exercise_id ORDER BY duration_seconds DESC NULLS LAST) AS rn_duration,
-                        ROW_NUMBER() OVER (PARTITION BY exercise_id, weight_kg ORDER BY reps DESC NULLS LAST) AS rn_reps_per_weight
-                    FROM base
-                )
-                SELECT * FROM ranked
-                WHERE rn_weight = 1 OR rn_1rm = 1 OR rn_distance = 1 OR rn_duration = 1 OR rn_reps_per_weight = 1
-            """;
-        MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("userId", userId)
-                .addValue("exerciseIds", exerciseIds)
-                .addValue("beforeStartedAt", Timestamp.from(beforeStartedAt));
-
-        List<RankedSetProjection> results = jdbcTemplate.query(sql, params, this::mapRow);
-
-        return results.stream().collect(Collectors.groupingBy(RankedSetProjection::exerciseId));
-    }
 
     /**
      * Loads distinct completed session timestamps before a boundary.
@@ -173,6 +117,30 @@ public class StatsRepository {
                         rs.getLong("total_training_seconds"),
                         rs.getDouble("total_distance_km"),
                         rs.getLong("distinct_exercises")));
+    }
+
+    /**
+     * Checks whether a user owns a workout session.
+     *
+     * @param sessionId the session to look for
+     * @param userId the owner of the session
+     * @return {@code true} if the session exists and belongs to the user
+     */
+    public boolean existsSession(UUID sessionId, UUID userId) {
+
+        String sql = """
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM workout_sessions ws
+                    WHERE ws.id = :sessionId
+                        AND ws.user_id = :userId
+                )
+            """;
+
+        MapSqlParameterSource params =
+                new MapSqlParameterSource().addValue("sessionId", sessionId).addValue("userId", userId);
+
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, params, Boolean.class));
     }
 
     /**
@@ -536,22 +504,6 @@ public class StatsRepository {
                     impactLevel == null ? null : ImpactLevel.valueOf(impactLevel),
                     rs.getDouble("raw_stimulus"));
         });
-    }
-
-    private RankedSetProjection mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return new RankedSetProjection(
-                (UUID) rs.getObject("id"),
-                (UUID) rs.getObject("session_id"),
-                (UUID) rs.getObject("exercise_id"),
-                (Double) rs.getObject("weight_kg"),
-                (Integer) rs.getObject("reps"),
-                (Double) rs.getObject("distance_km"),
-                (Integer) rs.getObject("duration_seconds"),
-                toInteger(rs.getObject("rn_weight")),
-                toInteger(rs.getObject("rn_1rm")),
-                toInteger(rs.getObject("rn_distance")),
-                toInteger(rs.getObject("rn_duration")),
-                toInteger(rs.getObject("rn_reps_per_weight")));
     }
 
     private Integer toInteger(Object value) {

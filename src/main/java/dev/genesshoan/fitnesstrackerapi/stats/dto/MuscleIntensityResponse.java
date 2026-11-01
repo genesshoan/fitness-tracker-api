@@ -7,7 +7,7 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Range-relative muscle intensity visualization data")
-public record MuscleIntensityResponseDTO(
+public record MuscleIntensityResponse(
         @Schema(description = "Inclusive start of the selected date range", example = "2026-09-01")
         LocalDate from,
 
@@ -15,7 +15,7 @@ public record MuscleIntensityResponseDTO(
         LocalDate to,
 
         @Schema(description = "Base assets used to render the muscle visualization")
-        MuscleBaseAssetsDTO baseAssets,
+        MuscleBaseAssets baseAssets,
 
         @Schema(description = "Every catalog muscle, including muscles with zero intensity")
-        List<MuscleIntensityDTO> muscles) {}
+        List<MuscleIntensity> muscles) {}

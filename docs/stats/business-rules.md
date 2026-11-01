@@ -4,7 +4,6 @@
 
 - Volume includes only completed sets with both non-null weight and reps.
 - One-rep max and progression include only completed sets with non-null weight and reps.
-- Achievement history is restricted to sessions started before the current session.
 - A missing one-rep-max history returns `0`, not `404`.
 
 ## Formulas and Selection
@@ -14,14 +13,13 @@
 - Monthly volume groups completed strength-set volume by the user's local calendar month. Completed sets must have non-null weight and reps; months without qualifying sets are omitted.
 - Date-range volume sums the same qualifying sets over an inclusive local-date range.
 - Progression returns one highest estimated-1RM set per completed session.
-- Achievement comparison can emit multiple records for one set: max weight, estimated 1RM, more reps at the same weight, max distance, and max duration.
-- Ties do not create new achievements because comparisons require a strictly greater value.
+- The estimated 1RM and the session volume follow the same rules for the sets they select.
 
 ## Batch Behavior
 
-`StatsService.calculateForSession` collects all completed sets, extracts distinct exercise IDs, and loads historical record candidates with one `findRankedSets` query for the whole exercise set. Records are then kept in memory and updated after each qualifying set, so a later set in the same session can beat an earlier set from that session.
+The training totals are aggregated with one query over the completed sessions and sets of the user. The streak is read from the distinct completion timestamps of the user, converted to their local dates, and computed in memory.
 
-The repository query ranks weight, 1RM, distance, duration, and reps-at-weight with SQL window functions. It returns only rows that are top-ranked for at least one metric.
+The achievements that depend on personal records are not part of this module: they are owned by the [gamification module](../gamification/README.md), which persists them.
 
 ## Streaks and Timezones
 

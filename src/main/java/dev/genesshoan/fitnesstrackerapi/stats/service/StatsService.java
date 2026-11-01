@@ -5,19 +5,15 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import dev.genesshoan.fitnesstrackerapi.common.calculator.OneRepMaxCalculator;
-import dev.genesshoan.fitnesstrackerapi.common.domain.ExerciseMetrics;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.mapper.ExerciseMetricsMapper;
@@ -25,34 +21,24 @@ import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.ExerciseQue
 import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.MuscleAssetUseCase;
 import dev.genesshoan.fitnesstrackerapi.stats.application.port.in.TrainingMetricsUseCase;
 import dev.genesshoan.fitnesstrackerapi.stats.application.port.in.result.TrainingSnapshot;
-import dev.genesshoan.fitnesstrackerapi.stats.calculator.AchievementCalculator;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.StreakCalculator;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.StreakCalculator.StreakResult;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.VolumeCalculator;
-import dev.genesshoan.fitnesstrackerapi.stats.domain.Achievement;
-import dev.genesshoan.fitnesstrackerapi.stats.domain.PersonalRecordHolder;
-import dev.genesshoan.fitnesstrackerapi.stats.domain.PersonalRecordHolders;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.AchievementDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPointDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPointsDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.MonthlyVolumeDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleBaseAssetsDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.OneRepMaxDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.SessionVolumeDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.StreakDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.mapper.AchievementMapper;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPoint;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.ExerciseProgressPoints;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.MonthlyVolume;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleBaseAssets;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensity;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.MuscleIntensityResponse;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.OneRepMax;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.SessionVolume;
+import dev.genesshoan.fitnesstrackerapi.stats.dto.Streak;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.StatsRepository;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.MuscleIntensityProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.OneRepMaxProjection;
-import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.RankedSetProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.TrainingMetricsProjection;
 import dev.genesshoan.fitnesstrackerapi.stats.repository.projection.VolumeSetProjection;
 import dev.genesshoan.fitnesstrackerapi.user.application.port.in.GetUserTimeZoneUseCase;
-import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
-import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
-import dev.genesshoan.fitnesstrackerapi.workout.repository.WorkoutSessionRepository;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -68,13 +54,11 @@ import lombok.RequiredArgsConstructor;
 public class StatsService implements TrainingMetricsUseCase {
 
     private final StatsRepository statsRepository;
-    private final WorkoutSessionRepository workoutSessionRepository;
     private final ExerciseQueryUseCase exerciseQueryUseCase;
     private final GetUserTimeZoneUseCase getUserTimeZoneUseCase;
     private final MuscleAssetUseCase muscleAssetUseCase;
 
     private final ExerciseMetricsMapper exerciseMetricsMapper;
-    private final AchievementMapper achievementMapper;
 
     /**
      * Builds the training snapshot of a user.
@@ -124,7 +108,7 @@ public class StatsService implements TrainingMetricsUseCase {
      * @param userTimezone the user's IANA timezone
      * @return streak counts and the most recent active local date
      */
-    public StreakDTO getCurrentStreak(UUID userId, Instant referenceInstant) {
+    public Streak getCurrentStreak(UUID userId, Instant referenceInstant) {
 
         ZoneId userZoneId =
                 getUserTimeZoneUseCase.getUserTimezoneById(userId).orElseThrow(ResourceNotFoundException::new);
@@ -141,7 +125,7 @@ public class StatsService implements TrainingMetricsUseCase {
 
         LocalDate lastActiveDate = activeDaysAscending.isEmpty() ? null : activeDaysAscending.getLast();
 
-        return new StreakDTO(streakResult.currentStreak(), streakResult.longestStreak(), lastActiveDate);
+        return new Streak(streakResult.currentStreak(), streakResult.longestStreak(), lastActiveDate);
     }
 
     /**
@@ -152,15 +136,15 @@ public class StatsService implements TrainingMetricsUseCase {
      * @return the sum of {@code weightKg * reps}; sets missing either value are excluded
      * @throws ResourceNotFoundException if the session is not owned by the user
      */
-    public SessionVolumeDTO calculateSessionVolume(UUID sessionId, UUID userId) {
+    public SessionVolume calculateSessionVolume(UUID sessionId, UUID userId) {
 
-        if (!workoutSessionRepository.existsByIdAndUserId(sessionId, userId)) {
+        if (!statsRepository.existsSession(sessionId, userId)) {
             throw new ResourceNotFoundException("Workout session not found");
         }
 
         List<VolumeSetProjection> setVolumes = statsRepository.getSetsForVolume(sessionId, userId);
 
-        return new SessionVolumeDTO(VolumeCalculator.calculate(setVolumes));
+        return new SessionVolume(VolumeCalculator.calculate(setVolumes));
     }
 
     /**
@@ -173,7 +157,7 @@ public class StatsService implements TrainingMetricsUseCase {
      * @return chronological monthly volume entries; months without volume are omitted
      * @throws BadRequestException if {@code from} is after {@code to}
      */
-    public List<MonthlyVolumeDTO> getMonthlyVolume(UUID userId, LocalDate from, LocalDate to) {
+    public List<MonthlyVolume> getMonthlyVolume(UUID userId, LocalDate from, LocalDate to) {
 
         if (from.isAfter(to)) {
             throw new BadRequestException("The start date cannot be after the end date");
@@ -185,7 +169,7 @@ public class StatsService implements TrainingMetricsUseCase {
         Instant toExclusive = to.plusDays(1).atStartOfDay(userTimezone).toInstant();
 
         return statsRepository.getMonthlyVolume(userId, fromInclusive, toExclusive, userTimezone.toString()).stream()
-                .map(projection -> new MonthlyVolumeDTO(projection.month(), projection.volumeKg()))
+                .map(projection -> new MonthlyVolume(projection.month(), projection.volumeKg()))
                 .toList();
     }
 
@@ -199,7 +183,7 @@ public class StatsService implements TrainingMetricsUseCase {
      * @return total volume in kilogram-repetitions
      * @throws BadRequestException if {@code from} is after {@code to}
      */
-    public SessionVolumeDTO calculateVolume(UUID userId, LocalDate from, LocalDate to) {
+    public SessionVolume calculateVolume(UUID userId, LocalDate from, LocalDate to) {
 
         if (from.isAfter(to)) {
             throw new BadRequestException("The start date cannot be after the end date");
@@ -210,7 +194,7 @@ public class StatsService implements TrainingMetricsUseCase {
         Instant fromInclusive = from.atStartOfDay(userTimezone).toInstant();
         Instant toExclusive = to.plusDays(1).atStartOfDay(userTimezone).toInstant();
 
-        return new SessionVolumeDTO(statsRepository.getVolume(userId, fromInclusive, toExclusive));
+        return new SessionVolume(statsRepository.getVolume(userId, fromInclusive, toExclusive));
     }
 
     /**
@@ -223,7 +207,7 @@ public class StatsService implements TrainingMetricsUseCase {
      * @return the highest estimated 1RM, using the Epley formula
      * @throws ResourceNotFoundException if the exercise does not exist
      */
-    public OneRepMaxDTO getOneRepMax(UUID userId, UUID exerciseId) {
+    public OneRepMax getOneRepMax(UUID userId, UUID exerciseId) {
 
         if (!exerciseQueryUseCase.existsById(exerciseId)) {
             throw new ResourceNotFoundException("Exercise not found");
@@ -232,7 +216,7 @@ public class StatsService implements TrainingMetricsUseCase {
         OneRepMaxProjection projection =
                 statsRepository.getSetForOneRepMax(userId, exerciseId).orElse(new OneRepMaxProjection(0));
 
-        return new OneRepMaxDTO(exerciseId, projection.estimatedOneRepMax());
+        return new OneRepMax(exerciseId, projection.estimatedOneRepMax());
     }
 
     /**
@@ -250,7 +234,7 @@ public class StatsService implements TrainingMetricsUseCase {
      * @throws BadRequestException if {@code from} is after {@code to}
      * @throws ResourceNotFoundException if the exercise does not exist
      */
-    public ExerciseProgressPointsDTO getExerciseProgress(UUID userId, UUID exerciseId, Instant from, Instant to) {
+    public ExerciseProgressPoints getExerciseProgress(UUID userId, UUID exerciseId, Instant from, Instant to) {
 
         if (from.isAfter(to)) {
             throw new BadRequestException("The start date cannot be after the end date");
@@ -263,16 +247,16 @@ public class StatsService implements TrainingMetricsUseCase {
         ZoneId userTimezone =
                 getUserTimeZoneUseCase.getUserTimezoneById(userId).orElseThrow(ResourceNotFoundException::new);
 
-        List<ExerciseProgressPointDTO> progress =
+        List<ExerciseProgressPoint> progress =
                 statsRepository.getExerciseProgressPoints(userId, exerciseId, from, to).stream()
-                        .map(p -> new ExerciseProgressPointDTO(
+                        .map(p -> new ExerciseProgressPoint(
                                 p.instant().atZone(userTimezone).toLocalDate(),
                                 p.weightKg(),
                                 p.reps(),
                                 p.estimatedOneRepMax()))
                         .toList();
 
-        return new ExerciseProgressPointsDTO(exerciseId, progress);
+        return new ExerciseProgressPoints(exerciseId, progress);
     }
 
     /**
@@ -293,7 +277,7 @@ public class StatsService implements TrainingMetricsUseCase {
      * @return every muscle with metadata and a relative intensity score
      * @throws BadRequestException if {@code from} is after {@code to}
      */
-    public MuscleIntensityResponseDTO getMuscleIntensity(UUID userId, LocalDate from, LocalDate to) {
+    public MuscleIntensityResponse getMuscleIntensity(UUID userId, LocalDate from, LocalDate to) {
 
         if (from.isAfter(to)) {
             throw new BadRequestException("The start date cannot be after the end date");
@@ -324,7 +308,7 @@ public class StatsService implements TrainingMetricsUseCase {
                 .max()
                 .orElse(0.0);
 
-        List<MuscleIntensityDTO> muscles = projectionsByMuscle.entrySet().stream()
+        List<MuscleIntensity> muscles = projectionsByMuscle.entrySet().stream()
                 .map(entry -> {
                     MuscleIntensityProjection metadata = entry.getValue().getFirst();
                     double intensity = maximumStimulus == 0.0
@@ -336,7 +320,7 @@ public class StatsService implements TrainingMetricsUseCase {
                     String frontAssetUrl = muscleAssetUseCase.resolveMuscleUrl(metadata.frontObjectKey());
                     String backAssetUrl = muscleAssetUseCase.resolveMuscleUrl(metadata.backObjectKey());
 
-                    return new MuscleIntensityDTO(
+                    return new MuscleIntensity(
                             metadata.muscleId(),
                             metadata.name(),
                             metadata.slug(),
@@ -349,151 +333,8 @@ public class StatsService implements TrainingMetricsUseCase {
 
         var baseAssets = muscleAssetUseCase.findBaseAssets();
 
-        return new MuscleIntensityResponseDTO(
-                from,
-                to,
-                new MuscleBaseAssetsDTO(baseAssets.frontBaseAssetUrl(), baseAssets.backBaseAssetUrl()),
-                muscles);
-    }
-
-    /**
-     * Calculates achievements for all completed sets in a session.
-     *
-     * <p>Historical personal records are loaded in one batch for all exercises,
-     * then updated in memory as sets are processed in session order. This makes
-     * achievements within the same session compare against earlier sets too.
-     *
-     * @param session the session being evaluated
-     * @param userId the session owner
-     * @return achievements grouped by set ID; incomplete or non-achieving sets are absent
-     */
-    public Map<UUID, List<AchievementDTO>> calculateForSession(WorkoutSession session, UUID userId) {
-
-        Map<UUID, List<AchievementDTO>> resultsBySetId = new HashMap<>();
-        List<SessionSet> sessionSets = session.getExercises().stream()
-                .flatMap(sessionExercise -> sessionExercise.getSets().stream())
-                .filter(SessionSet::isCompleted)
-                .toList();
-
-        if (sessionSets.isEmpty()) return resultsBySetId;
-
-        Set<UUID> exerciseIds = sessionSets.stream()
-                .map(set -> set.getSessionExercise().getExercise().getId())
-                .collect(Collectors.toSet());
-        Instant startedAt = session.getStartedAt();
-        Map<UUID, PersonalRecordHolders> recordsPerExercise =
-                getPersonalRecordHoldersPerExercise(userId, exerciseIds, startedAt);
-
-        for (SessionSet sessionSet : sessionSets) {
-            UUID exerciseId = sessionSet.getSessionExercise().getExercise().getId();
-            PersonalRecordHolders holders = recordsPerExercise.get(exerciseId);
-            ExerciseMetrics metrics = exerciseMetricsMapper.toExerciseMetrics(sessionSet);
-            List<Achievement> achievements = AchievementCalculator.compareData(metrics, holders);
-
-            if (!achievements.isEmpty()) {
-                resultsBySetId.put(sessionSet.getId(), achievementMapper.toDtos(achievements));
-                updateHolders(holders, sessionSet, achievements);
-            }
-        }
-
-        return resultsBySetId;
-    }
-
-    /**
-     * Calculates achievements for one set against records before its session.
-     *
-     * @param sessionSet the set being evaluated
-     * @param userId the set owner
-     * @return achievements, or an empty list when the set is incomplete
-     */
-    public List<AchievementDTO> calculateForSet(SessionSet sessionSet, UUID userId) {
-
-        if (!sessionSet.isCompleted()) return List.of();
-
-        PersonalRecordHolders holders = getPersonalRecordHolders(
-                userId,
-                sessionSet.getSessionExercise().getExercise().getId(),
-                sessionSet.getSessionExercise().getWorkoutSession().getStartedAt());
-
-        ExerciseMetrics metrics = exerciseMetricsMapper.toExerciseMetrics(sessionSet);
-
-        List<Achievement> achievements = AchievementCalculator.compareData(metrics, holders);
-
-        return achievementMapper.toDtos(achievements);
-    }
-
-    private void updateHolders(PersonalRecordHolders current, SessionSet set, List<Achievement> achievements) {
-
-        for (Achievement achievement : achievements) {
-            PersonalRecordHolder holder = new PersonalRecordHolder(
-                    set.getId(), set.getSessionExercise().getWorkoutSession().getId(), achievement.value());
-
-            switch (achievement.type()) {
-                case NEW_MAX_WEIGHT -> current.setMaxWeight(holder);
-                case NEW_ESTIMATED_1RM -> current.setMax1RM(holder);
-                case NEW_MAX_DISTANCE -> current.setMaxDistance(holder);
-                case NEW_MAX_DURATION -> current.setMaxDuration(holder);
-                case MORE_REPS_AT_WEIGHT -> current.getRepsPerWeight().put(set.getWeightKg(), holder);
-            }
-        }
-    }
-
-    private PersonalRecordHolders getPersonalRecordHolders(UUID userId, UUID exerciseId, Instant startedAt) {
-
-        Map<UUID, List<RankedSetProjection>> rankedSets =
-                statsRepository.findRankedSets(userId, Set.of(exerciseId), startedAt);
-
-        return buildPersonalRecordHolders(rankedSets.getOrDefault(exerciseId, List.of()));
-    }
-
-    private Map<UUID, PersonalRecordHolders> getPersonalRecordHoldersPerExercise(
-            UUID userId, Set<UUID> exerciseIds, Instant startedAt) {
-        Map<UUID, List<RankedSetProjection>> rankedSets =
-                statsRepository.findRankedSets(userId, exerciseIds, startedAt);
-
-        Map<UUID, PersonalRecordHolders> personalRecords = exerciseIds.stream()
-                .collect(Collectors.toMap(
-                        exerciseId -> exerciseId,
-                        exerciseId -> buildPersonalRecordHolders(rankedSets.getOrDefault(exerciseId, List.of()))));
-
-        return personalRecords;
-    }
-
-    private PersonalRecordHolders buildPersonalRecordHolders(List<RankedSetProjection> projections) {
-        PersonalRecordHolders holders = new PersonalRecordHolders();
-
-        for (RankedSetProjection projection : projections) {
-            if (isTop(projection.rnWeight()) && projection.weightKg() != null) {
-                holders.setMaxWeight(toHolder(projection, projection.weightKg()));
-            }
-
-            if (isTop(projection.rnOneRepMax()) && projection.reps() != null && projection.weightKg() != null) {
-                holders.setMax1RM(
-                        toHolder(projection, OneRepMaxCalculator.calculate(projection.reps(), projection.weightKg())));
-            }
-
-            if (isTop(projection.rnDistance()) && projection.distanceKm() != null) {
-                holders.setMaxDistance(toHolder(projection, projection.distanceKm()));
-            }
-
-            if (isTop(projection.rnDuration()) && projection.durationSeconds() != null) {
-                holders.setMaxDuration(
-                        toHolder(projection, projection.durationSeconds().doubleValue()));
-            }
-
-            if (isTop(projection.rnRepsPerWeight()) && projection.weightKg() != null && projection.reps() != null) {
-                holders.getRepsPerWeight()
-                        .put(
-                                projection.weightKg(),
-                                toHolder(projection, projection.reps().doubleValue()));
-            }
-        }
-
-        return holders;
-    }
-
-    private PersonalRecordHolder toHolder(RankedSetProjection projection, double value) {
-        return new PersonalRecordHolder(projection.id(), projection.sessionId(), value);
+        return new MuscleIntensityResponse(
+                from, to, new MuscleBaseAssets(baseAssets.frontBaseAssetUrl(), baseAssets.backBaseAssetUrl()), muscles);
     }
 
     private static boolean isTop(Integer rank) {

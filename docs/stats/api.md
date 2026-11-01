@@ -4,13 +4,13 @@ All endpoints require JWT authentication and scope results to the authenticated 
 
 | Method | Path | Query parameters | Response |
 |---|---|---|---|
-| GET | `/api/v1/stats/volume` | `sessionId` (UUID) | `SessionVolumeDTO` |
-| GET | `/api/v1/stats/volume` | `from`, `to` (`LocalDate`) | `SessionVolumeDTO` |
-| GET | `/api/v1/stats/volume/monthly` | `from`, `to` (`LocalDate`) | `MonthlyVolumeDTO[]` |
-| GET | `/api/v1/stats/1rm` | `exerciseId` (UUID) | `OneRepMaxDTO` |
-| GET | `/api/v1/stats/streak` | none | `StreakDTO` |
-| GET | `/api/v1/stats/progress` | `exerciseId`, `from`, `to` | `ExerciseProgressPointsDTO` |
-| GET | `/api/v1/stats/muscle-intensity` | `from`, `to` (`LocalDate`) | `MuscleIntensityResponseDTO` |
+| GET | `/api/v1/stats/volume` | `sessionId` (UUID) | `SessionVolume` |
+| GET | `/api/v1/stats/volume` | `from`, `to` (`LocalDate`) | `SessionVolume` |
+| GET | `/api/v1/stats/volume/monthly` | `from`, `to` (`LocalDate`) | `MonthlyVolume[]` |
+| GET | `/api/v1/stats/1rm` | `exerciseId` (UUID) | `OneRepMax` |
+| GET | `/api/v1/stats/streak` | none | `Streak` |
+| GET | `/api/v1/stats/progress` | `exerciseId`, `from`, `to` | `ExerciseProgressPoints` |
+| GET | `/api/v1/stats/muscle-intensity` | `from`, `to` (`LocalDate`) | `MuscleIntensityResponse` |
 
 `/volume/monthly` and `/muscle-intensity` use inclusive `LocalDate` boundaries in the user's configured timezone. Other date-range endpoints use ISO-8601 instants with inclusive `from` and exclusive `to`.
 

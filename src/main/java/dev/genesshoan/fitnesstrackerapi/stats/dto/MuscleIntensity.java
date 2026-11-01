@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * API representation of one catalog muscle's range-relative intensity.
  */
 @Schema(description = "Range-relative application intensity for one muscle")
-public record MuscleIntensityDTO(
+public record MuscleIntensity(
         @Schema(description = "Muscle id") UUID id,
 
         @Schema(description = "Muscle name", example = "Biceps")
