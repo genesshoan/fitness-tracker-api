@@ -502,13 +502,16 @@ src/main/java/dev/genesshoan/fitnesstrackerapi/gamification/
 │   ├── service/
 │   │   ├── AchievementEvaluationService.java
 │   │   ├── AchievementQueryService.java
-│   │   └── PersonalRecordEvaluator.java    ← la parte de reglas en código
+│   │   ├── PersonalRecordEvaluator.java    ← la parte de reglas en código
+│   │   ├── AchievementStateLoader.java
+│   │   └── TrainingMetricMapper.java
 │   └── exception/
 └── infrastructure/
-    ├── persistence/                         ✅ PR 1
+    ├── persistence/                         ✅ PR 1 y PR 3
     │   ├── AchievementDefinitionRepository.java
     │   ├── UserAchievementRepository.java
-    │   └── PersonalRecordRepository.java
+    │   ├── PersonalRecordRepository.java
+    │   └── TrainingSetRepository.java       ← lee las sesiones y los sets
     └── web/                                 ⏳ PR 5
         ├── AchievementController.java
         ├── dto/…
@@ -523,6 +526,15 @@ módulos, que en este caso es solo `TrainingMetricsPort`.
 Las referencias a otras entidades (usuario, ejercicio, sesión, set) son `UUID` sueltos
 y no asociaciones, para que el módulo no dependa de las entidades de `user`,
 `exercise` ni `workout` (§8.3).
+
+El evaluador necesita leer los sets de una sesión y el historial de un ejercicio.
+Lo hace con su propio SQL en `TrainingSetRepository`, igual que `stats` lee las
+tablas de entrenamiento, en lugar de depender de las entidades del módulo
+`workout`.
+
+La fórmula del 1RM estimado (`weight * (1 + reps / 30)`) la usan `stats` y
+`gamification`, así que `OneRepMaxCalculator` se traslada a `common/calculator/`
+en lugar de duplicarse.
 
 ### 8.2 Puertos
 
@@ -808,7 +820,7 @@ Cada PR es vertical, revisable y migrable por separado.
 | 0 | `fix/test-schema-ownership` ✅ | Flyway como fuente de verdad del esquema en los tests, `V18` y alineación de las entidades | `V18` |
 | 1 | `feature/gamification-schema` | Tablas, entidades, repositorios e índices únicos | `V19`–`V22` |
 | 2 | `feature/gamification-metrics` | `TrainingMetricsUseCase` en `stats`, `TrainingSnapshot`, filtro de estado explícito en la racha | – |
-| 3 | `feature/gamification-evaluator` | `AchievementEvaluationService`, `PersonalRecordEvaluator`, `EvaluateAchievementsUseCase` | – |
+| 3 | `feature/gamification-evaluator` | `AchievementEvaluationService`, `PersonalRecordEvaluator`, `EvaluateAchievementsUseCase`, `TrainingSetRepository` y el traslado de `OneRepMaxCalculator` a `common/calculator/` | – |
 | 4 | `feature/gamification-wiring` | Invocación desde `workout` (sesión completada, set completado, operaciones destructivas) | – |
 | 5 | `feature/gamification-api` | Controller, DTOs, feed, marcar vistos, summary | – |
 | 6 | `feature/gamification-decouple-stats` | Borrado del camino de cálculo en vuelo; `stats` deja de depender de `workout` y `workout` de `stats` | – |
