@@ -22,10 +22,10 @@ import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.ExerciseQue
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.RoutineExercise;
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineExerciseRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineListItemDTO;
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineExerciseRequest;
+import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineListItem;
+import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineRequest;
+import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineResponse;
 import dev.genesshoan.fitnesstrackerapi.routine.mapper.RoutineMapper;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.ExerciseBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.RoutineBuilder;
@@ -76,18 +76,18 @@ public class RoutineServiceTest {
         Routine routine = RoutineBuilder.aRoutine(FAKER).forUserId(userId).build();
         routine.setId(routineId);
 
-        RoutineResponseDTO dto =
-                new RoutineResponseDTO(routine.getId(), routine.getName(), routine.getDescription(), List.of());
+        RoutineResponse dto =
+                new RoutineResponse(routine.getId(), routine.getName(), routine.getDescription(), List.of());
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
-        when(routineMapper.toRoutineResponseDTO(routine)).thenReturn(dto);
+        when(routineMapper.toRoutineResponse(routine)).thenReturn(dto);
 
-        RoutineResponseDTO result = routineService.getRoutineById(routineId, userId);
+        RoutineResponse result = routineService.getRoutineById(routineId, userId);
 
         assertThat(result).isEqualTo(dto);
 
         verify(routineRepository).findByIdAndActiveTrue(routineId);
-        verify(routineMapper).toRoutineResponseDTO(routine);
+        verify(routineMapper).toRoutineResponse(routine);
     }
 
     @Test
@@ -102,7 +102,7 @@ public class RoutineServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class);
 
         verify(routineRepository).findByIdAndActiveTrue(routineId);
-        verify(routineMapper, never()).toRoutineResponseDTO(any());
+        verify(routineMapper, never()).toRoutineResponse(any());
     }
 
     @Test
@@ -121,7 +121,7 @@ public class RoutineServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class);
 
         verify(routineRepository).findByIdAndActiveTrue(routineId);
-        verify(routineMapper, never()).toRoutineResponseDTO(any());
+        verify(routineMapper, never()).toRoutineResponse(any());
     }
 
     @Test
@@ -133,14 +133,14 @@ public class RoutineServiceTest {
         Exercise ex2 = exerciseWithId();
         Exercise ex3 = exerciseWithId();
 
-        List<RoutineExerciseRequestDTO> exercisesDTO = List.of(
-                new RoutineExerciseRequestDTO(ex3.getId(), 0, 3, 12, 14.0, null, null, "notes"),
-                new RoutineExerciseRequestDTO(ex1.getId(), 0, 3, 12, 14.0, null, null, "notes"),
-                new RoutineExerciseRequestDTO(ex2.getId(), 0, 3, 12, 14.0, null, null, "notes"));
+        List<RoutineExerciseRequest> exercises = List.of(
+                new RoutineExerciseRequest(ex3.getId(), 0, 3, 12, 14.0, null, null, "notes"),
+                new RoutineExerciseRequest(ex1.getId(), 0, 3, 12, 14.0, null, null, "notes"),
+                new RoutineExerciseRequest(ex2.getId(), 0, 3, 12, 14.0, null, null, "notes"));
 
-        RoutineRequestDTO request = new RoutineRequestDTO("Push Day", "Description", exercisesDTO);
+        RoutineRequest request = new RoutineRequest("Push Day", "Description", exercises);
 
-        RoutineResponseDTO response = new RoutineResponseDTO(UUID.randomUUID(), "Push Day", "Description", List.of());
+        RoutineResponse response = new RoutineResponse(UUID.randomUUID(), "Push Day", "Description", List.of());
 
         when(routineRepository.existsByNameAndUserIdAndActiveTrue(request.name(), userId))
                 .thenReturn(false);
@@ -149,9 +149,9 @@ public class RoutineServiceTest {
 
         when(exerciseQueryUseCase.findByIds(anySet())).thenReturn(exerciseMap(ex1, ex2, ex3));
 
-        when(routineMapper.toRoutineResponseDTO(any(Routine.class))).thenReturn(response);
+        when(routineMapper.toRoutineResponse(any(Routine.class))).thenReturn(response);
 
-        RoutineResponseDTO result = routineService.createRoutine(request, userId);
+        RoutineResponse result = routineService.createRoutine(request, userId);
 
         assertThat(result).isEqualTo(response);
 
@@ -159,7 +159,7 @@ public class RoutineServiceTest {
 
         verify(routineRepository).save(any(Routine.class));
         verify(exerciseQueryUseCase).findByIds(anySet());
-        verify(routineMapper).toRoutineResponseDTO(captor.capture());
+        verify(routineMapper).toRoutineResponse(captor.capture());
 
         Routine captured = captor.getValue();
 
@@ -184,26 +184,25 @@ public class RoutineServiceTest {
     void createRoutine_shouldCreateRoutineWithoutExercises() {
         UUID userId = UUID.randomUUID();
 
-        RoutineRequestDTO request = new RoutineRequestDTO("Empty Routine", "Description", List.of());
+        RoutineRequest request = new RoutineRequest("Empty Routine", "Description", List.of());
 
-        RoutineResponseDTO response =
-                new RoutineResponseDTO(UUID.randomUUID(), "Empty Routine", "Description", List.of());
+        RoutineResponse response = new RoutineResponse(UUID.randomUUID(), "Empty Routine", "Description", List.of());
 
         when(routineRepository.existsByNameAndUserIdAndActiveTrue(request.name(), userId))
                 .thenReturn(false);
 
         when(routineRepository.save(any(Routine.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(routineMapper.toRoutineResponseDTO(any(Routine.class))).thenReturn(response);
+        when(routineMapper.toRoutineResponse(any(Routine.class))).thenReturn(response);
 
-        RoutineResponseDTO result = routineService.createRoutine(request, userId);
+        RoutineResponse result = routineService.createRoutine(request, userId);
 
         assertThat(result).isEqualTo(response);
 
         ArgumentCaptor<Routine> captor = ArgumentCaptor.forClass(Routine.class);
 
         verify(routineRepository).save(captor.capture());
-        verify(routineMapper).toRoutineResponseDTO(captor.capture());
+        verify(routineMapper).toRoutineResponse(captor.capture());
 
         assertThat(captor.getValue().getUserId()).isEqualTo(userId);
         assertThat(captor.getValue().getExercises()).isEmpty();
@@ -216,26 +215,25 @@ public class RoutineServiceTest {
     void createRoutine_shouldCreateRoutine_WhenExercisesAreNull() {
         UUID userId = UUID.randomUUID();
 
-        RoutineRequestDTO request = new RoutineRequestDTO("Empty Routine", "Description", null);
+        RoutineRequest request = new RoutineRequest("Empty Routine", "Description", null);
 
-        RoutineResponseDTO response =
-                new RoutineResponseDTO(UUID.randomUUID(), "Empty Routine", "Description", List.of());
+        RoutineResponse response = new RoutineResponse(UUID.randomUUID(), "Empty Routine", "Description", List.of());
 
         when(routineRepository.existsByNameAndUserIdAndActiveTrue(request.name(), userId))
                 .thenReturn(false);
 
         when(routineRepository.save(any(Routine.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(routineMapper.toRoutineResponseDTO(any(Routine.class))).thenReturn(response);
+        when(routineMapper.toRoutineResponse(any(Routine.class))).thenReturn(response);
 
-        RoutineResponseDTO result = routineService.createRoutine(request, userId);
+        RoutineResponse result = routineService.createRoutine(request, userId);
 
         assertThat(result).isEqualTo(response);
 
         ArgumentCaptor<Routine> captor = ArgumentCaptor.forClass(Routine.class);
 
         verify(routineRepository).save(captor.capture());
-        verify(routineMapper).toRoutineResponseDTO(captor.capture());
+        verify(routineMapper).toRoutineResponse(captor.capture());
 
         assertThat(captor.getValue().getExercises()).isEmpty();
 
@@ -247,7 +245,7 @@ public class RoutineServiceTest {
             "Should throw a ResourceAlreadyExistsException when already exists an active routine with the same name"
                     + " for the same user")
     void createRoutine_shouldThrowResourceAlreadyExistsException_WhenExists() {
-        RoutineRequestDTO request = new RoutineRequestDTO("Push Day", "Description", List.of());
+        RoutineRequest request = new RoutineRequest("Push Day", "Description", List.of());
         UUID userId = UUID.randomUUID();
 
         when(routineRepository.existsByNameAndUserIdAndActiveTrue(anyString(), any(UUID.class)))
@@ -268,12 +266,12 @@ public class RoutineServiceTest {
         Exercise ex2 = exerciseWithId();
         Exercise ex3 = exerciseWithId();
 
-        List<RoutineExerciseRequestDTO> exercisesDTO = List.of(
-                new RoutineExerciseRequestDTO(ex1.getId(), 0, 3, 12, 14.0, null, null, "notes"),
-                new RoutineExerciseRequestDTO(ex2.getId(), 0, 3, 12, 14.0, null, null, "notes"),
-                new RoutineExerciseRequestDTO(ex3.getId(), 0, 3, 12, 14.0, null, null, "notes"));
+        List<RoutineExerciseRequest> exercises = List.of(
+                new RoutineExerciseRequest(ex1.getId(), 0, 3, 12, 14.0, null, null, "notes"),
+                new RoutineExerciseRequest(ex2.getId(), 0, 3, 12, 14.0, null, null, "notes"),
+                new RoutineExerciseRequest(ex3.getId(), 0, 3, 12, 14.0, null, null, "notes"));
 
-        RoutineRequestDTO request = new RoutineRequestDTO("Push Day", "Description", exercisesDTO);
+        RoutineRequest request = new RoutineRequest("Push Day", "Description", exercises);
 
         when(routineRepository.existsByNameAndUserIdAndActiveTrue(request.name(), userId))
                 .thenReturn(false);
@@ -284,7 +282,7 @@ public class RoutineServiceTest {
 
         verify(routineRepository).save(any(Routine.class));
         verify(exerciseQueryUseCase).findByIds(anySet());
-        verify(routineMapper, never()).toRoutineResponseDTO(any(Routine.class));
+        verify(routineMapper, never()).toRoutineResponse(any(Routine.class));
     }
 
     @Test
@@ -296,12 +294,12 @@ public class RoutineServiceTest {
         Exercise ex2 = exerciseWithId();
         Exercise ex3 = exerciseWithId();
 
-        List<RoutineExerciseRequestDTO> exercisesDTO = List.of(
-                new RoutineExerciseRequestDTO(ex1.getId(), 0, 3, 12, 14.0, null, null, "notes"),
-                new RoutineExerciseRequestDTO(ex2.getId(), 0, 3, 12, 14.0, 30, 20.5, "notes"),
-                new RoutineExerciseRequestDTO(ex3.getId(), 0, 3, 12, 14.0, null, null, "notes"));
+        List<RoutineExerciseRequest> exercises = List.of(
+                new RoutineExerciseRequest(ex1.getId(), 0, 3, 12, 14.0, null, null, "notes"),
+                new RoutineExerciseRequest(ex2.getId(), 0, 3, 12, 14.0, 30, 20.5, "notes"),
+                new RoutineExerciseRequest(ex3.getId(), 0, 3, 12, 14.0, null, null, "notes"));
 
-        RoutineRequestDTO request = new RoutineRequestDTO("Push Day", "Description", exercisesDTO);
+        RoutineRequest request = new RoutineRequest("Push Day", "Description", exercises);
 
         when(routineRepository.existsByNameAndUserIdAndActiveTrue(request.name(), userId))
                 .thenReturn(false);
@@ -319,7 +317,7 @@ public class RoutineServiceTest {
                 });
 
         verify(exerciseQueryUseCase).findByIds(anySet());
-        verify(routineMapper, never()).toRoutineResponseDTO(any(Routine.class));
+        verify(routineMapper, never()).toRoutineResponse(any(Routine.class));
     }
 
     @Test
@@ -340,18 +338,18 @@ public class RoutineServiceTest {
         routine.setExercises(new ArrayList<>(List.of(routineExerciseAt(1, ex1, routine))));
         routine.setId(routineId);
 
-        List<RoutineExerciseRequestDTO> exercisesDTO = new ArrayList<>();
-        exercisesDTO.add(new RoutineExerciseRequestDTO(ex2.getId(), 0, 3, 12, 14.0, null, null, "notes"));
-        exercisesDTO.add(new RoutineExerciseRequestDTO(ex3.getId(), 0, 3, 12, 14.0, null, null, "notes"));
+        List<RoutineExerciseRequest> exercises = new ArrayList<>();
+        exercises.add(new RoutineExerciseRequest(ex2.getId(), 0, 3, 12, 14.0, null, null, "notes"));
+        exercises.add(new RoutineExerciseRequest(ex3.getId(), 0, 3, 12, 14.0, null, null, "notes"));
 
-        RoutineRequestDTO request = new RoutineRequestDTO("newName", "newDescription", exercisesDTO);
+        RoutineRequest request = new RoutineRequest("newName", "newDescription", exercises);
 
         when(routineRepository.existsByNameAndUserIdAndActiveTrue(request.name(), userId))
                 .thenReturn(false);
 
         when(exerciseQueryUseCase.findByIds(anySet())).thenReturn(exerciseMap(ex2, ex3));
 
-        when(routineMapper.toRoutineResponseDTO(any(Routine.class))).thenReturn(mock(RoutineResponseDTO.class));
+        when(routineMapper.toRoutineResponse(any(Routine.class))).thenReturn(mock(RoutineResponse.class));
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
 
@@ -360,7 +358,7 @@ public class RoutineServiceTest {
         ArgumentCaptor<Routine> captor = ArgumentCaptor.forClass(Routine.class);
 
         verify(exerciseQueryUseCase).findByIds(anySet());
-        verify(routineMapper).toRoutineResponseDTO(captor.capture());
+        verify(routineMapper).toRoutineResponse(captor.capture());
 
         Routine captured = captor.getValue();
 
@@ -391,12 +389,12 @@ public class RoutineServiceTest {
         routine.setExercises(new ArrayList<>(List.of(routineExerciseAt(1, ex1, routine))));
         routine.setId(routineId);
 
-        RoutineRequestDTO request = new RoutineRequestDTO("newName", "newDescription", null);
+        RoutineRequest request = new RoutineRequest("newName", "newDescription", null);
 
         when(routineRepository.existsByNameAndUserIdAndActiveTrue(request.name(), userId))
                 .thenReturn(false);
 
-        when(routineMapper.toRoutineResponseDTO(any(Routine.class))).thenReturn(mock(RoutineResponseDTO.class));
+        when(routineMapper.toRoutineResponse(any(Routine.class))).thenReturn(mock(RoutineResponse.class));
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
 
@@ -404,7 +402,7 @@ public class RoutineServiceTest {
 
         ArgumentCaptor<Routine> captor = ArgumentCaptor.forClass(Routine.class);
 
-        verify(routineMapper).toRoutineResponseDTO(captor.capture());
+        verify(routineMapper).toRoutineResponse(captor.capture());
 
         assertThat(captor.getValue().getExercises()).isEmpty();
 
@@ -423,11 +421,11 @@ public class RoutineServiceTest {
                 .build();
         routine.setId(routineId);
 
-        RoutineRequestDTO request = new RoutineRequestDTO("Push Day", "newDescription", List.of());
+        RoutineRequest request = new RoutineRequest("Push Day", "newDescription", List.of());
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
 
-        when(routineMapper.toRoutineResponseDTO(any(Routine.class))).thenReturn(mock(RoutineResponseDTO.class));
+        when(routineMapper.toRoutineResponse(any(Routine.class))).thenReturn(mock(RoutineResponse.class));
 
         routineService.updateRoutine(routineId, request, userId);
 
@@ -446,7 +444,7 @@ public class RoutineServiceTest {
 
         Routine routine = RoutineBuilder.aRoutine(FAKER).forUserId(userId).build();
 
-        RoutineRequestDTO request = new RoutineRequestDTO("name", "description", List.of());
+        RoutineRequest request = new RoutineRequest("name", "description", List.of());
 
         when(routineRepository.existsByNameAndUserIdAndActiveTrue(request.name(), userId))
                 .thenReturn(true);
@@ -457,7 +455,7 @@ public class RoutineServiceTest {
                 .isInstanceOf(ResourceAlreadyExistsException.class);
 
         verify(exerciseQueryUseCase, never()).findByIds(anySet());
-        verify(routineMapper, never()).toRoutineResponseDTO(any(Routine.class));
+        verify(routineMapper, never()).toRoutineResponse(any(Routine.class));
     }
 
     @Test
@@ -466,7 +464,7 @@ public class RoutineServiceTest {
         UUID routineId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
 
-        RoutineRequestDTO request = new RoutineRequestDTO("Push Day", "Description", List.of());
+        RoutineRequest request = new RoutineRequest("Push Day", "Description", List.of());
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.empty());
 
@@ -474,7 +472,7 @@ public class RoutineServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class);
 
         verify(exerciseQueryUseCase, never()).findByIds(anySet());
-        verify(routineMapper, never()).toRoutineResponseDTO(any());
+        verify(routineMapper, never()).toRoutineResponse(any());
     }
 
     @Test
@@ -486,7 +484,7 @@ public class RoutineServiceTest {
 
         Routine routine = RoutineBuilder.aRoutine(FAKER).forUserId(ownerId).build();
 
-        RoutineRequestDTO request = new RoutineRequestDTO("Push Day", "Description", List.of());
+        RoutineRequest request = new RoutineRequest("Push Day", "Description", List.of());
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
 
@@ -494,7 +492,7 @@ public class RoutineServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class);
 
         verify(exerciseQueryUseCase, never()).findByIds(anySet());
-        verify(routineMapper, never()).toRoutineResponseDTO(any());
+        verify(routineMapper, never()).toRoutineResponse(any());
     }
 
     @Test
@@ -509,12 +507,12 @@ public class RoutineServiceTest {
         Routine routine = RoutineBuilder.aRoutine(FAKER).forUserId(userId).build();
         routine.setId(UUID.randomUUID());
 
-        List<RoutineExerciseRequestDTO> exercisesDTO = List.of(
-                new RoutineExerciseRequestDTO(ex1.getId(), 0, 3, 12, 14.0, null, null, "notes"),
-                new RoutineExerciseRequestDTO(ex2.getId(), 0, 3, 12, 14.0, 30, 20.5, "notes"),
-                new RoutineExerciseRequestDTO(ex3.getId(), 0, 3, 12, 14.0, null, null, "notes"));
+        List<RoutineExerciseRequest> exercises = List.of(
+                new RoutineExerciseRequest(ex1.getId(), 0, 3, 12, 14.0, null, null, "notes"),
+                new RoutineExerciseRequest(ex2.getId(), 0, 3, 12, 14.0, 30, 20.5, "notes"),
+                new RoutineExerciseRequest(ex3.getId(), 0, 3, 12, 14.0, null, null, "notes"));
 
-        RoutineRequestDTO request = new RoutineRequestDTO("Push Day", "Description", exercisesDTO);
+        RoutineRequest request = new RoutineRequest("Push Day", "Description", exercises);
 
         when(routineRepository.existsByNameAndUserIdAndActiveTrue(request.name(), userId))
                 .thenReturn(false);
@@ -534,7 +532,7 @@ public class RoutineServiceTest {
                 });
 
         verify(exerciseQueryUseCase).findByIds(anySet());
-        verify(routineMapper, never()).toRoutineResponseDTO(any(Routine.class));
+        verify(routineMapper, never()).toRoutineResponse(any(Routine.class));
     }
 
     @Test
@@ -607,12 +605,12 @@ public class RoutineServiceTest {
                 routineExerciseAt(2, ex2, routine),
                 routineExerciseAt(3, ex3, routine))));
 
-        RoutineExerciseRequestDTO dto =
-                new RoutineExerciseRequestDTO(newExercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
+        RoutineExerciseRequest dto =
+                new RoutineExerciseRequest(newExercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
         when(exerciseQueryUseCase.findById(newExercise.getId())).thenReturn(Optional.of(newExercise));
-        when(routineMapper.toRoutineResponseDTO(routine)).thenReturn(mock(RoutineResponseDTO.class));
+        when(routineMapper.toRoutineResponse(routine)).thenReturn(mock(RoutineResponse.class));
 
         routineService.addRoutineExercise(routineId, 2, dto, userId);
 
@@ -637,12 +635,12 @@ public class RoutineServiceTest {
         routine.setExercises(
                 new ArrayList<>(List.of(routineExerciseAt(1, ex1, routine), routineExerciseAt(2, ex2, routine))));
 
-        RoutineExerciseRequestDTO dto =
-                new RoutineExerciseRequestDTO(newExercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
+        RoutineExerciseRequest dto =
+                new RoutineExerciseRequest(newExercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
         when(exerciseQueryUseCase.findById(newExercise.getId())).thenReturn(Optional.of(newExercise));
-        when(routineMapper.toRoutineResponseDTO(routine)).thenReturn(mock(RoutineResponseDTO.class));
+        when(routineMapper.toRoutineResponse(routine)).thenReturn(mock(RoutineResponse.class));
 
         routineService.addRoutineExercise(routineId, 10, dto, userId);
 
@@ -667,12 +665,12 @@ public class RoutineServiceTest {
         routine.setExercises(
                 new ArrayList<>(List.of(routineExerciseAt(1, ex1, routine), routineExerciseAt(2, ex2, routine))));
 
-        RoutineExerciseRequestDTO dto =
-                new RoutineExerciseRequestDTO(newExercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
+        RoutineExerciseRequest dto =
+                new RoutineExerciseRequest(newExercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
         when(exerciseQueryUseCase.findById(newExercise.getId())).thenReturn(Optional.of(newExercise));
-        when(routineMapper.toRoutineResponseDTO(routine)).thenReturn(mock(RoutineResponseDTO.class));
+        when(routineMapper.toRoutineResponse(routine)).thenReturn(mock(RoutineResponse.class));
 
         routineService.addRoutineExercise(routineId, -5, dto, userId);
 
@@ -697,12 +695,12 @@ public class RoutineServiceTest {
         routine.setExercises(
                 new ArrayList<>(List.of(routineExerciseAt(1, ex1, routine), routineExerciseAt(2, ex2, routine))));
 
-        RoutineExerciseRequestDTO dto =
-                new RoutineExerciseRequestDTO(newExercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
+        RoutineExerciseRequest dto =
+                new RoutineExerciseRequest(newExercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
         when(exerciseQueryUseCase.findById(newExercise.getId())).thenReturn(Optional.of(newExercise));
-        when(routineMapper.toRoutineResponseDTO(routine)).thenReturn(mock(RoutineResponseDTO.class));
+        when(routineMapper.toRoutineResponse(routine)).thenReturn(mock(RoutineResponse.class));
 
         routineService.addRoutineExercise(routineId, 3, dto, userId);
 
@@ -723,12 +721,12 @@ public class RoutineServiceTest {
 
         Exercise newExercise = exerciseWithId();
 
-        RoutineExerciseRequestDTO dto =
-                new RoutineExerciseRequestDTO(newExercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
+        RoutineExerciseRequest dto =
+                new RoutineExerciseRequest(newExercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
         when(exerciseQueryUseCase.findById(newExercise.getId())).thenReturn(Optional.of(newExercise));
-        when(routineMapper.toRoutineResponseDTO(routine)).thenReturn(mock(RoutineResponseDTO.class));
+        when(routineMapper.toRoutineResponse(routine)).thenReturn(mock(RoutineResponse.class));
 
         routineService.addRoutineExercise(routineId, 1, dto, userId);
 
@@ -748,8 +746,7 @@ public class RoutineServiceTest {
         routine.setExercises(new ArrayList<>());
 
         UUID missingExerciseId = UUID.randomUUID();
-        RoutineExerciseRequestDTO dto =
-                new RoutineExerciseRequestDTO(missingExerciseId, 0, 3, 12, 14.0, null, null, "notes");
+        RoutineExerciseRequest dto = new RoutineExerciseRequest(missingExerciseId, 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
         when(exerciseQueryUseCase.findById(missingExerciseId)).thenReturn(Optional.empty());
@@ -757,7 +754,7 @@ public class RoutineServiceTest {
         assertThatThrownBy(() -> routineService.addRoutineExercise(routineId, 1, dto, userId))
                 .isInstanceOf(ResourceNotFoundException.class);
 
-        verify(routineMapper, never()).toRoutineResponseDTO(any());
+        verify(routineMapper, never()).toRoutineResponse(any());
     }
 
     @Test
@@ -766,8 +763,7 @@ public class RoutineServiceTest {
         UUID routineId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
 
-        RoutineExerciseRequestDTO dto =
-                new RoutineExerciseRequestDTO(UUID.randomUUID(), 0, 3, 12, 14.0, null, null, "notes");
+        RoutineExerciseRequest dto = new RoutineExerciseRequest(UUID.randomUUID(), 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.empty());
 
@@ -775,7 +771,7 @@ public class RoutineServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class);
 
         verify(exerciseQueryUseCase, never()).findById(any());
-        verify(routineMapper, never()).toRoutineResponseDTO(any());
+        verify(routineMapper, never()).toRoutineResponse(any());
     }
 
     @Test
@@ -788,8 +784,7 @@ public class RoutineServiceTest {
         Routine routine = RoutineBuilder.aRoutine(FAKER).forUserId(ownerId).build();
         routine.setId(routineId);
 
-        RoutineExerciseRequestDTO dto =
-                new RoutineExerciseRequestDTO(UUID.randomUUID(), 0, 3, 12, 14.0, null, null, "notes");
+        RoutineExerciseRequest dto = new RoutineExerciseRequest(UUID.randomUUID(), 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
 
@@ -797,7 +792,7 @@ public class RoutineServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class);
 
         verify(exerciseQueryUseCase, never()).findById(any());
-        verify(routineMapper, never()).toRoutineResponseDTO(any());
+        verify(routineMapper, never()).toRoutineResponse(any());
     }
 
     @Test
@@ -812,8 +807,7 @@ public class RoutineServiceTest {
 
         Exercise exercise = exerciseWithId();
 
-        RoutineExerciseRequestDTO dto =
-                new RoutineExerciseRequestDTO(exercise.getId(), 0, 3, 12, 14.0, 30, 20.5, "notes");
+        RoutineExerciseRequest dto = new RoutineExerciseRequest(exercise.getId(), 0, 3, 12, 14.0, 30, 20.5, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
         when(exerciseQueryUseCase.findById(exercise.getId())).thenReturn(Optional.of(exercise));
@@ -827,7 +821,7 @@ public class RoutineServiceTest {
                             .containsEntry(exercise.getId().toString(), List.of("Invalid data for category STRENGTH"));
                 });
 
-        verify(routineMapper, never()).toRoutineResponseDTO(any());
+        verify(routineMapper, never()).toRoutineResponse(any());
     }
 
     @Test
@@ -940,11 +934,11 @@ public class RoutineServiceTest {
 
         routine.setExercises(new ArrayList<>(List.of(routineExerciseAt(2, ex1, routine))));
 
-        RoutineExerciseRequestDTO dto = new RoutineExerciseRequestDTO(ex2.getId(), 0, 3, 12, 14.0, null, null, "notes");
+        RoutineExerciseRequest dto = new RoutineExerciseRequest(ex2.getId(), 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
         when(exerciseQueryUseCase.findById(ex2.getId())).thenReturn(Optional.of(ex2));
-        when(routineMapper.toRoutineResponseDTO(routine)).thenReturn(mock(RoutineResponseDTO.class));
+        when(routineMapper.toRoutineResponse(routine)).thenReturn(mock(RoutineResponse.class));
 
         routineService.updateRoutineExercise(routineId, 2, dto, userId);
 
@@ -965,8 +959,7 @@ public class RoutineServiceTest {
 
         Exercise exercise = exerciseWithId();
 
-        RoutineExerciseRequestDTO dto =
-                new RoutineExerciseRequestDTO(exercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
+        RoutineExerciseRequest dto = new RoutineExerciseRequest(exercise.getId(), 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
         when(exerciseQueryUseCase.findById(exercise.getId())).thenReturn(Optional.of(exercise));
@@ -986,8 +979,7 @@ public class RoutineServiceTest {
         routine.setExercises(new ArrayList<>());
 
         UUID missingExerciseId = UUID.randomUUID();
-        RoutineExerciseRequestDTO dto =
-                new RoutineExerciseRequestDTO(missingExerciseId, 0, 3, 12, 14.0, null, null, "notes");
+        RoutineExerciseRequest dto = new RoutineExerciseRequest(missingExerciseId, 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
         when(exerciseQueryUseCase.findById(missingExerciseId)).thenReturn(Optional.empty());
@@ -995,7 +987,7 @@ public class RoutineServiceTest {
         assertThatThrownBy(() -> routineService.updateRoutineExercise(routineId, 1, dto, userId))
                 .isInstanceOf(ResourceNotFoundException.class);
 
-        verify(routineMapper, never()).toRoutineResponseDTO(any());
+        verify(routineMapper, never()).toRoutineResponse(any());
     }
 
     @Test
@@ -1012,7 +1004,7 @@ public class RoutineServiceTest {
 
         routine.setExercises(new ArrayList<>(List.of(routineExerciseAt(1, ex1, routine))));
 
-        RoutineExerciseRequestDTO dto = new RoutineExerciseRequestDTO(ex2.getId(), 0, 3, 12, 14.0, 30, 20.5, "notes");
+        RoutineExerciseRequest dto = new RoutineExerciseRequest(ex2.getId(), 0, 3, 12, 14.0, 30, 20.5, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
         when(exerciseQueryUseCase.findById(ex2.getId())).thenReturn(Optional.of(ex2));
@@ -1026,7 +1018,7 @@ public class RoutineServiceTest {
                             .containsEntry(ex2.getId().toString(), List.of("Invalid data for category STRENGTH"));
                 });
 
-        verify(routineMapper, never()).toRoutineResponseDTO(any());
+        verify(routineMapper, never()).toRoutineResponse(any());
     }
 
     @Test
@@ -1035,8 +1027,7 @@ public class RoutineServiceTest {
         UUID routineId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
 
-        RoutineExerciseRequestDTO dto =
-                new RoutineExerciseRequestDTO(UUID.randomUUID(), 0, 3, 12, 14.0, null, null, "notes");
+        RoutineExerciseRequest dto = new RoutineExerciseRequest(UUID.randomUUID(), 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.empty());
 
@@ -1056,8 +1047,7 @@ public class RoutineServiceTest {
         Routine routine = RoutineBuilder.aRoutine(FAKER).forUserId(ownerId).build();
         routine.setId(routineId);
 
-        RoutineExerciseRequestDTO dto =
-                new RoutineExerciseRequestDTO(UUID.randomUUID(), 0, 3, 12, 14.0, null, null, "notes");
+        RoutineExerciseRequest dto = new RoutineExerciseRequest(UUID.randomUUID(), 0, 3, 12, 14.0, null, null, "notes");
 
         when(routineRepository.findByIdAndActiveTrue(routineId)).thenReturn(Optional.of(routine));
 
@@ -1073,12 +1063,12 @@ public class RoutineServiceTest {
         UUID userId = UUID.randomUUID();
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<RoutineListItemDTO> page = new PageImpl<>(List.of(mock(RoutineListItemDTO.class)));
+        Page<RoutineListItem> page = new PageImpl<>(List.of(mock(RoutineListItem.class)));
 
         when(routineRepository.findAllByUserIdAndActiveTrueWithExerciseCount(userId, pageable))
                 .thenReturn(page);
 
-        Page<RoutineListItemDTO> result = routineService.getRoutinesByUserId(userId, pageable);
+        Page<RoutineListItem> result = routineService.getRoutinesByUserId(userId, pageable);
 
         assertThat(result).isEqualTo(page);
 
@@ -1091,12 +1081,12 @@ public class RoutineServiceTest {
         UUID userId = UUID.randomUUID();
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<RoutineListItemDTO> emptyPage = Page.empty(pageable);
+        Page<RoutineListItem> emptyPage = Page.empty(pageable);
 
         when(routineRepository.findAllByUserIdAndActiveTrueWithExerciseCount(userId, pageable))
                 .thenReturn(emptyPage);
 
-        Page<RoutineListItemDTO> result = routineService.getRoutinesByUserId(userId, pageable);
+        Page<RoutineListItem> result = routineService.getRoutinesByUserId(userId, pageable);
 
         assertThat(result).isEmpty();
 

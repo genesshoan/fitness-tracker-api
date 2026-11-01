@@ -4,27 +4,27 @@
 ' =========================
 ' DTOs
 ' =========================
-class RoutineRequestDTO {
+class RoutineRequest {
   + name: String
   + description: String
-  + exercises: List<RoutineExerciseRequestDTO>
+  + exercises: List<RoutineExerciseRequest>
 }
 
-class RoutineResponseDTO {
+class RoutineResponse {
   + id: UUID
   + name: String
   + description: String
-  + exercises: List<RoutineExerciseResponseDTO>
+  + exercises: List<RoutineExerciseResponse>
 }
 
-class RoutineListItemDTO {
+class RoutineListItem {
   + id: UUID
   + name: String
   + exerciseCount: Long
   + updatedAt: LocalDateTime
 }
 
-class RoutineExerciseRequestDTO {
+class RoutineExerciseRequest {
   + exerciseId: UUID
   + defaultRestSeconds: Integer
   + defaultSets: Integer
@@ -35,8 +35,8 @@ class RoutineExerciseRequestDTO {
   + notes: String
 }
 
-class RoutineExerciseResponseDTO {
-  + exercise: ExerciseListItemDTO
+class RoutineExerciseResponse {
+  + exercise: ExerciseListItem
   + position: int
   + defaultRestSeconds: int
   + defaultSets: int
@@ -90,7 +90,7 @@ class Exercise {
 ' =========================
 interface RoutineRepository {
   + existsByNameAndUserIdAndActiveTrue(name: String, userId: UUID): boolean
-  + findAllByUserIdAndActiveTrueWithExerciseCount(userId: UUID, pageable: Pageable): Page<RoutineListItemDTO>
+  + findAllByUserIdAndActiveTrueWithExerciseCount(userId: UUID, pageable: Pageable): Page<RoutineListItem>
   + findByIdAndActiveTrue(routineId: UUID): Optional<Routine>
 }
 
@@ -101,13 +101,13 @@ class RoutineService {
   - routineRepository: RoutineRepository
   - exerciseRepository: ExerciseRepository
   - routineMapper: RoutineMapper
-  + getRoutinesByUserId(user: User, pageable: Pageable): Page<RoutineListItemDTO>
-  + getRoutineById(routineId: UUID, user: User): RoutineResponseDTO
-  + createRoutine(dto: RoutineRequestDTO, user: User): RoutineResponseDTO
-  + updateRoutine(routineId: UUID, dto: RoutineRequestDTO, user: User): RoutineResponseDTO
+  + getRoutinesByUserId(user: User, pageable: Pageable): Page<RoutineListItem>
+  + getRoutineById(routineId: UUID, user: User): RoutineResponse
+  + createRoutine(dto: RoutineRequest, user: User): RoutineResponse
+  + updateRoutine(routineId: UUID, dto: RoutineRequest, user: User): RoutineResponse
   + deleteRoutine(routineId: UUID, user: User): void
-  + addRoutineExercise(routineId: UUID, position: int, dto: RoutineExerciseRequestDTO, user: User): RoutineResponseDTO
-  + updateRoutineExercise(routineId: UUID, position: int, dto: RoutineExerciseRequestDTO, user: User): RoutineResponseDTO
+  + addRoutineExercise(routineId: UUID, position: int, dto: RoutineExerciseRequest, user: User): RoutineResponse
+  + updateRoutineExercise(routineId: UUID, position: int, dto: RoutineExerciseRequest, user: User): RoutineResponse
   + deleteRoutineExercise(routineId: UUID, position: int, user: User): void
 }
 
@@ -115,12 +115,12 @@ class RoutineService {
 ' MAPPER
 ' =========================
 interface RoutineMapper {
-  + toRoutineResponseDTO(routine: Routine): RoutineResponseDTO
-  + toRoutineListItemDTO(routine: Routine): RoutineListItemDTO
+  + toRoutineResponse(routine: Routine): RoutineResponse
+  + toRoutineListItem(routine: Routine): RoutineListItem
 }
 
 interface RoutineExerciseMapper {
-  + toRoutineExerciseResponseDTO(routineExercise: RoutineExercise): RoutineExerciseResponseDTO
+  + toRoutineExerciseResponse(routineExercise: RoutineExercise): RoutineExerciseResponse
 }
 
 ' =========================
@@ -128,13 +128,13 @@ interface RoutineExerciseMapper {
 ' =========================
 class RoutineController {
   - routineService: RoutineService
-  + getRoutines(principal: UserDetailsImpl, pageable: Pageable): ResponseEntity<Page<RoutineListItemDTO>>
-  + getRoutine(routineId: UUID, principal: UserDetailsImpl): ResponseEntity<RoutineResponseDTO>
-  + createRoutine(dto: RoutineRequestDTO, principal: UserDetailsImpl): ResponseEntity<RoutineResponseDTO>
-  + updateRoutine(routineId: UUID, dto: RoutineRequestDTO, principal: UserDetailsImpl): ResponseEntity<RoutineResponseDTO>
+  + getRoutines(principal: UserDetailsImpl, pageable: Pageable): ResponseEntity<Page<RoutineListItem>>
+  + getRoutine(routineId: UUID, principal: UserDetailsImpl): ResponseEntity<RoutineResponse>
+  + createRoutine(dto: RoutineRequest, principal: UserDetailsImpl): ResponseEntity<RoutineResponse>
+  + updateRoutine(routineId: UUID, dto: RoutineRequest, principal: UserDetailsImpl): ResponseEntity<RoutineResponse>
   + deleteRoutine(routineId: UUID, principal: UserDetailsImpl): ResponseEntity<Void>
-  + addRoutineExercise(routineId: UUID, position: int, dto: RoutineExerciseRequestDTO, principal: UserDetailsImpl): ResponseEntity<RoutineResponseDTO>
-  + updateRoutineExercise(routineId: UUID, position: int, dto: RoutineExerciseRequestDTO, principal: UserDetailsImpl): ResponseEntity<RoutineResponseDTO>
+  + addRoutineExercise(routineId: UUID, position: int, dto: RoutineExerciseRequest, principal: UserDetailsImpl): ResponseEntity<RoutineResponse>
+  + updateRoutineExercise(routineId: UUID, position: int, dto: RoutineExerciseRequest, principal: UserDetailsImpl): ResponseEntity<RoutineResponse>
   + deleteRoutineExercise(routineId: UUID, position: int, principal: UserDetailsImpl): ResponseEntity<Void>
 }
 
@@ -158,12 +158,12 @@ RoutineExercise "1" *-- "1" Routine : routine
 ' =========================
 ' DEPENDENCIES
 ' =========================
-RoutineController ..> RoutineResponseDTO : <<uses>>
-RoutineController ..> RoutineListItemDTO : <<uses>>
-RoutineController ..> RoutineRequestDTO : <<uses>>
-RoutineController ..> RoutineExerciseRequestDTO : <<uses>>
-RoutineService ..> RoutineResponseDTO : <<creates>>
-RoutineService ..> RoutineListItemDTO : <<creates>>
+RoutineController ..> RoutineResponse : <<uses>>
+RoutineController ..> RoutineListItem : <<uses>>
+RoutineController ..> RoutineRequest : <<uses>>
+RoutineController ..> RoutineExerciseRequest : <<uses>>
+RoutineService ..> RoutineResponse : <<creates>>
+RoutineService ..> RoutineListItem : <<creates>>
 RoutineService ..> ResourceNotFoundException : <<throws>>
 RoutineService ..> ResourceAlreadyExistsException : <<throws>>
 RoutineService ..> ValidationException : <<throws>>

@@ -14,9 +14,9 @@ group LIST ROUTINES
   Client -> RoutineController : GET /routines
   RoutineController -> RoutineService : getRoutinesByUserId(user, pageable)
   RoutineService -> RoutineRepository : findAllByUserIdAndActiveTrueWithExerciseCount(userId, pageable)
-  RoutineRepository --> RoutineService : Page<RoutineListItemDTO>
-  RoutineService --> RoutineController : Page<RoutineListItemDTO>
-  RoutineController --> Client : 200 Page<RoutineListItemDTO>
+  RoutineRepository --> RoutineService : Page<RoutineListItem>
+  RoutineService --> RoutineController : Page<RoutineListItem>
+  RoutineController --> Client : 200 Page<RoutineListItem>
 end
 
 ' =========================
@@ -28,10 +28,10 @@ group GET ROUTINE BY ID
   RoutineService -> RoutineService : findAndValidateRoutine(routineId, user)
   RoutineService -> RoutineRepository : findByIdAndActiveTrue(routineId)
   RoutineRepository --> RoutineService : Routine
-  RoutineService -> RoutineMapper : toRoutineResponseDTO(routine)
-  RoutineMapper --> RoutineService : RoutineResponseDTO
-  RoutineService --> RoutineController : RoutineResponseDTO
-  RoutineController --> Client : 200 RoutineResponseDTO
+  RoutineService -> RoutineMapper : toRoutineResponse(routine)
+  RoutineMapper --> RoutineService : RoutineResponse
+  RoutineService --> RoutineController : RoutineResponse
+  RoutineController --> Client : 200 RoutineResponse
 end
 
 ' =========================
@@ -51,10 +51,10 @@ group CREATE ROUTINE
   RoutineService -> RoutineService : validate exercise metrics per category
   RoutineService -> RoutineService : buildRoutineExercises(dto, routine, exercises)
   RoutineService -> Routine : setExercises(routineExercises)
-  RoutineService -> RoutineMapper : toRoutineResponseDTO(routine)
-  RoutineMapper --> RoutineService : RoutineResponseDTO
-  RoutineService --> RoutineController : RoutineResponseDTO
-  RoutineController --> Client : 201 RoutineResponseDTO
+  RoutineService -> RoutineMapper : toRoutineResponse(routine)
+  RoutineMapper --> RoutineService : RoutineResponse
+  RoutineService --> RoutineController : RoutineResponse
+  RoutineController --> Client : 201 RoutineResponse
 end
 
 ' =========================
@@ -71,10 +71,10 @@ group UPDATE ROUTINE
   RoutineService -> ExerciseRepository : findAllByIdInAndActiveTrue(exerciseIds)
   ExerciseRepository --> RoutineService : List<Exercise>
   RoutineService -> RoutineService : replaceRoutineExercises(routine, exercisesMap, dto.exercises)
-  RoutineService -> RoutineMapper : toRoutineResponseDTO(routine)
-  RoutineMapper --> RoutineService : RoutineResponseDTO
-  RoutineService --> RoutineController : RoutineResponseDTO
-  RoutineController --> Client : 200 RoutineResponseDTO
+  RoutineService -> RoutineMapper : toRoutineResponse(routine)
+  RoutineMapper --> RoutineService : RoutineResponse
+  RoutineService --> RoutineController : RoutineResponse
+  RoutineController --> Client : 200 RoutineResponse
 end
 
 ' =========================
@@ -102,10 +102,10 @@ group ADD EXERCISE TO ROUTINE
   RoutineService -> Routine : buildRoutineExercise(routine, exercise, dto, position)
   RoutineService -> Routine : getExercises().stream().filter(e -> e.getPosition() >= position).forEach(e -> e.setPosition(e.getPosition() + 1))
   RoutineService -> Routine : getExercises().add(newRoutineExercise)
-  RoutineService -> RoutineMapper : toRoutineResponseDTO(routine)
-  RoutineMapper --> RoutineService : RoutineResponseDTO
-  RoutineService --> RoutineController : RoutineResponseDTO
-  RoutineController --> Client : 200 RoutineResponseDTO
+  RoutineService -> RoutineMapper : toRoutineResponse(routine)
+  RoutineMapper --> RoutineService : RoutineResponse
+  RoutineService --> RoutineController : RoutineResponse
+  RoutineController --> Client : 200 RoutineResponse
 end
 
 ' =========================
@@ -122,10 +122,10 @@ group UPDATE EXERCISE IN ROUTINE
   RoutineService -> Routine : getExercises().stream().filter(re -> re.getPosition() == position).findFirst()
   RoutineService -> Routine : getExercises().remove(routineExercise)
   RoutineService -> Routine : getExercises().add(newRoutineExercise)
-  RoutineService -> RoutineMapper : toRoutineResponseDTO(routine)
-  RoutineMapper --> RoutineService : RoutineResponseDTO
-  RoutineService --> RoutineController : RoutineResponseDTO
-  RoutineController --> Client : 200 RoutineResponseDTO
+  RoutineService -> RoutineMapper : toRoutineResponse(routine)
+  RoutineMapper --> RoutineService : RoutineResponse
+  RoutineService --> RoutineController : RoutineResponse
+  RoutineController --> Client : 200 RoutineResponse
 end
 
 ' =========================

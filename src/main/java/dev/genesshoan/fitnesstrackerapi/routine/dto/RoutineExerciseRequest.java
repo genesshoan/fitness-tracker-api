@@ -15,8 +15,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * <p>The service validates the metric combination against the referenced
  * exercise category.
  */
-@Schema(description = "Request DTO for creating a routine exercise")
-public record RoutineExerciseRequestDTO(
+@Schema(description = "Requestfor creating a routine exercise")
+public record RoutineExerciseRequest(
         @NotNull(message = "Exercise id is required")
         @Schema(description = "Exercise id", example = "123e4567-e89b-12d3-a456-426614174000")
         UUID exerciseId,

@@ -20,10 +20,10 @@ import org.springframework.web.bind.annotation.RestController;
 import dev.genesshoan.fitnesstrackerapi.common.annotation.CurrentUserId;
 import dev.genesshoan.fitnesstrackerapi.gamification.application.service.AchievementQueryService;
 import dev.genesshoan.fitnesstrackerapi.gamification.domain.AchievementCategory;
-import dev.genesshoan.fitnesstrackerapi.gamification.infrastructure.web.dto.AchievementFeedResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.gamification.infrastructure.web.dto.AchievementResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.gamification.infrastructure.web.dto.AchievementSummaryResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.gamification.infrastructure.web.dto.MarkAchievementsSeenRequestDTO;
+import dev.genesshoan.fitnesstrackerapi.gamification.infrastructure.web.dto.AchievementFeedResponse;
+import dev.genesshoan.fitnesstrackerapi.gamification.infrastructure.web.dto.AchievementResponse;
+import dev.genesshoan.fitnesstrackerapi.gamification.infrastructure.web.dto.AchievementSummaryResponse;
+import dev.genesshoan.fitnesstrackerapi.gamification.infrastructure.web.dto.MarkAchievementsSeenRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -45,7 +45,7 @@ import lombok.RequiredArgsConstructor;
 public class AchievementController {
 
     private final AchievementQueryService achievementQueryService;
-    private final UserAchievementMapper achievementMapper;
+    private final AchievementMapper achievementMapper;
 
     @Operation(
             summary = "Get the achievement catalog",
@@ -57,7 +57,7 @@ public class AchievementController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                array = @ArraySchema(schema = @Schema(implementation = AchievementResponseDTO.class)))),
+                                array = @ArraySchema(schema = @Schema(implementation = AchievementResponse.class)))),
         @ApiResponse(
                 responseCode = "401",
                 description = "Unauthorized",
@@ -67,7 +67,7 @@ public class AchievementController {
                                 schema = @Schema(implementation = ProblemDetail.class)))
     })
     @GetMapping
-    public ResponseEntity<List<AchievementResponseDTO>> getCatalog(
+    public ResponseEntity<List<AchievementResponse>> getCatalog(
             @CurrentUserId UUID userId,
             @Parameter(description = "Category to filter by", example = "CONSISTENCY") @RequestParam(required = false)
                     AchievementCategory category,
@@ -78,7 +78,7 @@ public class AchievementController {
                     @RequestParam(defaultValue = "false")
                     boolean unseenOnly) {
 
-        return ResponseEntity.ok(achievementMapper.toResponseDTOs(
+        return ResponseEntity.ok(achievementMapper.toResponses(
                 achievementQueryService.getCatalog(userId, category, unlockedOnly, unseenOnly)));
     }
 
@@ -93,7 +93,7 @@ public class AchievementController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                array = @ArraySchema(schema = @Schema(implementation = AchievementResponseDTO.class)))),
+                                array = @ArraySchema(schema = @Schema(implementation = AchievementResponse.class)))),
         @ApiResponse(
                 responseCode = "401",
                 description = "Unauthorized",
@@ -110,11 +110,11 @@ public class AchievementController {
                                 schema = @Schema(implementation = ProblemDetail.class)))
     })
     @GetMapping("/{code}")
-    public ResponseEntity<List<AchievementResponseDTO>> getByCode(
+    public ResponseEntity<List<AchievementResponse>> getByCode(
             @CurrentUserId UUID userId,
             @Parameter(description = "Achievement code", required = true) @PathVariable String code) {
 
-        return ResponseEntity.ok(achievementMapper.toResponseDTOs(achievementQueryService.getByCode(userId, code)));
+        return ResponseEntity.ok(achievementMapper.toResponses(achievementQueryService.getByCode(userId, code)));
     }
 
     @Operation(
@@ -129,7 +129,7 @@ public class AchievementController {
                                 mediaType = "application/json",
                                 array =
                                         @ArraySchema(
-                                                schema = @Schema(implementation = AchievementFeedResponseDTO.class)))),
+                                                schema = @Schema(implementation = AchievementFeedResponse.class)))),
         @ApiResponse(
                 responseCode = "401",
                 description = "Unauthorized",
@@ -139,7 +139,7 @@ public class AchievementController {
                                 schema = @Schema(implementation = ProblemDetail.class)))
     })
     @GetMapping("/feed")
-    public ResponseEntity<List<AchievementFeedResponseDTO>> getFeed(
+    public ResponseEntity<List<AchievementFeedResponse>> getFeed(
             @CurrentUserId UUID userId,
             @Parameter(description = "Keep only the unlocks the user has not seen yet")
                     @RequestParam(defaultValue = "false")
@@ -149,7 +149,7 @@ public class AchievementController {
                     int limit) {
 
         return ResponseEntity.ok(
-                achievementMapper.toFeedResponseDTOs(achievementQueryService.getFeed(userId, unseenOnly, limit)));
+                achievementMapper.toFeedResponses(achievementQueryService.getFeed(userId, unseenOnly, limit)));
     }
 
     @Operation(
@@ -163,7 +163,7 @@ public class AchievementController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = AchievementSummaryResponseDTO.class))),
+                                schema = @Schema(implementation = AchievementSummaryResponse.class))),
         @ApiResponse(
                 responseCode = "401",
                 description = "Unauthorized",
@@ -173,9 +173,9 @@ public class AchievementController {
                                 schema = @Schema(implementation = ProblemDetail.class)))
     })
     @GetMapping("/summary")
-    public ResponseEntity<AchievementSummaryResponseDTO> getSummary(@CurrentUserId UUID userId) {
+    public ResponseEntity<AchievementSummaryResponse> getSummary(@CurrentUserId UUID userId) {
 
-        return ResponseEntity.ok(achievementMapper.toSummaryResponseDTO(achievementQueryService.getSummary(userId)));
+        return ResponseEntity.ok(achievementMapper.toSummaryResponse(achievementQueryService.getSummary(userId)));
     }
 
     @Operation(
@@ -203,7 +203,7 @@ public class AchievementController {
     })
     @PostMapping("/seen")
     public ResponseEntity<Void> markSeen(
-            @CurrentUserId UUID userId, @Valid @RequestBody MarkAchievementsSeenRequestDTO request) {
+            @CurrentUserId UUID userId, @Valid @RequestBody MarkAchievementsSeenRequest request) {
 
         achievementQueryService.markSeen(userId, request.achievementIds());
 

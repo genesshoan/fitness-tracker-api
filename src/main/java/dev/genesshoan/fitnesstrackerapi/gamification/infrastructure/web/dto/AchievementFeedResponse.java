@@ -21,7 +21,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @param seen whether the user has seen the unlock
  */
 @Schema(description = "Achievement unlocked by the user")
-public record AchievementFeedResponseDTO(
+public record AchievementFeedResponse(
         @Schema(description = "Identifier of the state of the user")
         UUID id,
 

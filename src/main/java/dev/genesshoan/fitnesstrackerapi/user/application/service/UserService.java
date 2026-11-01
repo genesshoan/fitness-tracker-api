@@ -59,7 +59,7 @@ public class UserService
      */
     public UserResponse getProfile(UUID id) {
         var user = findUserById(id);
-        var profile = userMapper.toResponseDTO(user);
+        var profile = userMapper.toResponse(user);
         return new UserResponse(
                 profile.email(),
                 profile.username(),

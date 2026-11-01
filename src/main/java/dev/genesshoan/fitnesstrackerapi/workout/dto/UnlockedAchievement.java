@@ -18,7 +18,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @param unlockedAt the instant the achievement was unlocked
  */
 @Schema(description = "Achievement unlocked by the training event")
-public record UnlockedAchievementDTO(
+public record UnlockedAchievement(
         @Schema(description = "User achievement id") UUID id,
 
         @Schema(description = "Achievement code", example = "PR_MAX_WEIGHT_PER_EXERCISE")

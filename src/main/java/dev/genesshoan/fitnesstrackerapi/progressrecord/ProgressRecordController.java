@@ -22,8 +22,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.genesshoan.fitnesstrackerapi.common.annotation.CurrentUserId;
-import dev.genesshoan.fitnesstrackerapi.progressrecord.dto.ProgressRecordRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.progressrecord.dto.ProgressRecordResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.progressrecord.dto.ProgressRecordRequest;
+import dev.genesshoan.fitnesstrackerapi.progressrecord.dto.ProgressRecordResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -69,7 +69,7 @@ public class ProgressRecordController {
                                 schema = @Schema(implementation = ProblemDetail.class)))
     })
     @GetMapping
-    public ResponseEntity<Page<ProgressRecordResponseDTO>> getProgressRecordsInDateRange(
+    public ResponseEntity<Page<ProgressRecordResponse>> getProgressRecordsInDateRange(
             @CurrentUserId UUID userId,
             @Parameter(description = "Start date of the range") @RequestParam @NotNull LocalDate from,
             @Parameter(description = "End date of the range") @RequestParam @NotNull LocalDate to,
@@ -112,11 +112,11 @@ public class ProgressRecordController {
                                 schema = @Schema(implementation = ProblemDetail.class)))
     })
     @PostMapping
-    public ResponseEntity<ProgressRecordResponseDTO> createProgressRecord(
-            @CurrentUserId UUID userId, @Valid @RequestBody ProgressRecordRequestDTO requestDTO) {
+    public ResponseEntity<ProgressRecordResponse> createProgressRecord(
+            @CurrentUserId UUID userId, @Valid @RequestBody ProgressRecordRequest request) {
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(progressRecordService.createProgressRecord(userId, requestDTO));
+                .body(progressRecordService.createProgressRecord(userId, request));
     }
 
     @Operation(

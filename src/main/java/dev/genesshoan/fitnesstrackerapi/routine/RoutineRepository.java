@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineListItemDTO;
+import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineListItem;
 
 /**
  * Repository for {@link Routine} entities.
@@ -37,7 +37,7 @@ public interface RoutineRepository extends JpaRepository<Routine, UUID> {
      */
     @Query(value = """
             SELECT
-                new dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineListItemDTO(
+                new dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineListItem(
                     r.id,
                     r.name,
                     COUNT(e),
@@ -54,7 +54,7 @@ public interface RoutineRepository extends JpaRepository<Routine, UUID> {
                 WHERE r.userId = :userId
                     AND r.active = true
             """)
-    Page<RoutineListItemDTO> findAllByUserIdAndActiveTrueWithExerciseCount(UUID userId, Pageable pageable);
+    Page<RoutineListItem> findAllByUserIdAndActiveTrueWithExerciseCount(UUID userId, Pageable pageable);
 
     /**
      * Retrieve an active routine by ID with exercises and their exercises eagerly loaded.

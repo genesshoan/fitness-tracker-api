@@ -90,13 +90,13 @@ Password changes live in the `auth` module (`PATCH /api/v1/auth/password`).
 
 | Método | Endpoint | Auth | Request | Response | Status |
 | ------ | -------- | ---- | ------- | -------- | ------ |
-| GET | `/api/v1/routines` | Required | None | `Page<RoutineListItemDTO>` | 200 |
-| GET | `/api/v1/routines/{routineId}` | Required | None | `RoutineResponseDTO` | 200 |
-| POST | `/api/v1/routines` | Required | `RoutineRequestDTO` | `RoutineResponseDTO` | 201 |
-| PUT | `/api/v1/routines/{routineId}` | Required | `RoutineRequestDTO` | `RoutineResponseDTO` | 200 |
+| GET | `/api/v1/routines` | Required | None | `Page<RoutineListItem>` | 200 |
+| GET | `/api/v1/routines/{routineId}` | Required | None | `RoutineResponse` | 200 |
+| POST | `/api/v1/routines` | Required | `RoutineRequest` | `RoutineResponse` | 201 |
+| PUT | `/api/v1/routines/{routineId}` | Required | `RoutineRequest` | `RoutineResponse` | 200 |
 | DELETE | `/api/v1/routines/{routineId}` | Required | None | None | 204 |
-| POST | `/api/v1/routines/{routineId}/exercises/{position}` | Required | `RoutineExerciseRequestDTO` | `RoutineResponseDTO` | 200 |
-| PUT | `/api/v1/routines/{routineId}/exercises/{position}` | Required | `RoutineExerciseRequestDTO` | `RoutineResponseDTO` | 200 |
+| POST | `/api/v1/routines/{routineId}/exercises/{position}` | Required | `RoutineExerciseRequest` | `RoutineResponse` | 200 |
+| PUT | `/api/v1/routines/{routineId}/exercises/{position}` | Required | `RoutineExerciseRequest` | `RoutineResponse` | 200 |
 | DELETE | `/api/v1/routines/{routineId}/exercises/{position}` | Required | None | None | 204 |
 
 ---
@@ -107,32 +107,32 @@ Password changes live in the `auth` module (`PATCH /api/v1/auth/password`).
 
 | Método | Endpoint | Auth | Request | Response | Status |
 | ------ | -------- | ---- | ------- | -------- | ------ |
-| GET | `/api/v1/sessions` | Required | None | `Page<WorkoutSessionListItemDTO>` | 200 |
-| GET | `/api/v1/sessions/{sessionId}` | Required | None | `WorkoutSessionResponseDTO` | 200 |
-| POST | `/api/v1/sessions` | Required | `WorkoutSessionRequestDTO` | `WorkoutSessionResponseDTO` | 201 |
-| POST | `/api/v1/sessions/from-routine/{routineId}` | Required | None | `WorkoutSessionResponseDTO` | 201 |
-| PATCH | `/api/v1/sessions/{sessionId}/notes` | Required | `NotesUpdateRequestDTO` | None | 204 |
-| PATCH | `/api/v1/sessions/{sessionId}/finish` | Required | None | `WorkoutSessionResponseDTO` | 200 |
+| GET | `/api/v1/sessions` | Required | None | `Page<WorkoutSessionListItem>` | 200 |
+| GET | `/api/v1/sessions/{sessionId}` | Required | None | `WorkoutSessionResponse` | 200 |
+| POST | `/api/v1/sessions` | Required | `WorkoutSessionRequest` | `WorkoutSessionResponse` | 201 |
+| POST | `/api/v1/sessions/from-routine/{routineId}` | Required | None | `WorkoutSessionResponse` | 201 |
+| PATCH | `/api/v1/sessions/{sessionId}/notes` | Required | `NotesUpdateRequest` | None | 204 |
+| PATCH | `/api/v1/sessions/{sessionId}/finish` | Required | None | `WorkoutSessionResponse` | 200 |
 | DELETE | `/api/v1/sessions/{sessionId}` | Required | None | None | 204 |
 
 ### Session Exercises
 
 | Método | Endpoint | Auth | Request | Response | Status |
 | ------ | -------- | ---- | ------- | -------- | ------ |
-| POST | `/api/v1/sessions/{sessionId}/exercises` | Required | `SessionExerciseRequestDTO` | `SessionExerciseAddedResponseDTO` | 201 |
-| PATCH | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/notes` | Required | `NotesUpdateRequestDTO` | None | 204 |
-| PATCH | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/position` | Required | `PositionRequestDTO` | `List<SessionExercisePositionDTO>` | 200 |
+| POST | `/api/v1/sessions/{sessionId}/exercises` | Required | `SessionExerciseRequest` | `SessionExerciseAddedResponse` | 201 |
+| PATCH | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/notes` | Required | `NotesUpdateRequest` | None | 204 |
+| PATCH | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/position` | Required | `PositionRequest` | `List<SessionExercisePosition>` | 200 |
 | DELETE | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}` | Required | None | None | 204 |
 
 ### Session Sets
 
 | Método | Endpoint | Auth | Request | Response | Status |
 | ------ | -------- | ---- | ------- | -------- | ------ |
-| POST | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets` | Required | `SessionSetRequestDTO` | `SessionSetResponseDTO` | 201 |
-| PUT | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{sessionSetId}` | Required | `SessionSetRequestDTO` | `SessionSetResponseDTO` | 200 |
+| POST | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets` | Required | `SessionSetRequest` | `SessionSetResponse` | 201 |
+| PUT | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{sessionSetId}` | Required | `SessionSetRequest` | `SessionSetResponse` | 200 |
 | PATCH | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{sessionSetId}/complete` | Complete set |
 | PATCH | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{sessionSetId}/incomplete` | Mark set as incomplete |
-| PATCH | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{sessionSetId}/incomplete` | Required | None | `SessionSetResponseDTO` | 200 |
+| PATCH | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{sessionSetId}/incomplete` | Required | None | `SessionSetResponse` | 200 |
 | DELETE | `/api/v1/sessions/{sessionId}/exercises/{sessionExerciseId}/sets/{sessionSetId}` | Required | None | None | 204 |
 
 ---
@@ -141,8 +141,8 @@ Password changes live in the `auth` module (`PATCH /api/v1/auth/password`).
 
 | Método | Endpoint | Auth | Request | Response | Status |
 | ------ | -------- | ---- | ------- | -------- | ------ |
-| GET | `/api/v1/progress?from={from}&to={to}` | Required | None | `Page<ProgressRecordResponseDTO>` | 200 |
-| POST | `/api/v1/progress` | Required | `ProgressRecordRequestDTO` | `ProgressRecordResponseDTO` | 201 |
+| GET | `/api/v1/progress?from={from}&to={to}` | Required | None | `Page<ProgressRecordResponse>` | 200 |
+| POST | `/api/v1/progress` | Required | `ProgressRecordRequest` | `ProgressRecordResponse` | 201 |
 | DELETE | `/api/v1/progress/{id}` | Required | None | None | 204 |
 
 ---
@@ -153,8 +153,8 @@ Password changes live in the `auth` module (`PATCH /api/v1/auth/password`).
 
 | Método | Endpoint | Auth | Request | Response | Status |
 | ------ | -------- | ---- | ------- | -------- | ------ |
-| GET | `/api/v1/stats/volume?sessionId={sessionId}` | Required | None | `SessionVolumeDTO` | 200 |
-| GET | `/api/v1/stats/volume?from={from}&to={to}` | Required | None | `SessionVolumeDTO` | 200 |
+| GET | `/api/v1/stats/volume?sessionId={sessionId}` | Required | None | `SessionVolume` | 200 |
+| GET | `/api/v1/stats/volume?from={from}&to={to}` | Required | None | `SessionVolume` | 200 |
 
 `/volume` has two variants: one scoped to a single session, and one for a
 date range when `from` and `to` are supplied.
@@ -163,28 +163,58 @@ date range when `from` and `to` are supplied.
 
 | Método | Endpoint | Auth | Request | Response | Status |
 | ------ | -------- | ---- | ------- | -------- | ------ |
-| GET | `/api/v1/stats/volume/monthly?from={from}&to={to}` | Required | None | `List<MonthlyVolumeDTO>` | 200 |
+| GET | `/api/v1/stats/volume/monthly?from={from}&to={to}` | Required | None | `List<MonthlyVolume>` | 200 |
 
 ### Estimated 1RM
 
 | Método | Endpoint | Auth | Request | Response | Status |
 | ------ | -------- | ---- | ------- | -------- | ------ |
-| GET | `/api/v1/stats/1rm?exerciseId={exerciseId}` | Required | None | `OneRepMaxDTO` | 200 |
+| GET | `/api/v1/stats/1rm?exerciseId={exerciseId}` | Required | None | `OneRepMax` | 200 |
 
 ### Active Streak
 
 | Método | Endpoint | Auth | Request | Response | Status |
 | ------ | -------- | ---- | ------- | -------- | ------ |
-| GET | `/api/v1/stats/streak` | Required | None | `StreakDTO` | 200 |
+| GET | `/api/v1/stats/streak` | Required | None | `Streak` | 200 |
 
 ### Exercise Progression
 
 | Método | Endpoint | Auth | Request | Response | Status |
 | ------ | -------- | ---- | ------- | -------- | ------ |
-| GET | `/api/v1/stats/progress?exerciseId={exerciseId}&from={from}&to={to}` | Required | None | `ExerciseProgressPointsDTO` | 200 |
+| GET | `/api/v1/stats/progress?exerciseId={exerciseId}&from={from}&to={to}` | Required | None | `ExerciseProgressPoints` | 200 |
 
 ### Muscle Intensity
 
 | Método | Endpoint | Auth | Request | Response | Status |
 | ------ | -------- | ---- | ------- | -------- | ------ |
-| GET | `/api/v1/stats/muscle-intensity?from={from}&to={to}` | Required | None | `MuscleIntensityResponseDTO` | 200 |
+| GET | `/api/v1/stats/muscle-intensity?from={from}&to={to}` | Required | None | `MuscleIntensityResponse` | 200 |
+
+---
+
+## Achievements
+
+### Catalog
+
+| Método | Endpoint | Auth | Request | Response | Status |
+| ------ | -------- | ---- | ------- | -------- | ------ |
+| GET | `/api/v1/achievements` | Required | None | `List<AchievementResponse>` | 200 |
+| GET | `/api/v1/achievements/{code}` | Required | None | `List<AchievementResponse>` | 200 |
+
+The catalog accepts the optional filters `category`, `unlockedOnly`, and
+`unseenOnly`. The detail endpoint returns a list because an achievement scoped to
+an exercise has one entry per exercise the user earned it on.
+
+### Feed
+
+| Método | Endpoint | Auth | Request | Response | Status |
+| ------ | -------- | ---- | ------- | -------- | ------ |
+| GET | `/api/v1/achievements/feed` | Required | None | `List<AchievementFeedResponse>` | 200 |
+| POST | `/api/v1/achievements/seen` | Required | `MarkAchievementsSeenRequest` | None | 204 |
+
+The feed accepts the optional filters `unseenOnly` and `limit`.
+
+### Summary
+
+| Método | Endpoint | Auth | Request | Response | Status |
+| ------ | -------- | ---- | ------- | -------- | ------ |
+| GET | `/api/v1/achievements/summary` | Required | None | `AchievementSummaryResponse` | 200 |

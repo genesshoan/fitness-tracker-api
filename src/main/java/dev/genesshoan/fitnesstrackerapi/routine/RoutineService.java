@@ -22,10 +22,10 @@ import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.ExerciseQue
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.RoutineExercise;
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineExerciseRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineListItemDTO;
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineExerciseRequest;
+import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineListItem;
+import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineRequest;
+import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineResponse;
 import dev.genesshoan.fitnesstrackerapi.routine.mapper.RoutineMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +51,7 @@ public class RoutineService {
      * @param pageable pagination parameters
      * @return a page of routine list items with exercise counts
      */
-    public Page<RoutineListItemDTO> getRoutinesByUserId(UUID userId, Pageable pageable) {
+    public Page<RoutineListItem> getRoutinesByUserId(UUID userId, Pageable pageable) {
         log.info("Getting routines for user: {} with pageable: {}", userId, pageable);
         return routineRepository.findAllByUserIdAndActiveTrueWithExerciseCount(userId, pageable);
     }
@@ -63,9 +63,9 @@ public class RoutineService {
      * @param user      the user requesting the routine
      * @return the routine response
      */
-    public RoutineResponseDTO getRoutineById(UUID routineId, UUID userId) {
+    public RoutineResponse getRoutineById(UUID routineId, UUID userId) {
         log.info("Getting routine by id: {} for user: {}", routineId, userId);
-        return toResponseDTO(findAndValidateRoutine(routineId, userId));
+        return toResponse(findAndValidateRoutine(routineId, userId));
     }
 
     /**
@@ -76,7 +76,7 @@ public class RoutineService {
      * @return the created routine
      */
     @Transactional
-    public RoutineResponseDTO createRoutine(RoutineRequestDTO dto, UUID userId) {
+    public RoutineResponse createRoutine(RoutineRequest dto, UUID userId) {
         log.info("Creating routine with name: {} for user: {}", dto.name(), userId);
 
         if (routineRepository.existsByNameAndUserIdAndActiveTrue(dto.name(), userId)) {
@@ -103,7 +103,7 @@ public class RoutineService {
         routine.setExercises(new ArrayList<>(routineExercises));
         log.info("Routine created successfully with id: {} and {} exercises", routine.getId(), routineExercises.size());
 
-        return toResponseDTO(routine);
+        return toResponse(routine);
     }
 
     /**
@@ -115,7 +115,7 @@ public class RoutineService {
      * @return the updated routine
      */
     @Transactional
-    public RoutineResponseDTO updateRoutine(UUID routineId, RoutineRequestDTO dto, UUID userId) {
+    public RoutineResponse updateRoutine(UUID routineId, RoutineRequest dto, UUID userId) {
         log.info("Updating routine: {} for user: {}", routineId, userId);
 
         var routine = findAndValidateRoutine(routineId, userId);
@@ -136,7 +136,7 @@ public class RoutineService {
         replaceRoutineExercises(routine, exercisesMap, dto.exercises());
         log.info("Routine updated successfully: {}", routineId);
 
-        return toResponseDTO(routine);
+        return toResponse(routine);
     }
 
     /**
@@ -164,8 +164,7 @@ public class RoutineService {
      * @return the updated routine
      */
     @Transactional
-    public RoutineResponseDTO addRoutineExercise(
-            UUID routineId, int position, RoutineExerciseRequestDTO dto, UUID userId) {
+    public RoutineResponse addRoutineExercise(UUID routineId, int position, RoutineExerciseRequest dto, UUID userId) {
         log.info("Adding exercise to routine: {}, position: {}, for user: {}", routineId, position, userId);
 
         var routine = findAndValidateRoutine(routineId, userId);
@@ -195,7 +194,7 @@ public class RoutineService {
         routine.getExercises().add(newRoutineExercise);
         log.info("Exercise added to routine: {}, new exercise position: {}", routineId, adjustedPosition);
 
-        return toResponseDTO(routine);
+        return toResponse(routine);
     }
 
     /**
@@ -241,8 +240,8 @@ public class RoutineService {
      * @return the updated routine
      */
     @Transactional
-    public RoutineResponseDTO updateRoutineExercise(
-            UUID routineId, int position, RoutineExerciseRequestDTO dto, UUID userId) {
+    public RoutineResponse updateRoutineExercise(
+            UUID routineId, int position, RoutineExerciseRequest dto, UUID userId) {
         log.info("Updating exercise at position: {} from routine: {} for user: {}", position, routineId, userId);
 
         var routine = findAndValidateRoutine(routineId, userId);
@@ -273,7 +272,7 @@ public class RoutineService {
         routine.getExercises().add(newRoutineExercise);
         log.info("Exercise at position {} updated in routine: {}", position, routineId);
 
-        return toResponseDTO(routine);
+        return toResponse(routine);
     }
 
     /**
@@ -286,7 +285,7 @@ public class RoutineService {
      * @return the built routine exercise
      */
     private RoutineExercise buildRoutineExercise(
-            Routine routine, Exercise exercise, RoutineExerciseRequestDTO dto, int position) {
+            Routine routine, Exercise exercise, RoutineExerciseRequest dto, int position) {
         log.debug(
                 "Building RoutineExercise: routine={}, exercise={}, position={}",
                 routine.getId(),
@@ -309,18 +308,18 @@ public class RoutineService {
     /**
      * Build a list of {@link RoutineExercise} for a routine starting at position 1.
      *
-     * @param exerciseDTOs the exercise request data
+     * @param exerciseRequests the exercise request data
      * @param routine      the owning routine
      * @param exercises    the resolved exercises
      * @return the list of routine exercises
      */
     private List<RoutineExercise> buildRoutineExercises(
-            List<RoutineExerciseRequestDTO> exerciseDTOs, Routine routine, Map<UUID, Exercise> exercises) {
-        log.debug("Building {} routine exercises for routine: {}", exerciseDTOs.size(), routine.getId());
+            List<RoutineExerciseRequest> exerciseRequests, Routine routine, Map<UUID, Exercise> exercises) {
+        log.debug("Building {} routine exercises for routine: {}", exerciseRequests.size(), routine.getId());
         List<RoutineExercise> routineExercises = new ArrayList<>();
         int position = 1;
 
-        for (RoutineExerciseRequestDTO dto : exerciseDTOs) {
+        for (RoutineExerciseRequest dto : exerciseRequests) {
             routineExercises.add(buildRoutineExercise(routine, exercises.get(dto.exerciseId()), dto, position++));
         }
 
@@ -330,17 +329,18 @@ public class RoutineService {
     /**
      * Resolve exercise IDs to active exercises and validate their metrics.
      *
-     * @param exerciseDTOs the exercise request data
+     * @param exerciseRequests the exercise request data
      * @return a map of exercise ID to exercise
      * @throws BadRequestException if any exercise is not found
      * @throws ValidationException if any exercise metrics are invalid for its category
      */
-    private Map<UUID, Exercise> resolveAndValidateExercises(List<RoutineExerciseRequestDTO> exerciseDTOs) {
-        log.debug("Resolving and validating {} exercises", exerciseDTOs.size());
-        Set<UUID> exerciseIds =
-                exerciseDTOs.stream().map(RoutineExerciseRequestDTO::exerciseId).collect(Collectors.toSet());
+    private Map<UUID, Exercise> resolveAndValidateExercises(List<RoutineExerciseRequest> exerciseRequests) {
+        log.debug("Resolving and validating {} exercises", exerciseRequests.size());
+        Set<UUID> exerciseIds = exerciseRequests.stream()
+                .map(RoutineExerciseRequest::exerciseId)
+                .collect(Collectors.toSet());
 
-        if (exerciseDTOs.isEmpty()) {
+        if (exerciseRequests.isEmpty()) {
             return Map.of();
         }
 
@@ -356,7 +356,7 @@ public class RoutineService {
 
         Map<String, List<String>> errors = new HashMap<>();
 
-        for (RoutineExerciseRequestDTO dto : exerciseDTOs) {
+        for (RoutineExerciseRequest dto : exerciseRequests) {
             Exercise exercise = exerciseMap.get(dto.exerciseId());
             if (!exercise.getCategory().validate(dto.toExerciseMetrics())) {
                 log.warn(
@@ -400,16 +400,16 @@ public class RoutineService {
     }
 
     /**
-     * Convert a routine to a response DTO, sorting exercises by position.
+     * Convert a routine to a response, sorting exercises by position.
      *
      * @param routine the routine
-     * @return the routine response DTO
+     * @return the routine response
      */
-    private RoutineResponseDTO toResponseDTO(Routine routine) {
+    private RoutineResponse toResponse(Routine routine) {
         if (routine.getExercises() != null) {
             routine.getExercises().sort(Comparator.comparingInt(RoutineExercise::getPosition));
         }
-        return routineMapper.toRoutineResponseDTO(routine);
+        return routineMapper.toRoutineResponse(routine);
     }
 
     /**
@@ -417,14 +417,14 @@ public class RoutineService {
      *
      * @param routine       the routine whose exercises are replaced
      * @param exercisesMap  the resolved exercises
-     * @param exerciseDTOs  the new exercise request data
+     * @param exerciseRequests  the new exercise request data
      */
     private void replaceRoutineExercises(
-            Routine routine, Map<UUID, Exercise> exercisesMap, List<RoutineExerciseRequestDTO> exerciseDTOs) {
+            Routine routine, Map<UUID, Exercise> exercisesMap, List<RoutineExerciseRequest> exerciseRequests) {
         log.debug("Replacing exercises for routine: {}", routine.getId());
         routine.getExercises().clear();
 
-        List<RoutineExercise> newExercises = buildRoutineExercises(exerciseDTOs, routine, exercisesMap);
+        List<RoutineExercise> newExercises = buildRoutineExercises(exerciseRequests, routine, exercisesMap);
 
         routine.getExercises().addAll(newExercises);
         log.debug("Exercises replaced successfully for routine: {}", routine.getId());

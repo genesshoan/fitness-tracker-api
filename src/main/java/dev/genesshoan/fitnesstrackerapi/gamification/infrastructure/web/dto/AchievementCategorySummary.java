@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @param total the number of achievements in the category
  */
 @Schema(description = "Unlocked and total counts of one category")
-public record AchievementCategorySummaryDTO(
+public record AchievementCategorySummary(
         @Schema(description = "Number of achievements the user unlocked", example = "3")
         long unlocked,
 

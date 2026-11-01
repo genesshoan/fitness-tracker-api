@@ -7,11 +7,11 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 
-import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
+import dev.genesshoan.fitnesstrackerapi.common.domain.SessionStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Workout session request dto")
-public record WorkoutSessionRequestDTO(
+public record WorkoutSessionRequest(
         @NotNull @Schema(description = "Workout session current status", example = "IN_PROGRESS")
         SessionStatus status,
 
@@ -24,9 +24,9 @@ public record WorkoutSessionRequestDTO(
         @Schema(description = "Workout session notes") String notes,
 
         @Valid @Schema(description = "Exercise performed for the workout session")
-        List<@NotNull @Valid SessionExerciseRequestDTO> exercises) {
+        List<@NotNull @Valid SessionExerciseRequest> exercises) {
 
-    public WorkoutSessionRequestDTO {
+    public WorkoutSessionRequest {
         exercises = exercises == null ? List.of() : exercises;
     }
 }

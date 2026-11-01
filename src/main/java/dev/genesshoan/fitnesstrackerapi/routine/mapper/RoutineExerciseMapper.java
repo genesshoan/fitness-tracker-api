@@ -2,10 +2,10 @@ package dev.genesshoan.fitnesstrackerapi.routine.mapper;
 
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.ExerciseMapper;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.RoutineExercise;
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineExerciseResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineExerciseResponse;
 import org.mapstruct.Mapper;
 
-/** Maps routine exercise entities to API response DTOs. */
+/** Maps routine exercise entities to API response. */
 @Mapper(
         componentModel = "spring",
         builder = @org.mapstruct.Builder(disableBuilder = true),
@@ -17,5 +17,5 @@ public interface RoutineExerciseMapper {
      * @param routineExercise the entity to map
      * @return the routine exercise response
      */
-    RoutineExerciseResponseDTO toRoutineExerciseResponseDTO(RoutineExercise routineExercise);
+    RoutineExerciseResponse toRoutineExerciseResponse(RoutineExercise routineExercise);
 }

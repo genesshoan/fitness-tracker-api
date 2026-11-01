@@ -7,7 +7,7 @@ import dev.genesshoan.fitnesstrackerapi.common.domain.ExerciseMetrics;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Session set response dto")
-public record SessionSetResponseDTO(
+public record SessionSetResponse(
         @Schema(description = "Session set id") UUID id,
 
         @Schema(description = "Set number within the exercise", example = "1")
@@ -29,7 +29,7 @@ public record SessionSetResponseDTO(
         boolean completed,
 
         @Schema(description = "Achievements unlocked by the event that produced this response")
-        List<UnlockedAchievementDTO> achievements) {
+        List<UnlockedAchievement> achievements) {
 
     /** Converts the response metrics to the common metric value object. */
     public ExerciseMetrics toExerciseMetrics() {

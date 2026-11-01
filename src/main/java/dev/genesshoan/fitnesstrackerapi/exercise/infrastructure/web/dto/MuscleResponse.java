@@ -5,7 +5,7 @@ import java.util.Set;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.BodyRegion;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Muscle response DTO")
+@Schema(description = "Muscle response")
 public record MuscleResponse(
         @Schema(description = "Muscle name", example = "bicep")
         String name,

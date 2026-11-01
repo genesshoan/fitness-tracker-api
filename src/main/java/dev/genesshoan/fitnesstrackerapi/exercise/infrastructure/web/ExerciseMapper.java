@@ -50,39 +50,39 @@ public abstract class ExerciseMapper {
      * responses, such as the routine and the workout session responses.
      *
      * @param exercise the exercise to map
-     * @return the list item DTO, with the thumbnail URL resolved
+     * @return the list item, with the thumbnail URL resolved
      */
     @Mapping(
             target = "thumbnailUrl",
             expression = "java(assetUrlProvider.exerciseThumbnailUrl(exercise.getThumbnailObjectKey()))")
-    public abstract ExerciseListItem toItemDTO(Exercise exercise);
+    public abstract ExerciseListItem toItem(Exercise exercise);
 
     /**
      * Maps an exercise list item result to its API representation.
      *
      * @param result the result to map
-     * @return the list item DTO
+     * @return the list item
      */
-    public abstract ExerciseListItem toItemDTO(ExerciseListItemResult result);
+    public abstract ExerciseListItem toItem(ExerciseListItemResult result);
 
     /**
      * Maps an exercise detail result to its API representation.
      *
      * @param result the result to map
-     * @return the detail DTO
+     * @return the detail
      */
-    public abstract ExerciseDetail toDetailDTO(ExerciseDetailResult result);
+    public abstract ExerciseDetail toDetail(ExerciseDetailResult result);
 
     /**
      * Maps a search suggestion to its API representation.
      *
      * @param suggestion the suggestion to map
-     * @return the search result DTO
+     * @return the search result
      */
     @Mapping(
             target = "thumbnailUrl",
             expression = "java(assetUrlProvider.exerciseThumbnailUrl(suggestion.thumbnailObjectKey()))")
-    public abstract ExerciseSearchResult toSearchResultDTO(ExerciseSuggestion suggestion);
+    public abstract ExerciseSearchResult toSearchResult(ExerciseSuggestion suggestion);
 
     /**
      * Maps an exercise write request to its command.

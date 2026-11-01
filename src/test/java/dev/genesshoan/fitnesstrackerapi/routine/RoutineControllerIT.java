@@ -15,7 +15,7 @@ import dev.genesshoan.fitnesstrackerapi.base.AbstractIntegrationTest;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineResponse;
 import dev.genesshoan.fitnesstrackerapi.security.UserDetailsImpl;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -631,7 +631,7 @@ class RoutineControllerIT extends AbstractIntegrationTest {
                     .andReturn();
 
             var routineResponse =
-                    objectMapper.readValue(result.getResponse().getContentAsString(), RoutineResponseDTO.class);
+                    objectMapper.readValue(result.getResponse().getContentAsString(), RoutineResponse.class);
 
             assertThat(routineResponse.exercises()).hasSize(2);
             assertThat(routineResponse.exercises())

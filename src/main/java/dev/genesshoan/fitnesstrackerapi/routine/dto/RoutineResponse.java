@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Complete routine data returned by detail and mutation endpoints. */
 @Schema(description = "The routine's response")
-public record RoutineResponseDTO(
+public record RoutineResponse(
         @Schema(description = "The routine's unique identifier", example = "123e4567-e89b-12d3-a456-426614174000")
         UUID id,
 
@@ -21,4 +21,4 @@ public record RoutineResponseDTO(
                 description = "The routine's exercises",
                 example =
                         "[{\"exerciseId\": \"abc123\", \"name\": \"Bench Press\", \"defaultWeightKg\": 100.0, \"defaultDurationSeconds\": 60, \"defaultDistanceKm\": 0.0, \"notes\": \"\"}]")
-        List<RoutineExerciseResponseDTO> exercises) {}
+        List<RoutineExerciseResponse> exercises) {}

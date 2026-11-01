@@ -8,7 +8,7 @@ import dev.genesshoan.fitnesstrackerapi.common.domain.ExerciseMetrics;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Session set request dto")
-public record SessionSetRequestDTO(
+public record SessionSetRequest(
         @Min(value = 1)
         @Schema(
                 description = "Set number within the exercise. Used only when creating a session from scratch. "

@@ -10,7 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Session exercise request dto")
-public record SessionExerciseRequestDTO(
+public record SessionExerciseRequest(
         @Min(value = 1)
         @Schema(
                 description = "1-based position where the exercise will be inserted. "
@@ -27,9 +27,9 @@ public record SessionExerciseRequestDTO(
         @Schema(
                 description = "Sets performed for the exercise. "
                         + "When omitted, a default set is derived from the last performed set of the exercise.")
-        List<@NotNull @Valid SessionSetRequestDTO> sets) {
+        List<@NotNull @Valid SessionSetRequest> sets) {
 
-    public SessionExerciseRequestDTO {
+    public SessionExerciseRequest {
         sets = sets == null ? List.of() : sets;
     }
 }
