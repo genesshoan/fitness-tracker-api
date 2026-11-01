@@ -1,6 +1,7 @@
 package dev.genesshoan.fitnesstrackerapi.gamification.infrastructure.persistence;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +77,8 @@ public class UserAchievementRepositoryTest extends AbstractPostgresTest {
                 userAchievementRepository.findByUserIdAndDefinitionAndExercise(user.getId(), definition.getId(), null);
         assertThat(result).isPresent();
         assertThat(result.get().getProgressValue()).isEqualTo(12.0);
-        assertThat(userAchievementRepository.findAll()).hasSize(1);
+        assertThat(userAchievementRepository.findByUserIdAndDefinitionIdIn(user.getId(), List.of(definition.getId())))
+                .hasSize(1);
     }
 
     @Test
@@ -145,7 +147,8 @@ public class UserAchievementRepositoryTest extends AbstractPostgresTest {
         entityManager.clear();
 
         // Then
-        assertThat(userAchievementRepository.findAll()).hasSize(2);
+        assertThat(userAchievementRepository.findByUserIdAndDefinitionIdIn(user.getId(), List.of(definition.getId())))
+                .hasSize(2);
         assertThat(userAchievementRepository.findByUserIdAndDefinitionAndExercise(
                         user.getId(), definition.getId(), firstExercise.getId()))
                 .isPresent();

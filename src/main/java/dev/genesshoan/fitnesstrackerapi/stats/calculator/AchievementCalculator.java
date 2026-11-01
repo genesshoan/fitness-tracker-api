@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import dev.genesshoan.fitnesstrackerapi.common.calculator.OneRepMaxCalculator;
 import dev.genesshoan.fitnesstrackerapi.common.domain.ExerciseMetrics;
 import dev.genesshoan.fitnesstrackerapi.stats.domain.Achievement;
 import dev.genesshoan.fitnesstrackerapi.stats.domain.AchievementType;

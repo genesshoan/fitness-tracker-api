@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import dev.genesshoan.fitnesstrackerapi.common.calculator.OneRepMaxCalculator;
 import dev.genesshoan.fitnesstrackerapi.common.domain.ExerciseMetrics;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
@@ -25,7 +26,6 @@ import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.MuscleAsset
 import dev.genesshoan.fitnesstrackerapi.stats.application.port.in.TrainingMetricsUseCase;
 import dev.genesshoan.fitnesstrackerapi.stats.application.port.in.result.TrainingSnapshot;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.AchievementCalculator;
-import dev.genesshoan.fitnesstrackerapi.stats.calculator.OneRepMaxCalculator;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.StreakCalculator;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.StreakCalculator.StreakResult;
 import dev.genesshoan.fitnesstrackerapi.stats.calculator.VolumeCalculator;

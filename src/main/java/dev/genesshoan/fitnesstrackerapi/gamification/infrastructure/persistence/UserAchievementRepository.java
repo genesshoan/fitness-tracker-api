@@ -47,6 +47,22 @@ public interface UserAchievementRepository extends JpaRepository<UserAchievement
             @Param("exerciseId") UUID exerciseId);
 
     /**
+     * Finds the state a user has for the specified achievements.
+     *
+     * @param userId the user the achievements belong to
+     * @param definitionIds the achievements to look for
+     * @return the state of the matching achievements
+     */
+    @Query("""
+            SELECT ua
+            FROM UserAchievement ua
+            WHERE ua.userId = :userId
+                AND ua.definition.id IN :definitionIds
+            """)
+    List<UserAchievement> findByUserIdAndDefinitionIdIn(
+            @Param("userId") UUID userId, @Param("definitionIds") Collection<UUID> definitionIds);
+
+    /**
      * Finds the achievements a user has unlocked, most recent first.
      *
      * @param userId the user whose achievements are looked for

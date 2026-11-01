@@ -1,6 +1,7 @@
 package dev.genesshoan.fitnesstrackerapi.gamification.infrastructure.persistence;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,7 +94,8 @@ public class PersonalRecordRepositoryTest extends AbstractPostgresTest {
         assertThat(result).isPresent();
         assertThat(result.get().getValue()).isEqualTo(100.0);
         assertThat(result.get().getSetId()).isEqualTo(set.getId());
-        assertThat(personalRecordRepository.findAll()).hasSize(1);
+        assertThat(personalRecordRepository.findByUserIdAndExerciseIdIn(user.getId(), List.of(exercise.getId())))
+                .hasSize(1);
     }
 
     @Test
@@ -171,7 +173,8 @@ public class PersonalRecordRepositoryTest extends AbstractPostgresTest {
         entityManager.clear();
 
         // Then
-        assertThat(personalRecordRepository.findAll()).hasSize(2);
+        assertThat(personalRecordRepository.findByUserIdAndExerciseIdIn(user.getId(), List.of(exercise.getId())))
+                .hasSize(2);
         assertThat(personalRecordRepository.findByUserIdAndExerciseIdAndMetricAndWeight(
                         user.getId(), exercise.getId(), PersonalRecordMetric.MAX_REPS_AT_WEIGHT, 60.0))
                 .isPresent()

@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.stats.calculator;
+package dev.genesshoan.fitnesstrackerapi.common.calculator;
 
 public class OneRepMaxCalculator {
 
