@@ -1,5 +1,6 @@
 package dev.genesshoan.fitnesstrackerapi.auth.infrastructure.persistence;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -83,4 +84,17 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID
                 AND t.revoked = false
         """)
     void revokeByFamily(@Param("familyId") UUID familyId);
+
+    @Modifying
+    @Query("""
+            DELETE FROM RefreshToken t
+            WHERE NOT EXISTS (
+                    SELECT active.id
+                    FROM RefreshToken active
+                    WHERE active.familyId = t.familyId
+                      AND active.revoked = false
+                      AND active.expiresAt > :now
+               )
+            """)
+    int deleteExpiredAndInactiveFamilies(@Param("now") Instant now);
 }

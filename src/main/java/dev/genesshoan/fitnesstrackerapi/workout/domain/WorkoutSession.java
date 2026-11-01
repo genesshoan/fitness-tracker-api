@@ -27,6 +27,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.Formula;
 
 /** A user-owned workout session containing ordered exercises and sets. */
 @Getter
@@ -46,6 +47,9 @@ public class WorkoutSession extends BaseEntity {
 
     @Column(nullable = false, updatable = false)
     private Instant startedAt;
+
+    @Formula("(select count(se.id) from session_exercises se where se.session_id = id)")
+    private int exerciseCount;
 
     @Column(columnDefinition = "TEXT")
     private String notes;

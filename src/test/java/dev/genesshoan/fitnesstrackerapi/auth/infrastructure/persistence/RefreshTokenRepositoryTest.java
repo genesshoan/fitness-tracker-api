@@ -163,13 +163,44 @@ public class RefreshTokenRepositoryTest extends AbstractPostgresTest {
                 .isFalse();
     }
 
+    @Test
+    @DisplayName("Should keep revoked tokens while their family has an active token")
+    void deleteExpiredAndInactiveFamilies_ShouldKeepFamiliesWithAnActiveToken() {
+        // Given
+        Instant now = Instant.now();
+        UUID activeFamily = UUID.randomUUID();
+        RefreshToken revokedSibling = persistToken(activeFamily, true, now.plusSeconds(3600));
+        RefreshToken activeSibling = persistToken(activeFamily, false, now.plusSeconds(3600));
+        RefreshToken inactiveFamilyToken = persistToken(UUID.randomUUID(), true, now.plusSeconds(3600));
+        RefreshToken expiredToken = persistToken(UUID.randomUUID(), false, now.minusSeconds(60));
+        entityManager.flush();
+        entityManager.clear();
+
+        // When
+        int deleted = refreshTokenRepository.deleteExpiredAndInactiveFamilies(now);
+        entityManager.flush();
+        entityManager.clear();
+
+        // Then
+        assertThat(deleted).isEqualTo(2);
+        assertThat(refreshTokenRepository.findByHash(revokedSibling.getHash())).isPresent();
+        assertThat(refreshTokenRepository.findByHash(activeSibling.getHash())).isPresent();
+        assertThat(refreshTokenRepository.findByHash(inactiveFamilyToken.getHash()))
+                .isEmpty();
+        assertThat(refreshTokenRepository.findByHash(expiredToken.getHash())).isEmpty();
+    }
+
     private RefreshToken persistToken(UUID familyId, boolean revoked) {
+        return persistToken(familyId, revoked, Instant.now().plusSeconds(3600));
+    }
+
+    private RefreshToken persistToken(UUID familyId, boolean revoked, Instant expiresAt) {
         RefreshToken token = RefreshToken.builder()
                 .familyId(familyId)
                 .userId(user.getId())
                 .hash(OpaqueTokens.sha256(TOKEN + "-" + UUID.randomUUID()))
                 .revoked(revoked)
-                .expiresAt(Instant.now().plusSeconds(3600))
+                .expiresAt(expiresAt)
                 .build();
 
         return refreshTokenRepository.saveAndFlush(token);
