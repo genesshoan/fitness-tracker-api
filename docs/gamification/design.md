@@ -39,8 +39,8 @@ importa `StatsService`), lo que contradice el ADR-0009.
 
 `WorkoutSessionService` llama al cálculo en **cada** respuesta de sesión y de set:
 
-- [`WorkoutSessionService.toWorkoutSessionResponseDTO`](../../src/main/java/dev/genesshoan/fitnesstrackerapi/workout/WorkoutSessionService.java#L569)
-- [`WorkoutSessionService.toSessionSetResponseDTO`](../../src/main/java/dev/genesshoan/fitnesstrackerapi/workout/WorkoutSessionService.java#L574)
+- [`WorkoutSessionService.toWorkoutSessionResponse`](../../src/main/java/dev/genesshoan/fitnesstrackerapi/workout/WorkoutSessionService.java#L569)
+- [`WorkoutSessionService.toSessionSetResponse`](../../src/main/java/dev/genesshoan/fitnesstrackerapi/workout/WorkoutSessionService.java#L574)
 
 Detrás hay una consulta pesada:
 [`StatsRepository.findRankedSets`](../../src/main/java/dev/genesshoan/fitnesstrackerapi/stats/repository/StatsRepository.java#L51)
@@ -52,9 +52,9 @@ completo.
 ### 2.2 Los logros no son un estado, son un cálculo
 
 `AchievementCalculator` es una clase estática con `if`s explícitos por métrica
-([`AchievementCalculator.java`](../../src/main/java/dev/genesshoan/fitnesstrackerapi/stats/calculator/AchievementCalculator.java)),
+(`stats/calculator/AchievementCalculator.java`, ya eliminado),
 y `AchievementType` es un enum cerrado de 5 valores
-([`AchievementType.java`](../../src/main/java/dev/genesshoan/fitnesstrackerapi/stats/domain/AchievementType.java)).
+(`stats/domain/AchievementType.java`, ya eliminado).
 Añadir "10 entrenamientos completados" o "racha de 3 días" exige tocar Java,
 escribir tests y hacer un release.
 
@@ -526,12 +526,12 @@ src/main/java/dev/genesshoan/fitnesstrackerapi/gamification/
         ├── AchievementController.java
         ├── UserAchievementMapper.java
         └── dto/
-            ├── AchievementResponseDTO.java
-            ├── AchievementFeedResponseDTO.java
-            ├── AchievementSummaryResponseDTO.java
-            ├── AchievementCategorySummaryDTO.java
-            ├── NextAchievementDTO.java
-            └── MarkAchievementsSeenRequestDTO.java
+            ├── AchievementResponse.java
+            ├── AchievementFeedResponse.java
+            ├── AchievementSummaryResponse.java
+            ├── AchievementCategorySummary.java
+            ├── NextAchievement.java
+            └── MarkAchievementsSeenRequest.java
 ```
 
 El mapper se llama `UserAchievementMapper` y no `AchievementMapper` porque el
@@ -633,14 +633,14 @@ segundo se retira en la PR 6, que elimina el código muerto que queda en `stats`
 | `stats/domain/Achievement.java` | **Eliminar** |
 | `stats/domain/AchievementType.java` | **Eliminar** (sustituido por `AchievementMetric` + `RuleType`) |
 | `stats/domain/PersonalRecordHolder.java`, `PersonalRecordHolders.java` | **Eliminar** (reemplazados por `personal_records`) |
-| `stats/dto/AchievementDTO.java` | **Eliminar** |
+| `stats/dto/Achievement.java` | **Eliminar** |
 | `stats/mapper/AchievementMapper.java` | **Eliminar** |
 | `stats/service/StatsService.java` | Quitar `calculateForSession` y `calculateForSet`; añadir `getSnapshot` (implementa `TrainingMetricsUseCase`) |
 | `stats/repository/StatsRepository.java` | Quitar `findRankedSets`; añadir la query de agregados; **corregir** el filtro de `status = 'COMPLETED'` en `getTrainedDatesBeforeAsc`; sustituir `workoutSessionRepository.existsByIdAndUserId` por una comprobación en SQL |
-| `workout/WorkoutSessionService.java` | Sustituir `StatsService` por `EvaluateAchievementsUseCase`; invocar en §7.1; quitar el cálculo del DTO |
-| `workout/dto/SessionSetResponseDTO.java` | `achievements` pasa a llevar `UnlockedAchievementDTO` (insignias recién desbloqueadas) |
-| `workout/dto/WorkoutSessionResponseDTO.java` | Nuevo campo `achievements` con las insignias que desbloqueó el evento |
-| `workout/mapper/SessionSetMapper.java`, `SessionExerciseMapper.java`, `WorkoutSessionMapper.java` | El `@Context` pasa a `Map<UUID, List<UnlockedAchievementDTO>>` |
+| `workout/WorkoutSessionService.java` | Sustituir `StatsService` por `EvaluateAchievementsUseCase`; invocar en §7.1; quitar el cálculo en vuelo |
+| `workout/dto/SessionSetResponse.java` | `achievements` pasa a llevar `UnlockedAchievement` (insignias recién desbloqueadas) |
+| `workout/dto/WorkoutSessionResponse.java` | Nuevo campo `achievements` con las insignias que desbloqueó el evento |
+| `workout/mapper/SessionSetMapper.java`, `SessionExerciseMapper.java`, `WorkoutSessionMapper.java` | El `@Context` pasa a `Map<UUID, List<UnlockedAchievement>>` |
 | `common/domain/ExerciseMetrics.java` | Se reutiliza en `gamification` sin cambios |
 | `src/test/.../stats/calculator/AchievementCalculatorTest.java` | **Eliminar** (o reescribir contra el evaluador nuevo) |
 | `src/test/.../stats/calculator/OneRepMaxCalculatorTest.java` | Actualizar el paquete |
@@ -648,7 +648,7 @@ segundo se retira en la PR 6, que elimina el código muerto que queda en `stats`
 | `docs/endpoints.md` | Añadir los endpoints nuevos |
 | `README.md` | Añadir el módulo `gamification` a la tabla de módulos y al árbol de estructura |
 
-### 9.1 Nota sobre `SessionSetResponseDTO.achievements`
+### 9.1 Nota sobre `SessionSetResponse.achievements`
 
 Hay dos opciones y conviene decidirla explícitamente:
 
@@ -660,7 +660,7 @@ La opción 1 es la recomendada: conserva el feedback en vivo sin obligar al
 frontend a hacer una segunda llamada.
 
 Implementada en la PR 4. El campo `achievements` del set y el nuevo campo
-`achievements` de la sesión llevan `UnlockedAchievementDTO`, que describe una
+`achievements` de la sesión llevan `UnlockedAchievement`, que describe una
 insignia desbloqueada (`code`, `name`, `tier`, `exerciseId`, `unlockedAt`) en
 lugar del récord que se batió (`type`, `value`, `previousValue`). Es un cambio
 del contrato de la API: el frontend deja de recibir el valor anterior del récord
@@ -876,13 +876,13 @@ Cada PR es vertical, revisable y migrable por separado.
 | # | Rama | Contenido | Migración |
 | --- | --- | --- | --- |
 | 0 | `fix/test-schema-ownership` ✅ | Flyway como fuente de verdad del esquema en los tests, `V18` y alineación de las entidades | `V18` |
-| 1 | `feature/gamification-schema` | Tablas, entidades, repositorios e índices únicos | `V19`–`V22` |
-| 2 | `feature/gamification-metrics` | `TrainingMetricsUseCase` en `stats`, `TrainingSnapshot`, filtro de estado explícito en la racha | – |
-| 3 | `feature/gamification-evaluator` | `AchievementEvaluationService`, `PersonalRecordEvaluator`, `EvaluateAchievementsUseCase`, `TrainingSetRepository` y el traslado de `OneRepMaxCalculator` a `common/calculator/` | – |
-| 4 | `feature/gamification-wiring` | Invocación desde `workout` (sesión completada, set completado, operaciones destructivas) y paso de los desbloqueos a la respuesta | – |
-| 5 | `feature/gamification-api` | Controller, DTOs, catálogo, feed, marcar vistos y resumen de la colección | – |
-| 6 | `feature/gamification-decouple-stats` | Borrado del camino de cálculo en vuelo; `stats` deja de depender de `workout` y `workout` de `stats` | – |
-| 7 | `docs/gamification` | `docs/gamification/{README,api,business-rules,frontend}.md`, `docs/er.puml`, `docs/endpoints.md`, `README.md` | – |
+| 1 | `feature/gamification-schema` ✅ | Tablas, entidades, repositorios e índices únicos | `V19`–`V22` |
+| 2 | `feature/gamification-metrics` ✅ | `TrainingMetricsUseCase` en `stats`, `TrainingSnapshot`, filtro de estado explícito en la racha | – |
+| 3 | `feature/gamification-evaluator` ✅ | `AchievementEvaluationService`, `PersonalRecordEvaluator`, `EvaluateAchievementsUseCase`, `TrainingSetRepository` y el traslado de `OneRepMaxCalculator` a `common/calculator/` | – |
+| 4 | `feature/gamification-wiring` ✅ | Invocación desde `workout` (sesión completada, set completado, operaciones destructivas) y paso de los desbloqueos a la respuesta | – |
+| 5 | `feature/gamification-api` ✅ | Controller, catálogo, feed, marcar vistos y resumen de la colección | – |
+| 6 | `feature/gamification-decouple-stats` ✅ | Borrado del camino de cálculo en vuelo; `stats` deja de depender de `workout` y `workout` de `stats` | – |
+| 7 | `docs/gamification` ✅ | `docs/gamification/{README,api,business-rules,frontend}.md`, `docs/er.puml`, `docs/endpoints.md`, `README.md` | – |
 
 El orden importa: la funcionalidad queda operativa en el PR 4-5, y el PR 6 es la
 limpieza. Durante los PR 1-5 conviven los dos caminos de cálculo, lo que evita un

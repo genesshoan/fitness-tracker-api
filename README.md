@@ -29,7 +29,8 @@ A production-minded REST API for tracking workouts, routines, body measurements,
 | `routine` | Reusable ordered workout plans | [Routine docs](docs/routine/README.md) |
 | `workout` | Live and completed workout sessions, exercises, and sets | [Workout docs](docs/workout/README.md) |
 | `progressrecord` | User body measurements and date-range queries | [Progress docs](docs/progress/README.md) |
-| `stats` | Aggregated training metrics and achievements | [Stats docs](docs/stats/README.md) |
+| `stats` | Aggregated training metrics | [Stats docs](docs/stats/README.md) |
+| `gamification` | Achievement catalog, progress, personal records, and unlock feed | [Gamification docs](docs/gamification/README.md) |
 
 The complete endpoint inventory is available in [`docs/endpoints.md`](docs/endpoints.md). All API routes are versioned under `/api/v1`.
 
@@ -107,9 +108,10 @@ src/main/java/.../
 ├── auth/             Authentication and refresh-token lifecycle
 ├── common/           Shared errors, pagination, mappings, and utilities
 ├── exercise/         Exercise and muscle catalog
+├── gamification/     Achievement catalog, progress, records, and unlock feed
 ├── progressrecord/  Body-measurement tracking
 ├── routine/          Reusable workout plans
-├── stats/            Aggregations and achievement calculations
+├── stats/            Aggregated training metrics
 ├── user/             User profile and credentials
 └── workout/          Sessions, session exercises, and sets
 docs/                 Module references, diagrams, and frontend contracts

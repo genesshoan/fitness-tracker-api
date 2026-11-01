@@ -1,26 +1,44 @@
 # Gamification Module
 
-> **Proposed.** This module is not implemented yet. The table below describes the
-> target state described in the [design document](design.md).
+Owns the achievements (badges) a user can earn while training: the catalog of
+available achievements, the progress the user reached in each one, the personal
+records behind the record-based badges, and the in-app feed of recent unlocks.
 
-Owns workout achievements (badges): their catalog, the user's progress toward
-them, the unlock events, and the in-app feed of newly earned badges.
+Achievements are **persisted**, not computed on read. The evaluation runs when
+the user trains, and every read is a lookup of already computed state.
 
-Achievements are **persisted** rather than computed on every read. A read of the
-catalog is a static lookup of rows; the expensive comparison against training
-history happens when a workout session is completed or a set is marked as done.
+![Entity-relationship diagram](er.png)
 
 ## Documentation
 
 - [Design: schema, flows, API and rollout](design.md)
+- [API Reference](api.md)
+- [Business Rules and Calculation Semantics](business-rules.md)
+- [Frontend Integration](frontend.md)
 
-The module keeps the separation of concerns already established in
-[ADR-0009](../adr/0009-adopt-pragmatic-hexagonal-architecture.md):
+## Module Boundaries
 
-- `stats` owns the training aggregates and exposes them through a port.
-- `gamification` owns the achievement lifecycle and the personal-record state.
-- `workout` triggers the evaluation through a port; it no longer calls `stats`.
+The module follows the pragmatic hexagonal boundaries of
+[ADR-0009](../adr/0009-adopt-pragmatic-hexagonal-architecture.md).
 
-## Entity-Relationship Diagram
+- The `workout` module triggers the evaluation through `EvaluateAchievementsUseCase`
+  when a session is completed, when a set is completed, and when a destructive
+  operation invalidates a record.
+- The `stats` module provides the training aggregates through
+  `TrainingMetricsUseCase`.
+- The `exercise` module provides the catalog entries for the names of the
+  exercises an achievement is scoped to.
+- The module reads the workout history with its own SQL instead of depending on
+  the entities of the `workout` module, and refers to users, exercises,
+  sessions, and sets by identifier.
 
-![Gamification ER diagram](er.png)
+## Data Model
+
+| Table | Holds |
+|---|---|
+| `achievement_definitions` | The catalog: what achievements exist and under which rule |
+| `user_achievements` | The state of a user per achievement and scope: progress, unlock, seen |
+| `personal_records` | The best value the user reached per exercise, metric, and weight |
+
+The schema is owned by the Flyway migrations, and Hibernate validates the entity
+mapping against it instead of generating it.
