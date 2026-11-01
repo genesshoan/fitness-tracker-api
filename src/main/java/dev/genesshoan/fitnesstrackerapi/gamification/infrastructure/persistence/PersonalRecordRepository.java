@@ -1,6 +1,7 @@
 package dev.genesshoan.fitnesstrackerapi.gamification.infrastructure.persistence;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -56,6 +57,15 @@ public interface PersonalRecordRepository extends JpaRepository<PersonalRecord, 
      * @return the records of the exercise
      */
     List<PersonalRecord> findByUserIdAndExerciseId(UUID userId, UUID exerciseId);
+
+    /**
+     * Finds all the records of the specified exercises.
+     *
+     * @param userId the user the records belong to
+     * @param exerciseIds the exercises the records were set on
+     * @return the records of the exercises
+     */
+    List<PersonalRecord> findByUserIdAndExerciseIdIn(UUID userId, Collection<UUID> exerciseIds);
 
     /**
      * Finds all the records of one metric for one user.
