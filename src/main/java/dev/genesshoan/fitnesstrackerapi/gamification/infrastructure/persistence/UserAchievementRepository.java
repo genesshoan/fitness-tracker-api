@@ -82,6 +82,16 @@ public interface UserAchievementRepository extends JpaRepository<UserAchievement
     List<UserAchievement> findByUserIdAndUnlockedTrueAndSeenFalseOrderByUnlockedAtDesc(UUID userId);
 
     /**
+     * Finds the achievements a user has unlocked and has not seen yet.
+     *
+     * @param userId the user whose achievements are looked for
+     * @param pageable pagination parameters
+     * @return the unseen unlocked achievements, most recent first
+     */
+    @EntityGraph(attributePaths = "definition")
+    List<UserAchievement> findByUserIdAndUnlockedTrueAndSeenFalseOrderByUnlockedAtDesc(UUID userId, Pageable pageable);
+
+    /**
      * Marks the specified achievements of a user as seen.
      *
      * @param userId the user whose achievements are marked
