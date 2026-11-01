@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.UUID;
 
 import dev.genesshoan.fitnesstrackerapi.common.domain.ExerciseMetrics;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.AchievementDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Session set response dto")
@@ -29,8 +28,8 @@ public record SessionSetResponseDTO(
         @Schema(description = "Whether the set was completed")
         boolean completed,
 
-        @Schema(description = "Achievements obtained by this set")
-        List<AchievementDTO> achievements) {
+        @Schema(description = "Achievements unlocked by the event that produced this response")
+        List<UnlockedAchievementDTO> achievements) {
 
     /** Converts the response metrics to the common metric value object. */
     public ExerciseMetrics toExerciseMetrics() {

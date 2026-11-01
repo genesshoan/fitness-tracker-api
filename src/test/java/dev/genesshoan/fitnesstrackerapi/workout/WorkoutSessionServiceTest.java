@@ -19,11 +19,13 @@ import dev.genesshoan.fitnesstrackerapi.common.mapper.ExerciseMetricsMapper;
 import dev.genesshoan.fitnesstrackerapi.exercise.application.port.in.ExerciseQueryUseCase;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Category;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
+import dev.genesshoan.fitnesstrackerapi.gamification.application.port.in.EvaluateAchievementsUseCase;
+import dev.genesshoan.fitnesstrackerapi.gamification.application.port.in.result.UnlockedAchievementResult;
+import dev.genesshoan.fitnesstrackerapi.gamification.domain.AchievementTier;
 import dev.genesshoan.fitnesstrackerapi.routine.RoutineRepository;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.RoutineExercise;
 import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineListItemDTO;
-import dev.genesshoan.fitnesstrackerapi.stats.service.StatsService;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.ExerciseBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.RoutineBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.RoutineExerciseBuilder;
@@ -44,6 +46,7 @@ import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExercisePositionDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExerciseRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionSetRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionSetResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.UnlockedAchievementDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionListItemDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionRequestDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionResponseDTO;
@@ -68,6 +71,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
@@ -113,18 +117,18 @@ class WorkoutSessionServiceTest {
     private ExerciseMetricsMapper exerciseMetricsMapper;
 
     @Mock
-    private StatsService statsService;
+    private EvaluateAchievementsUseCase evaluateAchievementsUseCase;
 
     @InjectMocks
     private WorkoutSessionService workoutSessionService;
 
     @BeforeEach
-    void configureStatsService() {
+    void configureAchievementEvaluation() {
         lenient()
-                .when(statsService.calculateForSession(any(WorkoutSession.class), any(UUID.class)))
-                .thenReturn(Map.of());
+                .when(evaluateAchievementsUseCase.onSessionCompleted(any(UUID.class), any(UUID.class)))
+                .thenReturn(List.of());
         lenient()
-                .when(statsService.calculateForSet(any(SessionSet.class), any(UUID.class)))
+                .when(evaluateAchievementsUseCase.onSetCompleted(any(UUID.class), any(UUID.class), any(UUID.class)))
                 .thenReturn(List.of());
     }
 
@@ -1013,7 +1017,9 @@ class WorkoutSessionServiceTest {
             assertThat(result.setNumber()).isEqualTo(1);
             assertThat(result.reps()).isEqualTo(10);
             assertThat(result.completed()).isFalse();
-            verifyNoInteractions(statsService);
+            verify(evaluateAchievementsUseCase)
+                    .refreshExerciseRecords(
+                            eq(userId), eq(sessionExercise.getExercise().getId()));
         }
 
         @Test
@@ -1130,7 +1136,7 @@ class WorkoutSessionServiceTest {
             assertThat(result.setNumber()).isEqualTo(1);
             assertThat(result.reps()).isEqualTo(10);
             assertThat(result.completed()).isTrue();
-            verify(statsService).calculateForSet(eq(sessionSet), eq(userId));
+            verify(evaluateAchievementsUseCase).onSetCompleted(eq(userId), eq(sessionId), eq(sessionSetId));
         }
 
         @Test
@@ -1438,12 +1444,12 @@ class WorkoutSessionServiceTest {
                 .withId(sessionId)
                 .forUser(UserBuilder.aUser(FAKER).build())
                 .build();
-        WorkoutSessionResponseDTO response =
-                new WorkoutSessionResponseDTO(sessionId, SessionStatus.IN_PROGRESS, null, null, "notes", List.of());
+        WorkoutSessionResponseDTO response = new WorkoutSessionResponseDTO(
+                sessionId, SessionStatus.IN_PROGRESS, null, null, "notes", List.of(), List.of());
 
         when(workoutSessionRepository.findWithExercisesByIdAndUserId(sessionId, userId))
                 .thenReturn(Optional.of(session));
-        when(workoutSessionMapper.toWorkoutSessionResponseDTO(eq(session), anyMap()))
+        when(workoutSessionMapper.toWorkoutSessionResponseDTO(eq(session), anyList(), anyMap()))
                 .thenReturn(response);
 
         WorkoutSessionResponseDTO result = workoutSessionService.getWorkoutSessionById(sessionId, userId);
@@ -1501,14 +1507,14 @@ class WorkoutSessionServiceTest {
                 .build();
         routine.setExercises(List.of(firstRoutineExercise, secondRoutineExercise));
         WorkoutSessionResponseDTO response = new WorkoutSessionResponseDTO(
-                UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "created", List.of());
+                UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "created", List.of(), List.of());
 
         when(routineRepository.findByIdAndUserIdAndActiveTrue(routineId, userId))
                 .thenReturn(Optional.of(routine));
         when(userRepository.getReferenceById(userId)).thenReturn(userReference);
         when(workoutSessionRepository.save(any(WorkoutSession.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        when(workoutSessionMapper.toWorkoutSessionResponseDTO(any(WorkoutSession.class), anyMap()))
+        when(workoutSessionMapper.toWorkoutSessionResponseDTO(any(WorkoutSession.class), anyList(), anyMap()))
                 .thenReturn(response);
 
         WorkoutSessionResponseDTO result = workoutSessionService.createWorkoutSessionFromRoutine(routineId, userId);
@@ -1633,14 +1639,14 @@ class WorkoutSessionServiceTest {
                 "session notes",
                 List.of(firstExerciseRequest, secondExerciseRequest));
         WorkoutSessionResponseDTO response = new WorkoutSessionResponseDTO(
-                UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "session notes", List.of());
+                UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "session notes", List.of(), List.of());
 
         when(exerciseQueryUseCase.findByIds(eq(List.of(firstExerciseId, secondExerciseId))))
                 .thenReturn(Map.of(firstExerciseId, firstExercise, secondExerciseId, secondExercise));
         when(userRepository.getReferenceById(userId)).thenReturn(userReference);
         when(workoutSessionRepository.save(any(WorkoutSession.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        when(workoutSessionMapper.toWorkoutSessionResponseDTO(any(WorkoutSession.class), anyMap()))
+        when(workoutSessionMapper.toWorkoutSessionResponseDTO(any(WorkoutSession.class), anyList(), anyMap()))
                 .thenReturn(response);
 
         WorkoutSessionResponseDTO result = workoutSessionService.createWorkoutSessionFromScratch(request, userId);
@@ -1692,7 +1698,7 @@ class WorkoutSessionServiceTest {
                 "session notes",
                 List.of(new SessionExerciseRequestDTO(null, "exercise notes", exerciseId, List.of())));
         WorkoutSessionResponseDTO response = new WorkoutSessionResponseDTO(
-                UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "session notes", List.of());
+                UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "session notes", List.of(), List.of());
         LastSetProjection lastSet = mock(LastSetProjection.class);
         when(lastSet.getExerciseId()).thenReturn(exerciseId);
         when(lastSet.getReps()).thenReturn(15);
@@ -1704,7 +1710,7 @@ class WorkoutSessionServiceTest {
         when(userRepository.getReferenceById(userId)).thenReturn(userReference);
         when(workoutSessionRepository.save(any(WorkoutSession.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        when(workoutSessionMapper.toWorkoutSessionResponseDTO(any(WorkoutSession.class), anyMap()))
+        when(workoutSessionMapper.toWorkoutSessionResponseDTO(any(WorkoutSession.class), anyList(), anyMap()))
                 .thenReturn(response);
 
         WorkoutSessionResponseDTO result = workoutSessionService.createWorkoutSessionFromScratch(request, userId);
@@ -1742,7 +1748,7 @@ class WorkoutSessionServiceTest {
                 "session notes",
                 List.of(new SessionExerciseRequestDTO(null, "exercise notes", exerciseId, List.of())));
         WorkoutSessionResponseDTO response = new WorkoutSessionResponseDTO(
-                UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "session notes", List.of());
+                UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "session notes", List.of(), List.of());
 
         when(exerciseQueryUseCase.findByIds(eq(List.of(exerciseId)))).thenReturn(Map.of(exerciseId, exercise));
         when(sessionSetRepository.findLastSetsByExerciseIdAndUserId(Set.of(exerciseId), userId))
@@ -1752,7 +1758,7 @@ class WorkoutSessionServiceTest {
         when(userRepository.getReferenceById(userId)).thenReturn(userReference);
         when(workoutSessionRepository.save(any(WorkoutSession.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        when(workoutSessionMapper.toWorkoutSessionResponseDTO(any(WorkoutSession.class), anyMap()))
+        when(workoutSessionMapper.toWorkoutSessionResponseDTO(any(WorkoutSession.class), anyList(), anyMap()))
                 .thenReturn(response);
 
         WorkoutSessionResponseDTO result = workoutSessionService.createWorkoutSessionFromScratch(request, userId);
@@ -1795,12 +1801,12 @@ class WorkoutSessionServiceTest {
         WorkoutSessionRequestDTO request = new WorkoutSessionRequestDTO(
                 SessionStatus.IN_PROGRESS, Instant.parse("2025-01-01T10:00:00Z"), null, "session notes", null);
         WorkoutSessionResponseDTO response = new WorkoutSessionResponseDTO(
-                UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "session notes", List.of());
+                UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "session notes", List.of(), List.of());
 
         when(userRepository.getReferenceById(userId)).thenReturn(userReference);
         when(workoutSessionRepository.save(any(WorkoutSession.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        when(workoutSessionMapper.toWorkoutSessionResponseDTO(any(WorkoutSession.class), anyMap()))
+        when(workoutSessionMapper.toWorkoutSessionResponseDTO(any(WorkoutSession.class), anyList(), anyMap()))
                 .thenReturn(response);
 
         WorkoutSessionResponseDTO result = workoutSessionService.createWorkoutSessionFromScratch(request, userId);
@@ -1831,7 +1837,7 @@ class WorkoutSessionServiceTest {
                 "session notes",
                 List.of(new SessionExerciseRequestDTO(null, "exercise notes", exerciseId, null)));
         WorkoutSessionResponseDTO response = new WorkoutSessionResponseDTO(
-                UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "session notes", List.of());
+                UUID.randomUUID(), SessionStatus.IN_PROGRESS, null, null, "session notes", List.of(), List.of());
         LastSetProjection lastSet = mock(LastSetProjection.class);
         when(lastSet.getExerciseId()).thenReturn(exerciseId);
         when(lastSet.getReps()).thenReturn(15);
@@ -1843,7 +1849,7 @@ class WorkoutSessionServiceTest {
         when(userRepository.getReferenceById(userId)).thenReturn(userReference);
         when(workoutSessionRepository.save(any(WorkoutSession.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        when(workoutSessionMapper.toWorkoutSessionResponseDTO(any(WorkoutSession.class), anyMap()))
+        when(workoutSessionMapper.toWorkoutSessionResponseDTO(any(WorkoutSession.class), anyList(), anyMap()))
                 .thenReturn(response);
 
         WorkoutSessionResponseDTO result = workoutSessionService.createWorkoutSessionFromScratch(request, userId);
@@ -1950,12 +1956,12 @@ class WorkoutSessionServiceTest {
                 .withId(sessionId)
                 .forUser(UserBuilder.aUser(FAKER).build())
                 .build();
-        WorkoutSessionResponseDTO response =
-                new WorkoutSessionResponseDTO(sessionId, SessionStatus.COMPLETED, null, null, null, List.of());
+        WorkoutSessionResponseDTO response = new WorkoutSessionResponseDTO(
+                sessionId, SessionStatus.COMPLETED, null, null, null, List.of(), List.of());
 
         when(workoutSessionRepository.findForUpdateWithExercisesAndCatalogExercise(sessionId, userId))
                 .thenReturn(Optional.of(session));
-        when(workoutSessionMapper.toWorkoutSessionResponseDTO(eq(session), anyMap()))
+        when(workoutSessionMapper.toWorkoutSessionResponseDTO(eq(session), anyList(), anyMap()))
                 .thenReturn(response);
 
         WorkoutSessionResponseDTO result = workoutSessionService.completeWorkoutSession(sessionId, userId);
@@ -2007,12 +2013,13 @@ class WorkoutSessionServiceTest {
                 .forUser(UserBuilder.aUser(FAKER).build())
                 .build();
 
-        when(workoutSessionRepository.findForUpdateByIdAndUserId(sessionId, userId))
+        when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
                 .thenReturn(Optional.of(session));
 
         workoutSessionService.deleteWorkoutSession(sessionId, userId);
 
         verify(workoutSessionRepository).delete(session);
+        verify(workoutSessionRepository).flush();
     }
 
     @Test
@@ -2021,11 +2028,166 @@ class WorkoutSessionServiceTest {
         UUID userId = UUID.randomUUID();
         UUID sessionId = UUID.randomUUID();
 
-        when(workoutSessionRepository.findForUpdateByIdAndUserId(sessionId, userId))
+        when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> workoutSessionService.deleteWorkoutSession(sessionId, userId))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Workout session not found");
+    }
+
+    @Nested
+    @DisplayName("achievement evaluation")
+    class AchievementEvaluation {
+
+        @Test
+        @DisplayName("Should evaluate the achievements and report them when the session is completed")
+        void should_evaluateTheAchievements_when_theSessionIsCompleted() {
+            UUID userId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            WorkoutSession session = WorkoutSessionBuilder.aWorkoutSession(FAKER)
+                    .withId(sessionId)
+                    .forUser(UserBuilder.aUser(FAKER).build())
+                    .build();
+            WorkoutSessionResponseDTO response = new WorkoutSessionResponseDTO(
+                    sessionId, SessionStatus.COMPLETED, null, null, null, List.of(), List.of());
+
+            when(workoutSessionRepository.findForUpdateWithExercisesAndCatalogExercise(sessionId, userId))
+                    .thenReturn(Optional.of(session));
+            when(workoutSessionMapper.toWorkoutSessionResponseDTO(eq(session), anyList(), anyMap()))
+                    .thenReturn(response);
+            when(evaluateAchievementsUseCase.onSessionCompleted(userId, sessionId))
+                    .thenReturn(List.of(unlockedAchievement("WORKOUTS_10")));
+
+            workoutSessionService.completeWorkoutSession(sessionId, userId);
+
+            verify(evaluateAchievementsUseCase).onSessionCompleted(userId, sessionId);
+
+            @SuppressWarnings("unchecked")
+            ArgumentCaptor<List<UnlockedAchievementDTO>> captor = ArgumentCaptor.forClass(List.class);
+            verify(workoutSessionMapper).toWorkoutSessionResponseDTO(eq(session), captor.capture(), anyMap());
+            assertThat(captor.getValue())
+                    .extracting(UnlockedAchievementDTO::code)
+                    .containsExactly("WORKOUTS_10");
+        }
+
+        @Test
+        @DisplayName("Should evaluate the achievements when a set is completed")
+        void should_evaluateTheAchievements_when_theSetIsCompleted() {
+            UUID userId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            UUID sessionExerciseId = UUID.randomUUID();
+            UUID sessionSetId = UUID.randomUUID();
+
+            SessionSet sessionSet = SessionSetBuilder.aSessionSet(FAKER)
+                    .withId(sessionSetId)
+                    .withReps(10)
+                    .withWeightKg(15.0)
+                    .withCompleted(false)
+                    .build();
+            SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(FAKER)
+                    .withSets(List.of(sessionSet))
+                    .forExercise(ExerciseBuilder.anExercise(FAKER)
+                            .withCategory(Category.STRENGTH)
+                            .build())
+                    .build();
+            WorkoutSession session = WorkoutSessionBuilder.aWorkoutSession(FAKER)
+                    .withId(sessionId)
+                    .forUser(UserBuilder.aUser(FAKER).build())
+                    .withExercises(List.of(sessionExercise))
+                    .build();
+            sessionSet.setSessionExercise(sessionExercise);
+            sessionExercise.setWorkoutSession(session);
+
+            when(sessionSetRepository.findForUpdateWithSessionExerciseAndWorkoutSessionAndExercise(
+                            sessionSetId, sessionExerciseId, sessionId, userId))
+                    .thenReturn(Optional.of(sessionSet));
+
+            workoutSessionService.updateSessionSet(
+                    sessionId,
+                    sessionExerciseId,
+                    sessionSetId,
+                    userId,
+                    new SessionSetRequestDTO(1, 10, 15.0, null, null, true));
+
+            verify(evaluateAchievementsUseCase).onSetCompleted(userId, sessionId, sessionSetId);
+            verify(evaluateAchievementsUseCase, never()).refreshExerciseRecords(any(UUID.class), any(UUID.class));
+        }
+
+        @Test
+        @DisplayName("Should refresh the records when the metrics of a completed set change")
+        void should_refreshTheRecords_when_theMetricsOfACompletedSetChange() {
+            UUID userId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+            UUID sessionExerciseId = UUID.randomUUID();
+            UUID sessionSetId = UUID.randomUUID();
+
+            Exercise exercise = ExerciseBuilder.anExercise(FAKER)
+                    .withCategory(Category.STRENGTH)
+                    .build();
+            SessionSet sessionSet = SessionSetBuilder.aSessionSet(FAKER)
+                    .withId(sessionSetId)
+                    .withReps(10)
+                    .withWeightKg(15.0)
+                    .withCompleted(true)
+                    .build();
+            SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(FAKER)
+                    .withSets(List.of(sessionSet))
+                    .forExercise(exercise)
+                    .build();
+            WorkoutSession session = WorkoutSessionBuilder.aWorkoutSession(FAKER)
+                    .withId(sessionId)
+                    .forUser(UserBuilder.aUser(FAKER).build())
+                    .withExercises(List.of(sessionExercise))
+                    .build();
+            sessionSet.setSessionExercise(sessionExercise);
+            sessionExercise.setWorkoutSession(session);
+
+            when(sessionSetRepository.findForUpdateWithSessionExerciseAndWorkoutSessionAndExercise(
+                            sessionSetId, sessionExerciseId, sessionId, userId))
+                    .thenReturn(Optional.of(sessionSet));
+
+            workoutSessionService.updateSessionSet(
+                    sessionId,
+                    sessionExerciseId,
+                    sessionSetId,
+                    userId,
+                    new SessionSetRequestDTO(1, 12, 20.0, null, null, true));
+
+            verify(evaluateAchievementsUseCase).refreshExerciseRecords(userId, exercise.getId());
+            verify(evaluateAchievementsUseCase, never())
+                    .onSetCompleted(any(UUID.class), any(UUID.class), any(UUID.class));
+        }
+
+        @Test
+        @DisplayName("Should refresh the records of every exercise when the session is deleted")
+        void should_refreshTheRecordsOfEveryExercise_when_theSessionIsDeleted() {
+            UUID userId = UUID.randomUUID();
+            UUID sessionId = UUID.randomUUID();
+
+            Exercise exercise = ExerciseBuilder.anExercise(FAKER)
+                    .withCategory(Category.STRENGTH)
+                    .build();
+            SessionExercise sessionExercise = SessionExerciseBuilder.aSessionExercise(FAKER)
+                    .forExercise(exercise)
+                    .build();
+            WorkoutSession session = WorkoutSessionBuilder.aWorkoutSession(FAKER)
+                    .withId(sessionId)
+                    .forUser(UserBuilder.aUser(FAKER).build())
+                    .withExercises(List.of(sessionExercise))
+                    .build();
+
+            when(workoutSessionRepository.findForUpdateWithExercises(sessionId, userId))
+                    .thenReturn(Optional.of(session));
+
+            workoutSessionService.deleteWorkoutSession(sessionId, userId);
+
+            verify(evaluateAchievementsUseCase).refreshExerciseRecords(userId, exercise.getId());
+        }
+
+        private UnlockedAchievementResult unlockedAchievement(String code) {
+            return new UnlockedAchievementResult(
+                    UUID.randomUUID(), code, code, AchievementTier.BRONZE, null, Instant.now());
+        }
     }
 }

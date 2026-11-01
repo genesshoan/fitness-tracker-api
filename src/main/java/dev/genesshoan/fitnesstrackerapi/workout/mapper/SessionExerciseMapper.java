@@ -5,11 +5,11 @@ import java.util.Map;
 import java.util.UUID;
 
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.ExerciseMapper;
-import dev.genesshoan.fitnesstrackerapi.stats.dto.AchievementDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionExercise;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExerciseAddedResponseDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExercisePositionDTO;
 import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExerciseResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.UnlockedAchievementDTO;
 import org.mapstruct.Builder;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
@@ -23,7 +23,7 @@ import org.mapstruct.Named;
 public interface SessionExerciseMapper {
 
     SessionExerciseResponseDTO toSessionExerciseResponseDTO(
-            SessionExercise sessionExercise, @Context Map<UUID, List<AchievementDTO>> achievementsBySetId);
+            SessionExercise sessionExercise, @Context Map<UUID, List<UnlockedAchievementDTO>> achievementsBySetId);
 
     @Named("withoutAchievements")
     default SessionExerciseResponseDTO toResponseWithoutAchievements(SessionExercise sessionExercise) {

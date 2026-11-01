@@ -12,7 +12,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import dev.genesshoan.fitnesstrackerapi.gamification.infrastructure.persistence.projection.TrainingSetProjection;
-import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -97,8 +96,9 @@ public class TrainingSetRepository {
     /**
      * Loads every completed set a user performed on one exercise, oldest first.
      *
-     * <p>Only completed sessions are considered, because a record set during a
-     * session that was never finished is not a record the user keeps.</p>
+     * <p>The sets of sessions that are still in progress are included, because
+     * a record is set as soon as the set is completed. Excluding them would
+     * make a recalculation drop the records the user just earned.</p>
      *
      * @param userId the owner of the sessions
      * @param exerciseId the exercise to read
@@ -121,15 +121,12 @@ public class TrainingSetRepository {
                 JOIN workout_sessions ws ON se.session_id = ws.id
                 WHERE se.exercise_id = :exerciseId
                     AND ws.user_id = :userId
-                    AND ws.status = :completedStatus
                     AND ss.completed = true
-                ORDER BY ws.completed_at ASC, se.position ASC, ss.set_number ASC
+                ORDER BY ws.completed_at ASC NULLS LAST, se.position ASC, ss.set_number ASC
             """;
 
-        MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("userId", userId)
-                .addValue("exerciseId", exerciseId)
-                .addValue("completedStatus", SessionStatus.COMPLETED.name());
+        MapSqlParameterSource params =
+                new MapSqlParameterSource().addValue("userId", userId).addValue("exerciseId", exerciseId);
 
         return jdbcTemplate.query(sql, params, TrainingSetRepository::mapRow);
     }
