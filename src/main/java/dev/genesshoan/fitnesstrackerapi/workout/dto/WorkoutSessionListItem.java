@@ -20,5 +20,8 @@ public record WorkoutSessionListItem(
         @Schema(description = "Date and time when the session was completed")
         Instant completedAt,
 
+        @Schema(description = "Number of exercises in the workout session")
+        int exerciseCount,
+
         @Schema(description = "Routine used for the workout session")
         RoutineListItem routine) {}

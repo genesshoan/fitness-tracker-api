@@ -229,6 +229,7 @@ public class WorkoutSessionService {
             throw new BadRequestException("The workout session is already finished");
         }
 
+        cleanupIncompleteWork(session);
         session.finish();
 
         workoutSessionRepository.flush();
@@ -238,6 +239,26 @@ public class WorkoutSessionService {
         log.info("Completed session workout: {} from user: {}", sessionId, userId);
 
         return toWorkoutSessionResponse(session, unlocked);
+    }
+
+    private void cleanupIncompleteWork(WorkoutSession session) {
+        session.getExercises().removeIf(sessionExercise -> {
+            sessionExercise.getSets().removeIf(sessionSet -> {
+                if (sessionSet.isCompleted()) {
+                    return false;
+                }
+
+                sessionSet.setSessionExercise(null);
+                return true;
+            });
+
+            if (!sessionExercise.getSets().isEmpty()) {
+                return false;
+            }
+
+            sessionExercise.setWorkoutSession(null);
+            return true;
+        });
     }
 
     /** Permanently deletes a user-owned workout session and its children. */

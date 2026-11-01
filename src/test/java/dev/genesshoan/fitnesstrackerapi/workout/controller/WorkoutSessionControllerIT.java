@@ -421,7 +421,7 @@ class WorkoutSessionControllerIT extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Should return 400 when the session is already completed")
+        @DisplayName("Should return 404 when the incomplete set was removed on completion")
         void shouldReturn400WhenSessionIsCompleted() throws Exception {
             mockMvc.perform(patch("/api/v1/sessions/{sessionId}/finish", session.getId())
                             .with(asUser(user)))
@@ -433,7 +433,7 @@ class WorkoutSessionControllerIT extends AbstractIntegrationTest {
                                     sessionExercise.getId(),
                                     sessionSet.getId())
                             .with(asUser(user)))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isNotFound());
         }
 
         @Test
@@ -489,7 +489,7 @@ class WorkoutSessionControllerIT extends AbstractIntegrationTest {
         }
 
         @Test
-        @DisplayName("Should return 400 when the session is already completed")
+        @DisplayName("Should return 404 when the incomplete set was removed on completion")
         void shouldReturn400WhenSessionIsCompleted() throws Exception {
             mockMvc.perform(patch("/api/v1/sessions/{sessionId}/finish", session.getId())
                             .with(asUser(user)))
@@ -501,7 +501,7 @@ class WorkoutSessionControllerIT extends AbstractIntegrationTest {
                                     sessionExercise.getId(),
                                     sessionSet.getId())
                             .with(asUser(user)))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isNotFound());
         }
 
         @Test

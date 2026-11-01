@@ -62,6 +62,7 @@ app:
     max-age: ${CORS_MAX_AGE:1h}
 
   auth:
+    cleanup-cron: ${AUTH_CLEANUP_CRON:0 0 3 * * *}
     jwt:
       secret: ${SECRET_KEY}
       access-token-expiration: ${JWT_KEY_EXPIRATION}

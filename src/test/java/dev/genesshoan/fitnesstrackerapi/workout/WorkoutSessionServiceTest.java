@@ -1418,9 +1418,9 @@ class WorkoutSessionServiceTest {
                 .build();
         Page<WorkoutSession> page = new PageImpl<>(List.of(first, second), pageable, 2);
         WorkoutSessionListItem firstDto = new WorkoutSessionListItem(
-                first.getId(), SessionStatus.IN_PROGRESS, null, null, (RoutineListItem) null);
-        WorkoutSessionListItem secondDto =
-                new WorkoutSessionListItem(second.getId(), SessionStatus.COMPLETED, null, null, (RoutineListItem) null);
+                first.getId(), SessionStatus.IN_PROGRESS, null, null, 0, (RoutineListItem) null);
+        WorkoutSessionListItem secondDto = new WorkoutSessionListItem(
+                second.getId(), SessionStatus.COMPLETED, null, null, 0, (RoutineListItem) null);
 
         when(workoutSessionRepository.findAllByUserId(userId, pageable)).thenReturn(page);
         when(workoutSessionMapper.toWorkoutSessionListItem(first)).thenReturn(firstDto);
@@ -1998,6 +1998,50 @@ class WorkoutSessionServiceTest {
         assertThatThrownBy(() -> workoutSessionService.completeWorkoutSession(sessionId, userId))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Workout session not found");
+    }
+
+    @Test
+    @DisplayName("Should discard incomplete work before completing a session")
+    void should_discardIncompleteWork_beforeCompletingSession() {
+        UUID userId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
+        Exercise exercise = ExerciseBuilder.anExercise(FAKER).build();
+        SessionSet completedSet =
+                SessionSetBuilder.aSessionSet(FAKER).withCompleted(true).build();
+        SessionSet incompleteSet = SessionSetBuilder.aSessionSet(FAKER)
+                .withSetNumber(2)
+                .withCompleted(false)
+                .build();
+        SessionExercise keptExercise = SessionExerciseBuilder.aSessionExercise(FAKER)
+                .forExercise(exercise)
+                .withSets(List.of(completedSet, incompleteSet))
+                .build();
+        SessionExercise removedExercise = SessionExerciseBuilder.aSessionExercise(FAKER)
+                .forExercise(exercise)
+                .withSets(List.of(SessionSetBuilder.aSessionSet(FAKER)
+                        .withCompleted(false)
+                        .build()))
+                .build();
+        WorkoutSession session = WorkoutSessionBuilder.aWorkoutSession(FAKER)
+                .withId(sessionId)
+                .forUser(UserBuilder.aUser(FAKER).build())
+                .withExercises(List.of(keptExercise, removedExercise))
+                .build();
+        WorkoutSessionResponse response =
+                new WorkoutSessionResponse(sessionId, SessionStatus.COMPLETED, null, null, null, List.of(), List.of());
+
+        when(workoutSessionRepository.findForUpdateWithExercisesAndCatalogExercise(sessionId, userId))
+                .thenReturn(Optional.of(session));
+        when(workoutSessionMapper.toWorkoutSessionResponse(eq(session), anyList(), anyMap()))
+                .thenReturn(response);
+
+        workoutSessionService.completeWorkoutSession(sessionId, userId);
+
+        assertThat(session.getExercises()).containsExactly(keptExercise);
+        assertThat(keptExercise.getSets()).containsExactly(completedSet);
+        assertThat(completedSet.getSessionExercise()).isSameAs(keptExercise);
+        assertThat(incompleteSet.getSessionExercise()).isNull();
+        assertThat(removedExercise.getWorkoutSession()).isNull();
     }
 
     @Test
