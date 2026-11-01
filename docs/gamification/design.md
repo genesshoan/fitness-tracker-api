@@ -501,7 +501,7 @@ src/main/java/dev/genesshoan/fitnesstrackerapi/gamification/
 │   ├── PersonalRecordMetric.java
 │   ├── ComparisonOperator.java
 │   └── AchievementScope.java
-├── application/                             ⏳ PR 3 en adelante
+├── application/                             ✅ PR 3 y PR 5
 │   ├── port/
 │   │   ├── in/
 │   │   │   ├── EvaluateAchievementsUseCase.java
@@ -522,11 +522,23 @@ src/main/java/dev/genesshoan/fitnesstrackerapi/gamification/
     │   ├── UserAchievementRepository.java
     │   ├── PersonalRecordRepository.java
     │   └── TrainingSetRepository.java       ← lee las sesiones y los sets
-    └── web/                                 ⏳ PR 5
+    └── web/                                 ✅ PR 5
         ├── AchievementController.java
-        ├── dto/…
-        └── mapper/…
+        ├── UserAchievementMapper.java
+        └── dto/
+            ├── AchievementResponseDTO.java
+            ├── AchievementFeedResponseDTO.java
+            ├── AchievementSummaryResponseDTO.java
+            ├── AchievementCategorySummaryDTO.java
+            ├── NextAchievementDTO.java
+            └── MarkAchievementsSeenRequestDTO.java
 ```
+
+El mapper se llama `UserAchievementMapper` y no `AchievementMapper` porque el
+módulo `stats` ya tiene un `AchievementMapper` para el contrato antiguo, y MapStruct
+genera el bean del `Impl` a partir del nombre de la interfaz: dos interfaces
+llamadas igual en módulos distintos producen el mismo bean y el contexto no
+arranca.
 
 Los repositorios son interfaces de Spring Data que viven en `infrastructure/persistence`
 y que los servicios del propio módulo usan directamente, igual que hacen `exercise`
@@ -670,6 +682,12 @@ autenticado (`@CurrentUserId`).
 Catálogo con el estado del usuario. Devuelve las definiciones **activas** unidas
 con `user_achievements`.
 
+Una definición de ámbito `GLOBAL` produce **una** entrada. Una de ámbito
+`PER_EXERCISE` produce **una entrada por ejercicio** en el que el usuario la
+desbloqueó: una insignia por ejercicio necesita un ejercicio al que referirse, así
+que la insignia bloqueada de un ejercicio que el usuario todavía no entrenó no
+tiene dónde aparecer.
+
 ```json
 [
   {
@@ -682,15 +700,20 @@ con `user_achievements`.
     "metric": "TOTAL_WORKOUTS",
     "threshold": 10,
     "scope": "GLOBAL",
+    "iconKey": null,
+    "userAchievementId": "1bf3…",
+    "exerciseId": null,
+    "exerciseName": null,
     "progressValue": 7,
     "progressRatio": 0.7,
+    "currentValue": null,
     "unlocked": false,
     "unlockedAt": null,
     "seen": true
   },
   {
     "code": "PR_MAX_WEIGHT_PER_EXERCISE",
-    "name": "Récord de peso",
+    "name": "Weight record",
     "description": "Supera tu mejor marca de peso en un ejercicio",
     "category": "PERSONAL_RECORD",
     "tier": "SILVER",
@@ -698,11 +721,13 @@ con `user_achievements`.
     "metric": "MAX_WEIGHT",
     "threshold": null,
     "scope": "PER_EXERCISE",
+    "iconKey": null,
+    "userAchievementId": "9c21…",
     "exerciseId": "6f1c…",
     "exerciseName": "Press de banca",
     "progressValue": null,
-    "currentValue": 92.5,
     "progressRatio": null,
+    "currentValue": 92.5,
     "unlocked": true,
     "unlockedAt": "2026-10-28T18:03:00Z",
     "seen": false
@@ -710,11 +735,17 @@ con `user_achievements`.
 ]
 ```
 
+`progressRatio` es el progreso hacia el umbral, acotado a 1. Solo las reglas de
+umbral lo tienen: una insignia de récord personal no tiene progreso, su valor
+actual es `currentValue` y sale de `personal_records`.
+
 Filtros opcionales: `?category=CONSISTENCY`, `?unlockedOnly=true`, `?unseenOnly=true`.
 
 ### `GET /api/v1/achievements/{code}`
 
-Detalle de un logro. `404` si el `code` no existe o está desactivado.
+Detalle de un logro. `404` si el `code` no existe o está desactivado. Devuelve
+**una lista** con las entradas de ese `code`: una para una insignia global, y
+una por ejercicio para una insignia de ámbito `PER_EXERCISE`.
 
 ### `GET /api/v1/achievements/feed`
 
@@ -849,7 +880,7 @@ Cada PR es vertical, revisable y migrable por separado.
 | 2 | `feature/gamification-metrics` | `TrainingMetricsUseCase` en `stats`, `TrainingSnapshot`, filtro de estado explícito en la racha | – |
 | 3 | `feature/gamification-evaluator` | `AchievementEvaluationService`, `PersonalRecordEvaluator`, `EvaluateAchievementsUseCase`, `TrainingSetRepository` y el traslado de `OneRepMaxCalculator` a `common/calculator/` | – |
 | 4 | `feature/gamification-wiring` | Invocación desde `workout` (sesión completada, set completado, operaciones destructivas) y paso de los desbloqueos a la respuesta | – |
-| 5 | `feature/gamification-api` | Controller, DTOs, feed, marcar vistos, summary | – |
+| 5 | `feature/gamification-api` | Controller, DTOs, catálogo, feed, marcar vistos y resumen de la colección | – |
 | 6 | `feature/gamification-decouple-stats` | Borrado del camino de cálculo en vuelo; `stats` deja de depender de `workout` y `workout` de `stats` | – |
 | 7 | `docs/gamification` | `docs/gamification/{README,api,business-rules,frontend}.md`, `docs/er.puml`, `docs/endpoints.md`, `README.md` | – |
 
