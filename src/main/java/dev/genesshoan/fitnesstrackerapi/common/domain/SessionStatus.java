@@ -1,4 +1,4 @@
-package dev.genesshoan.fitnesstrackerapi.workout.domain;
+package dev.genesshoan.fitnesstrackerapi.common.domain;
 
 public enum SessionStatus {
     IN_PROGRESS,

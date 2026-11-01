@@ -19,6 +19,7 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 
 import dev.genesshoan.fitnesstrackerapi.common.domain.BaseEntity;
+import dev.genesshoan.fitnesstrackerapi.common.domain.SessionStatus;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import lombok.Builder;

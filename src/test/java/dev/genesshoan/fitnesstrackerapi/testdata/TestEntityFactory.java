@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
 
 import org.springframework.boot.test.context.TestComponent;
 
+import dev.genesshoan.fitnesstrackerapi.common.domain.SessionStatus;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ExerciseMuscle;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.ImpactLevel;
@@ -36,7 +37,6 @@ import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import dev.genesshoan.fitnesstrackerapi.user.infrastructure.persistence.UserRepository;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionExercise;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
-import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
 import dev.genesshoan.fitnesstrackerapi.workout.repository.SessionExerciseRepository;
 import dev.genesshoan.fitnesstrackerapi.workout.repository.SessionSetRepository;

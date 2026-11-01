@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import dev.genesshoan.fitnesstrackerapi.base.AbstractPostgresTest;
+import dev.genesshoan.fitnesstrackerapi.common.domain.SessionStatus;
 import dev.genesshoan.fitnesstrackerapi.exercise.domain.Exercise;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.testdata.TestEntityFactory;
@@ -19,7 +20,6 @@ import dev.genesshoan.fitnesstrackerapi.testdata.builder.WorkoutSessionBuilder;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionExercise;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
-import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

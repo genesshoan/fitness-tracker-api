@@ -5,10 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import dev.genesshoan.fitnesstrackerapi.common.domain.SessionStatus;
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.user.domain.User;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionExercise;
-import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
 import net.datafaker.Faker;
 
