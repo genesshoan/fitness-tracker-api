@@ -22,10 +22,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.genesshoan.fitnesstrackerapi.common.annotation.CurrentUserId;
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineExerciseRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineListItemDTO;
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineExerciseRequest;
+import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineListItem;
+import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineRequest;
+import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -81,7 +81,7 @@ public class RoutineController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @GetMapping
-    public ResponseEntity<Page<RoutineListItemDTO>> getRoutines(
+    public ResponseEntity<Page<RoutineListItem>> getRoutines(
             @CurrentUserId UUID userId, @ParameterObject Pageable pageable) {
         return ResponseEntity.ok(routineService.getRoutinesByUserId(userId, pageable));
     }
@@ -101,7 +101,7 @@ public class RoutineController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = RoutineResponseDTO.class))),
+                                schema = @Schema(implementation = RoutineResponse.class))),
         @ApiResponse(
                 responseCode = "401",
                 description = "Unauthorized",
@@ -125,7 +125,7 @@ public class RoutineController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @GetMapping("/{routineId}")
-    public ResponseEntity<RoutineResponseDTO> getRoutine(
+    public ResponseEntity<RoutineResponse> getRoutine(
             @Parameter(description = "Routine id") @PathVariable UUID routineId, @CurrentUserId UUID userId) {
         return ResponseEntity.ok(routineService.getRoutineById(routineId, userId));
     }
@@ -133,7 +133,7 @@ public class RoutineController {
     /**
      * Create a new routine for the authenticated user.
      *
-     * @param requestDTO the routine request data
+     * @param request the routine request data
      * @param principal  the authenticated user details
      * @return the created routine
      */
@@ -145,7 +145,7 @@ public class RoutineController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = RoutineResponseDTO.class))),
+                                schema = @Schema(implementation = RoutineResponse.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Invalid request parameters",
@@ -176,16 +176,16 @@ public class RoutineController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @PostMapping
-    public ResponseEntity<RoutineResponseDTO> createRoutine(
-            @Valid @RequestBody RoutineRequestDTO requestDTO, @CurrentUserId UUID userId) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(routineService.createRoutine(requestDTO, userId));
+    public ResponseEntity<RoutineResponse> createRoutine(
+            @Valid @RequestBody RoutineRequest request, @CurrentUserId UUID userId) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(routineService.createRoutine(request, userId));
     }
 
     /**
      * Update an existing routine's metadata and exercises.
      *
      * @param routineId  the routine identifier
-     * @param requestDTO the updated routine data
+     * @param request the updated routine data
      * @param principal  the authenticated user details
      * @return the updated routine
      */
@@ -197,7 +197,7 @@ public class RoutineController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = RoutineResponseDTO.class))),
+                                schema = @Schema(implementation = RoutineResponse.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Invalid request parameters",
@@ -235,11 +235,11 @@ public class RoutineController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @PutMapping("/{routineId}")
-    public ResponseEntity<RoutineResponseDTO> updateRoutine(
+    public ResponseEntity<RoutineResponse> updateRoutine(
             @Parameter(description = "Routine id") @PathVariable UUID routineId,
-            @Valid @RequestBody RoutineRequestDTO requestDTO,
+            @Valid @RequestBody RoutineRequest request,
             @CurrentUserId UUID userId) {
-        return ResponseEntity.ok(routineService.updateRoutine(routineId, requestDTO, userId));
+        return ResponseEntity.ok(routineService.updateRoutine(routineId, request, userId));
     }
 
     /**
@@ -287,7 +287,7 @@ public class RoutineController {
      *
      * @param routineId  the routine identifier
      * @param position   the 1-based position to insert the exercise
-     * @param requestDTO the exercise request data
+     * @param request the exercise request data
      * @param principal  the authenticated user details
      * @return the updated routine
      */
@@ -301,7 +301,7 @@ public class RoutineController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = RoutineResponseDTO.class))),
+                                schema = @Schema(implementation = RoutineResponse.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Invalid request parameters",
@@ -332,12 +332,12 @@ public class RoutineController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @PostMapping("/{routineId}/exercises/{position}")
-    public ResponseEntity<RoutineResponseDTO> addRoutineExercise(
+    public ResponseEntity<RoutineResponse> addRoutineExercise(
             @Parameter(description = "Routine id") @PathVariable UUID routineId,
             @Parameter(description = "Position to insert the exercise at") @PathVariable @Min(1) Integer position,
-            @Valid @RequestBody RoutineExerciseRequestDTO requestDTO,
+            @Valid @RequestBody RoutineExerciseRequest request,
             @CurrentUserId UUID userId) {
-        return ResponseEntity.ok(routineService.addRoutineExercise(routineId, position, requestDTO, userId));
+        return ResponseEntity.ok(routineService.addRoutineExercise(routineId, position, request, userId));
     }
 
     /**
@@ -390,7 +390,7 @@ public class RoutineController {
      *
      * @param routineId  the routine identifier
      * @param position   the 1-based position of the exercise to update
-     * @param requestDTO the exercise request data
+     * @param request the exercise request data
      * @param principal  the authenticated user details
      * @return the updated routine
      */
@@ -404,7 +404,7 @@ public class RoutineController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = RoutineResponseDTO.class))),
+                                schema = @Schema(implementation = RoutineResponse.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Invalid request parameters",
@@ -435,11 +435,11 @@ public class RoutineController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @PutMapping("/{routineId}/exercises/{position}")
-    public ResponseEntity<RoutineResponseDTO> updateRoutineExercise(
+    public ResponseEntity<RoutineResponse> updateRoutineExercise(
             @Parameter(description = "Routine id") @PathVariable UUID routineId,
             @Parameter(description = "Position of the exercise to update") @PathVariable @Min(1) Integer position,
-            @Valid @RequestBody RoutineExerciseRequestDTO requestDTO,
+            @Valid @RequestBody RoutineExerciseRequest request,
             @CurrentUserId UUID userId) {
-        return ResponseEntity.ok(routineService.updateRoutineExercise(routineId, position, requestDTO, userId));
+        return ResponseEntity.ok(routineService.updateRoutineExercise(routineId, position, request, userId));
     }
 }

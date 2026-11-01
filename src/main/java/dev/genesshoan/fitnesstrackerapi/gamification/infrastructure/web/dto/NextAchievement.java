@@ -12,7 +12,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @param remaining how much is missing to reach the threshold
  */
 @Schema(description = "Achievement the user has not unlocked yet")
-public record NextAchievementDTO(
+public record NextAchievement(
         @Schema(description = "Achievement code", example = "WORKOUTS_10")
         String code,
 

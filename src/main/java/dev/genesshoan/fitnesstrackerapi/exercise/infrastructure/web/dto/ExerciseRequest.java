@@ -16,7 +16,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * <p>When muscles are supplied during an update, they replace the exercise's
  * current muscle associations.
  */
-@Schema(description = "Request DTO for creating or updating an exercise")
+@Schema(description = "Request for creating or updating an exercise")
 public record ExerciseRequest(
         @NotBlank @Schema(description = "Exercise name", example = "Bicep Curl")
         String name,

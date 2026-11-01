@@ -6,9 +6,9 @@ import java.util.UUID;
 
 import dev.genesshoan.fitnesstrackerapi.routine.mapper.RoutineMapper;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.UnlockedAchievementDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionListItemDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.UnlockedAchievement;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionListItem;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionResponse;
 import org.mapstruct.Builder;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
@@ -21,10 +21,10 @@ import org.mapstruct.Mapping;
 public interface WorkoutSessionMapper {
 
     @Mapping(target = "achievements", source = "unlockedAchievements")
-    WorkoutSessionResponseDTO toWorkoutSessionResponseDTO(
+    WorkoutSessionResponse toWorkoutSessionResponse(
             WorkoutSession workoutSession,
-            List<UnlockedAchievementDTO> unlockedAchievements,
-            @Context Map<UUID, List<UnlockedAchievementDTO>> achievementsBySetId);
+            List<UnlockedAchievement> unlockedAchievements,
+            @Context Map<UUID, List<UnlockedAchievement>> achievementsBySetId);
 
-    WorkoutSessionListItemDTO toWorkoutSessionListItemDTO(WorkoutSession workoutSession);
+    WorkoutSessionListItem toWorkoutSessionListItem(WorkoutSession workoutSession);
 }

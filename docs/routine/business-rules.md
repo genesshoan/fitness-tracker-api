@@ -98,7 +98,7 @@ Common errors and their causes:
 
 ## Ordering
 
-Exercises are ordered by position in ascending order. The repository query uses `@OrderBy("position ASC")` to ensure consistent ordering. The `toResponseDTO` method sorts exercises by position before mapping.
+Exercises are ordered by position in ascending order. The repository query uses `@OrderBy("position ASC")` to ensure consistent ordering. The `toResponse` method sorts exercises by position before mapping.
 
 ## Ownership
 

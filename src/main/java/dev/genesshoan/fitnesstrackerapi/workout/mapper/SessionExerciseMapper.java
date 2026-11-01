@@ -6,10 +6,10 @@ import java.util.UUID;
 
 import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.ExerciseMapper;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionExercise;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExerciseAddedResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExercisePositionDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExerciseResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.UnlockedAchievementDTO;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExerciseAddedResponse;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExercisePosition;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExerciseResponse;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.UnlockedAchievement;
 import org.mapstruct.Builder;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
@@ -22,20 +22,20 @@ import org.mapstruct.Named;
         uses = {SessionSetMapper.class, ExerciseMapper.class})
 public interface SessionExerciseMapper {
 
-    SessionExerciseResponseDTO toSessionExerciseResponseDTO(
-            SessionExercise sessionExercise, @Context Map<UUID, List<UnlockedAchievementDTO>> achievementsBySetId);
+    SessionExerciseResponse toSessionExerciseResponse(
+            SessionExercise sessionExercise, @Context Map<UUID, List<UnlockedAchievement>> achievementsBySetId);
 
     @Named("withoutAchievements")
-    default SessionExerciseResponseDTO toResponseWithoutAchievements(SessionExercise sessionExercise) {
-        return toSessionExerciseResponseDTO(sessionExercise, Map.of());
+    default SessionExerciseResponse toResponseWithoutAchievements(SessionExercise sessionExercise) {
+        return toSessionExerciseResponse(sessionExercise, Map.of());
     }
 
     @Mapping(source = "id", target = "exerciseId")
-    SessionExercisePositionDTO toSessionExercisePositionDTO(SessionExercise sessionExercise);
+    SessionExercisePosition toSessionExercisePosition(SessionExercise sessionExercise);
 
-    List<SessionExercisePositionDTO> toSessionExercisePositionDTOList(List<SessionExercise> exercises);
+    List<SessionExercisePosition> toSessionExercisePositionList(List<SessionExercise> exercises);
 
     @Mapping(target = "newExercise", qualifiedByName = "withoutAchievements")
-    SessionExerciseAddedResponseDTO toSessionExerciseAddedResponseDTO(
+    SessionExerciseAddedResponse toSessionExerciseAddedResponse(
             SessionExercise newExercise, List<SessionExercise> shiftedPositions);
 }

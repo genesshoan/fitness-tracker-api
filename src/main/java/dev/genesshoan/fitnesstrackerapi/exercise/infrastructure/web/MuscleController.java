@@ -59,7 +59,7 @@ public class MuscleController {
             })
     @GetMapping
     public ResponseEntity<Page<MuscleResponse>> getMuscles(@ParameterObject Pageable pageable) {
-        Page<MuscleResponse> muscles = muscleUseCase.getMuscles(pageable).map(muscleMapper::toResponseDTO);
+        Page<MuscleResponse> muscles = muscleUseCase.getMuscles(pageable).map(muscleMapper::toResponse);
 
         return ResponseEntity.ok(muscles);
     }
@@ -100,6 +100,6 @@ public class MuscleController {
     public ResponseEntity<MuscleResponse> getMuscle(@PathVariable String slug) {
         var muscle = muscleUseCase.getMuscleBySlug(slug);
 
-        return ResponseEntity.ok(muscleMapper.toResponseDTO(muscle));
+        return ResponseEntity.ok(muscleMapper.toResponse(muscle));
     }
 }

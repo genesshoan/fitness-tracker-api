@@ -16,7 +16,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @param next the achievements the user is closest to unlocking
  */
 @Schema(description = "State of the collection of the user")
-public record AchievementSummaryResponseDTO(
+public record AchievementSummaryResponse(
         @Schema(description = "Number of achievements in the catalog", example = "29")
         long totalAvailable,
 
@@ -27,7 +27,7 @@ public record AchievementSummaryResponseDTO(
         long unseenCount,
 
         @Schema(description = "Unlocked and total counts of every category")
-        Map<AchievementCategory, AchievementCategorySummaryDTO> byCategory,
+        Map<AchievementCategory, AchievementCategorySummary> byCategory,
 
         @Schema(description = "Achievements the user is closest to unlocking")
-        List<NextAchievementDTO> next) {}
+        List<NextAchievement> next) {}

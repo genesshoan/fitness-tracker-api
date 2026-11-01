@@ -19,7 +19,7 @@ public interface MuscleMapper {
      * @param result the result to map
      * @return the muscle response
      */
-    MuscleResponse toResponseDTO(MuscleResult result);
+    MuscleResponse toResponse(MuscleResult result);
 
     /**
      * Maps a muscle asset result to its API representation.
@@ -27,5 +27,5 @@ public interface MuscleMapper {
      * @param result the result to map
      * @return the muscle asset response
      */
-    MuscleAssetResponse toAssetResponseDTO(MuscleAssetResult result);
+    MuscleAssetResponse toAssetResponse(MuscleAssetResult result);
 }

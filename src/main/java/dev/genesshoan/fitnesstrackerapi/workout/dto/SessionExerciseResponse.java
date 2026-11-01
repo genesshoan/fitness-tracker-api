@@ -7,7 +7,7 @@ import dev.genesshoan.fitnesstrackerapi.exercise.infrastructure.web.dto.Exercise
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Session exercise respones dto")
-public record SessionExerciseResponseDTO(
+public record SessionExerciseResponse(
         @Schema(description = "Session exercise id") UUID id,
 
         @Schema(description = "Exercise position within a workout session", example = "1")
@@ -20,4 +20,4 @@ public record SessionExerciseResponseDTO(
         ExerciseListItem exercise,
 
         @Schema(description = "Sets performed for the exercise")
-        List<SessionSetResponseDTO> sets) {}
+        List<SessionSetResponse> sets) {}

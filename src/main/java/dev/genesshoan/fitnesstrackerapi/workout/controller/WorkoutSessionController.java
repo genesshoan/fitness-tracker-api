@@ -22,10 +22,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import dev.genesshoan.fitnesstrackerapi.common.annotation.CurrentUserId;
 import dev.genesshoan.fitnesstrackerapi.workout.WorkoutSessionService;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.NotesUpdateRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionListItemDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.NotesUpdateRequest;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionListItem;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionRequest;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -70,7 +70,7 @@ public class WorkoutSessionController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @GetMapping
-    public ResponseEntity<Page<WorkoutSessionListItemDTO>> getSessions(
+    public ResponseEntity<Page<WorkoutSessionListItem>> getSessions(
             @CurrentUserId UUID userId, @ParameterObject Pageable pageable) {
         return ResponseEntity.ok(workoutSessionService.getAllWorkoutSessions(userId, pageable));
     }
@@ -83,7 +83,7 @@ public class WorkoutSessionController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = WorkoutSessionResponseDTO.class))),
+                                schema = @Schema(implementation = WorkoutSessionResponse.class))),
         @ApiResponse(
                 responseCode = "401",
                 description = "Unauthorized",
@@ -107,7 +107,7 @@ public class WorkoutSessionController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @GetMapping("/{sessionId}")
-    public ResponseEntity<WorkoutSessionResponseDTO> getSession(
+    public ResponseEntity<WorkoutSessionResponse> getSession(
             @CurrentUserId UUID userId, @Parameter(description = "Workout session id") @PathVariable UUID sessionId) {
         return ResponseEntity.ok(workoutSessionService.getWorkoutSessionById(sessionId, userId));
     }
@@ -122,7 +122,7 @@ public class WorkoutSessionController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = WorkoutSessionResponseDTO.class))),
+                                schema = @Schema(implementation = WorkoutSessionResponse.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Invalid request dto or exercise data",
@@ -146,10 +146,10 @@ public class WorkoutSessionController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @PostMapping
-    public ResponseEntity<WorkoutSessionResponseDTO> createWorkoutSessionFromScratch(
-            @CurrentUserId UUID userId, @Valid @RequestBody WorkoutSessionRequestDTO requestDTO) {
+    public ResponseEntity<WorkoutSessionResponse> createWorkoutSessionFromScratch(
+            @CurrentUserId UUID userId, @Valid @RequestBody WorkoutSessionRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(workoutSessionService.createWorkoutSessionFromScratch(requestDTO, userId));
+                .body(workoutSessionService.createWorkoutSessionFromScratch(request, userId));
     }
 
     @Operation(
@@ -162,7 +162,7 @@ public class WorkoutSessionController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = WorkoutSessionResponseDTO.class))),
+                                schema = @Schema(implementation = WorkoutSessionResponse.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Invalid routine id",
@@ -193,7 +193,7 @@ public class WorkoutSessionController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @PostMapping("/from-routine/{routineId}")
-    public ResponseEntity<WorkoutSessionResponseDTO> createWorkoutSessionFromRoutine(
+    public ResponseEntity<WorkoutSessionResponse> createWorkoutSessionFromRoutine(
             @CurrentUserId UUID userId, @Parameter(description = "Routine id") @PathVariable UUID routineId) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(workoutSessionService.createWorkoutSessionFromRoutine(routineId, userId));
@@ -238,8 +238,8 @@ public class WorkoutSessionController {
     public void updateSessionNotes(
             @CurrentUserId UUID userId,
             @Parameter(description = "Workout session id") @PathVariable UUID sessionId,
-            @Valid @RequestBody NotesUpdateRequestDTO requestDTO) {
-        workoutSessionService.updateWorkoutSessionNotes(sessionId, userId, requestDTO);
+            @Valid @RequestBody NotesUpdateRequest request) {
+        workoutSessionService.updateWorkoutSessionNotes(sessionId, userId, request);
     }
 
     @Operation(
@@ -252,7 +252,7 @@ public class WorkoutSessionController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = WorkoutSessionResponseDTO.class))),
+                                schema = @Schema(implementation = WorkoutSessionResponse.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Workout session is already completed",
@@ -283,7 +283,7 @@ public class WorkoutSessionController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @PatchMapping("/{sessionId}/finish")
-    public ResponseEntity<WorkoutSessionResponseDTO> completeWorkoutSession(
+    public ResponseEntity<WorkoutSessionResponse> completeWorkoutSession(
             @CurrentUserId UUID userId, @Parameter(description = "Workout session id") @PathVariable UUID sessionId) {
         return ResponseEntity.ok(workoutSessionService.completeWorkoutSession(sessionId, userId));
     }

@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import dev.genesshoan.fitnesstrackerapi.common.domain.SessionStatus;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ValidationException;
@@ -32,19 +33,18 @@ import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
 import dev.genesshoan.fitnesstrackerapi.user.infrastructure.persistence.UserRepository;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionExercise;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
-import dev.genesshoan.fitnesstrackerapi.common.domain.SessionStatus;
 import dev.genesshoan.fitnesstrackerapi.workout.domain.WorkoutSession;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.NotesUpdateRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.PositionRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExerciseAddedResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExercisePositionDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExerciseRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionSetRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionSetResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.UnlockedAchievementDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionListItemDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.NotesUpdateRequest;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.PositionRequest;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExerciseAddedResponse;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExercisePosition;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExerciseRequest;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionSetRequest;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionSetResponse;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.UnlockedAchievement;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionListItem;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionRequest;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.WorkoutSessionResponse;
 import dev.genesshoan.fitnesstrackerapi.workout.mapper.SessionExerciseMapper;
 import dev.genesshoan.fitnesstrackerapi.workout.mapper.SessionSetMapper;
 import dev.genesshoan.fitnesstrackerapi.workout.mapper.WorkoutSessionMapper;
@@ -82,17 +82,17 @@ public class WorkoutSessionService {
     private final ExerciseMetricsMapper exerciseMetricsMapper;
 
     /** Lists the user's sessions using repository pagination. */
-    public Page<WorkoutSessionListItemDTO> getAllWorkoutSessions(UUID userId, Pageable pageable) {
+    public Page<WorkoutSessionListItem> getAllWorkoutSessions(UUID userId, Pageable pageable) {
 
         log.info("Getting workouts sessions from user: {} with pageable: {}", userId, pageable);
 
         return workoutSessionRepository
                 .findAllByUserId(userId, pageable)
-                .map(workoutSessionMapper::toWorkoutSessionListItemDTO);
+                .map(workoutSessionMapper::toWorkoutSessionListItem);
     }
 
     /** Loads one user-owned session with exercises and sets. */
-    public WorkoutSessionResponseDTO getWorkoutSessionById(UUID sessionId, UUID userId) {
+    public WorkoutSessionResponse getWorkoutSessionById(UUID sessionId, UUID userId) {
 
         log.info("Getting workout session: {} for user: {}", sessionId, userId);
 
@@ -101,7 +101,7 @@ public class WorkoutSessionService {
                 "Workout session",
                 sessionId);
 
-        return toWorkoutSessionResponseDTO(workoutSession, List.of());
+        return toWorkoutSessionResponse(workoutSession, List.of());
     }
 
     /**
@@ -110,7 +110,7 @@ public class WorkoutSessionService {
      * <p>Routine exercise positions, metrics, and default set counts are copied.
      */
     @Transactional
-    public WorkoutSessionResponseDTO createWorkoutSessionFromRoutine(UUID routineId, UUID userId) {
+    public WorkoutSessionResponse createWorkoutSessionFromRoutine(UUID routineId, UUID userId) {
 
         Routine routine = getOrThrowResourceNotFound(
                 routineRepository.findByIdAndUserIdAndActiveTrue(routineId, userId), "Routine", routineId);
@@ -144,7 +144,7 @@ public class WorkoutSessionService {
 
         log.info("Created workout session: {} from routine: {} from user: {}", session.getId(), routineId, userId);
 
-        return toWorkoutSessionResponseDTO(saved, List.of());
+        return toWorkoutSessionResponse(saved, List.of());
     }
 
     /**
@@ -155,7 +155,7 @@ public class WorkoutSessionService {
      * from the exercise's last completed set, or its category defaults.
      */
     @Transactional
-    public WorkoutSessionResponseDTO createWorkoutSessionFromScratch(WorkoutSessionRequestDTO dto, UUID userId) {
+    public WorkoutSessionResponse createWorkoutSessionFromScratch(WorkoutSessionRequest dto, UUID userId) {
 
         validateSessionRequest(dto);
 
@@ -192,12 +192,12 @@ public class WorkoutSessionService {
 
         log.info("Created workout session: {} for user: {}", workoutSession.getId(), userId);
 
-        return toWorkoutSessionResponseDTO(saved, unlocked);
+        return toWorkoutSessionResponse(saved, unlocked);
     }
 
     /** Updates notes on an in-progress user-owned session. */
     @Transactional
-    public void updateWorkoutSessionNotes(UUID sessionId, UUID userId, NotesUpdateRequestDTO dto) {
+    public void updateWorkoutSessionNotes(UUID sessionId, UUID userId, NotesUpdateRequest dto) {
 
         WorkoutSession session = getOrThrowResourceNotFound(
                 workoutSessionRepository.findForUpdateByIdAndUserId(sessionId, userId), "Workout session", sessionId);
@@ -215,7 +215,7 @@ public class WorkoutSessionService {
      * current instant.
      */
     @Transactional
-    public WorkoutSessionResponseDTO completeWorkoutSession(UUID sessionId, UUID userId) {
+    public WorkoutSessionResponse completeWorkoutSession(UUID sessionId, UUID userId) {
 
         log.debug("Completing session workout: {} from user: {}", sessionId, userId);
 
@@ -237,7 +237,7 @@ public class WorkoutSessionService {
 
         log.info("Completed session workout: {} from user: {}", sessionId, userId);
 
-        return toWorkoutSessionResponseDTO(session, unlocked);
+        return toWorkoutSessionResponse(session, unlocked);
     }
 
     /** Permanently deletes a user-owned workout session and its children. */
@@ -267,8 +267,7 @@ public class WorkoutSessionService {
      * Positions after the insertion point are shifted.
      */
     @Transactional
-    public SessionExerciseAddedResponseDTO addNewSessionExercise(
-            UUID sessionId, UUID userId, SessionExerciseRequestDTO dto) {
+    public SessionExerciseAddedResponse addNewSessionExercise(UUID sessionId, UUID userId, SessionExerciseRequest dto) {
 
         log.debug("Adding new session exercise into position: {} to session: {}", dto.position(), sessionId);
 
@@ -309,13 +308,13 @@ public class WorkoutSessionService {
                 sessionExercise.getPosition(),
                 session.getId());
 
-        return sessionExerciseMapper.toSessionExerciseAddedResponseDTO(sessionExercise, shifted);
+        return sessionExerciseMapper.toSessionExerciseAddedResponse(sessionExercise, shifted);
     }
 
     /** Updates notes while the parent session remains in progress. */
     @Transactional
     public void updateSessionExerciseNotes(
-            UUID workoutSessionId, UUID sessionExerciseId, UUID userId, NotesUpdateRequestDTO dto) {
+            UUID workoutSessionId, UUID sessionExerciseId, UUID userId, NotesUpdateRequest dto) {
 
         SessionExercise sessionExercise = getOrThrowResourceNotFound(
                 sessionExerciseRepository.findForUpdateWithWorkoutSession(sessionExerciseId, workoutSessionId, userId),
@@ -337,8 +336,8 @@ public class WorkoutSessionService {
      * resulting positions.
      */
     @Transactional
-    public List<SessionExercisePositionDTO> updateSessionExercisePosition(
-            UUID workoutSessionId, UUID sessionExerciseId, UUID userId, PositionRequestDTO dto) {
+    public List<SessionExercisePosition> updateSessionExercisePosition(
+            UUID workoutSessionId, UUID sessionExerciseId, UUID userId, PositionRequest dto) {
 
         log.debug("Updating session exercise: {} position from session: {}", sessionExerciseId, workoutSessionId);
 
@@ -367,12 +366,12 @@ public class WorkoutSessionService {
                 sessionExerciseId,
                 workoutSessionId);
 
-        return sessionExerciseMapper.toSessionExercisePositionDTOList(workoutSession.getExercises());
+        return sessionExerciseMapper.toSessionExercisePositionList(workoutSession.getExercises());
     }
 
     /** Removes an exercise and closes the position gap. */
     @Transactional
-    public List<SessionExercisePositionDTO> deleteSessionExercise(
+    public List<SessionExercisePosition> deleteSessionExercise(
             UUID workoutSessionId, UUID sessionExerciseId, UUID userId) {
 
         log.debug("Removing session exercise: {} from session: {}", sessionExerciseId, workoutSessionId);
@@ -402,7 +401,7 @@ public class WorkoutSessionService {
 
         log.info("Session exercise: {} removed successfully from session: {}", sessionExerciseId, workoutSessionId);
 
-        return sessionExerciseMapper.toSessionExercisePositionDTOList(workoutSession.getExercises());
+        return sessionExerciseMapper.toSessionExercisePositionList(workoutSession.getExercises());
     }
 
     /**
@@ -410,8 +409,8 @@ public class WorkoutSessionService {
      * reuses the last completed set for the exercise, or category defaults.
      */
     @Transactional
-    public SessionSetResponseDTO addNewSessionSet(
-            UUID workoutSessionId, UUID sessionExerciseId, UUID userId, SessionSetRequestDTO dto) {
+    public SessionSetResponse addNewSessionSet(
+            UUID workoutSessionId, UUID sessionExerciseId, UUID userId, SessionSetRequest dto) {
 
         log.debug("Adding new session set to session exercise: {}", sessionExerciseId);
 
@@ -429,7 +428,7 @@ public class WorkoutSessionService {
             throw new BadRequestException("The workout session is already finished");
         }
 
-        SessionSetRequestDTO effectiveDto =
+        SessionSetRequest effectiveDto =
                 dto.isEmpty() ? resolveDefaultsSetForExistingExercise(sessionExercise, userId) : dto;
 
         if (!dto.isEmpty() && !sessionExercise.getExercise().getCategory().validate(dto.toExerciseMetrics())) {
@@ -443,13 +442,13 @@ public class WorkoutSessionService {
 
         SessionSet saved = sessionSetRepository.save(sessionSet);
 
-        return toSessionSetResponseDTO(saved, List.of());
+        return toSessionSetResponse(saved, List.of());
     }
 
     /** Updates set metrics and completion state without changing its number. */
     @Transactional
-    public SessionSetResponseDTO updateSessionSet(
-            UUID workoutSessionId, UUID sessionExerciseId, UUID sessionSetId, UUID userId, SessionSetRequestDTO dto) {
+    public SessionSetResponse updateSessionSet(
+            UUID workoutSessionId, UUID sessionExerciseId, UUID sessionSetId, UUID userId, SessionSetRequest dto) {
 
         log.debug(
                 "Updating session set: {} from exercise: {}, session: {} and user:{}",
@@ -493,12 +492,12 @@ public class WorkoutSessionService {
                     userId, sessionSet.getSessionExercise().getExercise().getId());
         }
 
-        return toSessionSetResponseDTO(sessionSet, unlocked);
+        return toSessionSetResponse(sessionSet, unlocked);
     }
 
     /** Marks a set as complete without changing its metrics or number. */
     @Transactional
-    public SessionSetResponseDTO markSessionSetComplete(
+    public SessionSetResponse markSessionSetComplete(
             UUID workoutSessionId, UUID sessionExerciseId, UUID sessionSetId, UUID userId) {
 
         log.debug(
@@ -535,12 +534,12 @@ public class WorkoutSessionService {
                 sessionExerciseId,
                 workoutSessionId);
 
-        return toSessionSetResponseDTO(sessionSet, unlocked);
+        return toSessionSetResponse(sessionSet, unlocked);
     }
 
     /** Marks a set as incomplete without changing its metrics or number. */
     @Transactional
-    public SessionSetResponseDTO markSessionSetIncomplete(
+    public SessionSetResponse markSessionSetIncomplete(
             UUID workoutSessionId, UUID sessionExerciseId, UUID sessionSetId, UUID userId) {
 
         log.debug(
@@ -577,7 +576,7 @@ public class WorkoutSessionService {
                 sessionExerciseId,
                 workoutSessionId);
 
-        return toSessionSetResponseDTO(sessionSet, List.of());
+        return toSessionSetResponse(sessionSet, List.of());
     }
 
     /** Removes a set, closing its number gap; a sole set removes the exercise. */
@@ -622,24 +621,23 @@ public class WorkoutSessionService {
         }
     }
 
-    private WorkoutSessionResponseDTO toWorkoutSessionResponseDTO(
+    private WorkoutSessionResponse toWorkoutSessionResponse(
             WorkoutSession session, List<UnlockedAchievementResult> unlocked) {
 
-        return workoutSessionMapper.toWorkoutSessionResponseDTO(session, toUnlockedAchievementDTOs(unlocked), Map.of());
+        return workoutSessionMapper.toWorkoutSessionResponse(session, toUnlockedAchievementD(unlocked), Map.of());
     }
 
-    private SessionSetResponseDTO toSessionSetResponseDTO(
-            SessionSet sessionSet, List<UnlockedAchievementResult> unlocked) {
+    private SessionSetResponse toSessionSetResponse(SessionSet sessionSet, List<UnlockedAchievementResult> unlocked) {
 
-        Map<UUID, List<UnlockedAchievementDTO>> achievementsBySetId =
-                unlocked.isEmpty() ? Map.of() : Map.of(sessionSet.getId(), toUnlockedAchievementDTOs(unlocked));
+        Map<UUID, List<UnlockedAchievement>> achievementsBySetId =
+                unlocked.isEmpty() ? Map.of() : Map.of(sessionSet.getId(), toUnlockedAchievementD(unlocked));
 
-        return sessionSetMapper.toResponseDTO(sessionSet, achievementsBySetId);
+        return sessionSetMapper.toResponse(sessionSet, achievementsBySetId);
     }
 
-    private List<UnlockedAchievementDTO> toUnlockedAchievementDTOs(List<UnlockedAchievementResult> unlocked) {
+    private List<UnlockedAchievement> toUnlockedAchievementD(List<UnlockedAchievementResult> unlocked) {
         return unlocked.stream()
-                .map(result -> new UnlockedAchievementDTO(
+                .map(result -> new UnlockedAchievement(
                         result.id(),
                         result.code(),
                         result.name(),
@@ -649,25 +647,25 @@ public class WorkoutSessionService {
                 .toList();
     }
 
-    private SessionSetRequestDTO resolveDefaultsSetForExistingExercise(SessionExercise sessionExercise, UUID userId) {
+    private SessionSetRequest resolveDefaultsSetForExistingExercise(SessionExercise sessionExercise, UUID userId) {
         return sessionExercise.getSets().stream()
                 .max(Comparator.comparingInt(SessionSet::getSetNumber))
-                .map(ss -> sessionSetMapper.toDefaultSessionSetRequestDTO(ss))
-                .orElseGet(() -> exerciseMetricsMapper.toDefaultSessionSetRequestDTO(
+                .map(ss -> sessionSetMapper.toDefaultSessionSetRequest(ss))
+                .orElseGet(() -> exerciseMetricsMapper.toDefaultSessionSetRequest(
                         sessionExercise.getExercise().getCategory().defaultMetrics()));
     }
 
-    private SessionSetRequestDTO resolveDefaultSetForNewExercise(
+    private SessionSetRequest resolveDefaultSetForNewExercise(
             Exercise exercise, Map<UUID, LastSetProjection> defaultSets) {
 
         return Optional.ofNullable(defaultSets.get(exercise.getId()))
-                .map(lsp -> new SessionSetRequestDTO(
+                .map(lsp -> new SessionSetRequest(
                         1, lsp.getReps(), lsp.getWeightKg(), lsp.getDurationSeconds(), lsp.getDistanceKm(), false))
-                .orElseGet(() -> exerciseMetricsMapper.toDefaultSessionSetRequestDTO(
+                .orElseGet(() -> exerciseMetricsMapper.toDefaultSessionSetRequest(
                         exercise.getCategory().defaultMetrics()));
     }
 
-    private boolean hasDifferentMetrics(SessionSet sessionSet, SessionSetRequestDTO dto) {
+    private boolean hasDifferentMetrics(SessionSet sessionSet, SessionSetRequest dto) {
 
         return !Objects.equals(sessionSet.getReps(), dto.reps())
                 || !Objects.equals(sessionSet.getWeightKg(), dto.weightKg())
@@ -675,7 +673,7 @@ public class WorkoutSessionService {
                 || !Objects.equals(sessionSet.getDistanceKm(), dto.distanceKm());
     }
 
-    private void applySessionSetUpdate(SessionSet sessionSet, SessionSetRequestDTO dto) {
+    private void applySessionSetUpdate(SessionSet sessionSet, SessionSetRequest dto) {
 
         sessionSet.setReps(dto.reps());
         sessionSet.setWeightKg(dto.weightKg());
@@ -688,15 +686,16 @@ public class WorkoutSessionService {
      * Resolves the exercises referenced by the request and records an error for
      * every referenced exercise that does not exist.
      *
-     * @param exerciseDTOs the requested session exercises
+     * @param exerciseRequests the requested session exercises
      * @param errors       the validation errors to fill
      * @return the existing exercises, keyed by exercise id
      */
     private Map<UUID, Exercise> resolveExercises(
-            List<SessionExerciseRequestDTO> exerciseDTOs, Map<String, List<String>> errors) {
+            List<SessionExerciseRequest> exerciseRequests, Map<String, List<String>> errors) {
 
-        List<UUID> exerciseIds =
-                exerciseDTOs.stream().map(SessionExerciseRequestDTO::exerciseId).toList();
+        List<UUID> exerciseIds = exerciseRequests.stream()
+                .map(SessionExerciseRequest::exerciseId)
+                .toList();
 
         if (exerciseIds.isEmpty()) {
             return Map.of();
@@ -715,26 +714,26 @@ public class WorkoutSessionService {
     }
 
     private void validateSetsData(
-            List<SessionExerciseRequestDTO> exerciseDTOs,
+            List<SessionExerciseRequest> exerciseRequests,
             Map<UUID, Exercise> exercises,
             Map<String, List<String>> errors) {
 
-        for (SessionExerciseRequestDTO exerciseDTO : exerciseDTOs) {
-            Exercise exercise = exercises.get(exerciseDTO.exerciseId());
+        for (SessionExerciseRequest exerciseRequest : exerciseRequests) {
+            Exercise exercise = exercises.get(exerciseRequest.exerciseId());
 
             if (exercise != null) {
-                validateSetsData(exerciseDTO.sets(), exercise, errors);
+                validateSetsData(exerciseRequest.sets(), exercise, errors);
             }
         }
     }
 
     private void validateSetsData(
-            List<SessionSetRequestDTO> setDTOs, Exercise exercise, Map<String, List<String>> errors) {
+            List<SessionSetRequest> setRequests, Exercise exercise, Map<String, List<String>> errors) {
 
-        for (int i = 0; i < setDTOs.size(); i++) {
-            SessionSetRequestDTO setDTO = setDTOs.get(i);
+        for (int i = 0; i < setRequests.size(); i++) {
+            SessionSetRequest set = setRequests.get(i);
 
-            if (!exercise.getCategory().validate(setDTO.toExerciseMetrics())) {
+            if (!exercise.getCategory().validate(set.toExerciseMetrics())) {
                 errors.computeIfAbsent(exercise.getId().toString(), k -> new ArrayList<>())
                         .add("Invalid data for set " + (i + 1) + " for category: " + exercise.getCategory());
             }
@@ -742,14 +741,14 @@ public class WorkoutSessionService {
     }
 
     private void buildSessionExercises(
-            List<SessionExerciseRequestDTO> exerciseDTOs,
+            List<SessionExerciseRequest> exerciseRequests,
             WorkoutSession workoutSession,
             Map<UUID, Exercise> exercises,
             Map<UUID, LastSetProjection> defaultSets,
             UUID userId) {
 
-        for (int i = 0; i < exerciseDTOs.size(); i++) {
-            SessionExerciseRequestDTO dto = exerciseDTOs.get(i);
+        for (int i = 0; i < exerciseRequests.size(); i++) {
+            SessionExerciseRequest dto = exerciseRequests.get(i);
             Exercise exercise = exercises.get(dto.exerciseId());
 
             SessionExercise sessionExercise = buildSessionExercise(dto, exercise, defaultSets, userId);
@@ -759,12 +758,12 @@ public class WorkoutSessionService {
     }
 
     private SessionExercise buildSessionExercise(
-            SessionExerciseRequestDTO dto, Exercise exercise, Map<UUID, LastSetProjection> defaultSets, UUID userId) {
+            SessionExerciseRequest dto, Exercise exercise, Map<UUID, LastSetProjection> defaultSets, UUID userId) {
 
         SessionExercise sessionExercise =
                 SessionExercise.builder().notes(dto.notes()).exercise(exercise).build();
 
-        List<SessionSetRequestDTO> sets =
+        List<SessionSetRequest> sets =
                 dto.sets().isEmpty() ? List.of(resolveDefaultSetForNewExercise(exercise, defaultSets)) : dto.sets();
 
         for (int i = 0; i < sets.size(); i++) {
@@ -774,7 +773,7 @@ public class WorkoutSessionService {
         return sessionExercise;
     }
 
-    private SessionSet buildSessionSet(SessionSetRequestDTO dto, int setNumber) {
+    private SessionSet buildSessionSet(SessionSetRequest dto, int setNumber) {
 
         return SessionSet.builder()
                 .setNumber(setNumber)
@@ -786,7 +785,7 @@ public class WorkoutSessionService {
                 .build();
     }
 
-    private void validateSessionRequest(WorkoutSessionRequestDTO dto) {
+    private void validateSessionRequest(WorkoutSessionRequest dto) {
 
         if (dto.completedAt() != null && dto.completedAt().isAfter(Instant.now())) {
             throw new BadRequestException("completedAt cannot be in the future");
@@ -813,10 +812,10 @@ public class WorkoutSessionService {
         });
     }
 
-    private Map<UUID, LastSetProjection> getDefaultsByExercise(List<SessionExerciseRequestDTO> dtos, UUID userId) {
+    private Map<UUID, LastSetProjection> getDefaultsByExercise(List<SessionExerciseRequest> dtos, UUID userId) {
         Set<UUID> exerciseIdsWithoutSets = dtos.stream()
                 .filter(eDto -> eDto.sets().isEmpty())
-                .map(SessionExerciseRequestDTO::exerciseId)
+                .map(SessionExerciseRequest::exerciseId)
                 .collect(Collectors.toSet());
 
         if (exerciseIdsWithoutSets.isEmpty()) {

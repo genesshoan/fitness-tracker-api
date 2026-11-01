@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Response data for one exercise assigned to a routine. */
 @Schema(description = "The routine's exercise response")
-public record RoutineExerciseResponseDTO(
+public record RoutineExerciseResponse(
         ExerciseListItem exercise,
 
         @Schema(description = "The exercise's position", example = "1")

@@ -79,7 +79,7 @@ class UserServiceTest {
         // Given
         UserResponse mapped = new UserResponse(EMAIL, USERNAME, CREATED_AT, null);
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
-        when(userMapper.toResponseDTO(user)).thenReturn(mapped);
+        when(userMapper.toResponse(user)).thenReturn(mapped);
         when(profilePictureService.getProfilePictureUrl(null)).thenReturn(null);
 
         // When
@@ -100,7 +100,7 @@ class UserServiceTest {
         UserResponse expected = new UserResponse(EMAIL, USERNAME, CREATED_AT, "https://storage/picture.jpg");
 
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
-        when(userMapper.toResponseDTO(user)).thenReturn(mapped);
+        when(userMapper.toResponse(user)).thenReturn(mapped);
         when(profilePictureService.getProfilePictureUrl(key)).thenReturn(expected.profilePictureUrl());
 
         // When

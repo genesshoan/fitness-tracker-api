@@ -20,7 +20,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @param exerciseMuscles associated muscles
  * @param gifUrl client-facing media URL
  */
-@Schema(description = "Exercise detail DTO")
+@Schema(description = "Exercise detail")
 public record ExerciseDetail(
         @Schema(description = "Exercise ID", example = "123e4567-e89b-12d3-a456-426614174000")
         UUID id,

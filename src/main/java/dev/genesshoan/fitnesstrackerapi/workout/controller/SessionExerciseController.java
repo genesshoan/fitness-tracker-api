@@ -20,11 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import dev.genesshoan.fitnesstrackerapi.common.annotation.CurrentUserId;
 import dev.genesshoan.fitnesstrackerapi.workout.WorkoutSessionService;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.NotesUpdateRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.PositionRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExerciseAddedResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExercisePositionDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExerciseRequestDTO;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.NotesUpdateRequest;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.PositionRequest;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExerciseAddedResponse;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExercisePosition;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionExerciseRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -55,7 +55,7 @@ public class SessionExerciseController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = SessionExerciseAddedResponseDTO.class))),
+                                schema = @Schema(implementation = SessionExerciseAddedResponse.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Invalid request dto, workout session is already completed, or exercise set data",
@@ -86,12 +86,12 @@ public class SessionExerciseController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @PostMapping
-    public ResponseEntity<SessionExerciseAddedResponseDTO> addSessionExercise(
+    public ResponseEntity<SessionExerciseAddedResponse> addSessionExercise(
             @CurrentUserId UUID userId,
             @Parameter(description = "Workout session id") @PathVariable UUID sessionId,
-            @Valid @RequestBody SessionExerciseRequestDTO requestDTO) {
+            @Valid @RequestBody SessionExerciseRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(workoutSessionService.addNewSessionExercise(sessionId, userId, requestDTO));
+                .body(workoutSessionService.addNewSessionExercise(sessionId, userId, request));
     }
 
     @Operation(
@@ -134,8 +134,8 @@ public class SessionExerciseController {
             @CurrentUserId UUID userId,
             @Parameter(description = "Workout session id") @PathVariable UUID sessionId,
             @Parameter(description = "Session exercise id") @PathVariable UUID sessionExerciseId,
-            @Valid @RequestBody NotesUpdateRequestDTO requestDTO) {
-        workoutSessionService.updateSessionExerciseNotes(sessionId, sessionExerciseId, userId, requestDTO);
+            @Valid @RequestBody NotesUpdateRequest request) {
+        workoutSessionService.updateSessionExerciseNotes(sessionId, sessionExerciseId, userId, request);
     }
 
     @Operation(
@@ -150,7 +150,7 @@ public class SessionExerciseController {
                                 mediaType = "application/json",
                                 array =
                                         @ArraySchema(
-                                                schema = @Schema(implementation = SessionExercisePositionDTO.class)))),
+                                                schema = @Schema(implementation = SessionExercisePosition.class)))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Workout session is already completed",
@@ -181,13 +181,13 @@ public class SessionExerciseController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @PatchMapping("/{sessionExerciseId}/position")
-    public ResponseEntity<List<SessionExercisePositionDTO>> updateSessionExercisePosition(
+    public ResponseEntity<List<SessionExercisePosition>> updateSessionExercisePosition(
             @CurrentUserId UUID userId,
             @Parameter(description = "Workout session id") @PathVariable UUID sessionId,
             @Parameter(description = "Session exercise id") @PathVariable UUID sessionExerciseId,
-            @Valid @RequestBody PositionRequestDTO requestDTO) {
+            @Valid @RequestBody PositionRequest request) {
         return ResponseEntity.ok(
-                workoutSessionService.updateSessionExercisePosition(sessionId, sessionExerciseId, userId, requestDTO));
+                workoutSessionService.updateSessionExercisePosition(sessionId, sessionExerciseId, userId, request));
     }
 
     @Operation(

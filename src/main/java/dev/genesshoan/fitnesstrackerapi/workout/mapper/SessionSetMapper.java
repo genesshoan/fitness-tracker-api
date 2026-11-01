@@ -5,9 +5,9 @@ import java.util.Map;
 import java.util.UUID;
 
 import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionSet;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionSetRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionSetResponseDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.UnlockedAchievementDTO;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionSetRequest;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionSetResponse;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.UnlockedAchievement;
 import org.mapstruct.Builder;
 import org.mapstruct.Context;
 import org.mapstruct.IterableMapping;
@@ -19,24 +19,23 @@ import org.mapstruct.Named;
 public interface SessionSetMapper {
 
     @Mapping(target = "completed", constant = "false")
-    SessionSetRequestDTO toDefaultSessionSetRequestDTO(SessionSet sessionSet);
+    SessionSetRequest toDefaultSessionSetRequest(SessionSet sessionSet);
 
     @Mapping(target = "achievements", expression = "java(getAchievements(set.getId(), achievementsBySetId))")
     @Named("withAchievements")
-    SessionSetResponseDTO toResponseDTO(
-            SessionSet set, @Context Map<UUID, List<UnlockedAchievementDTO>> achievementsBySetId);
+    SessionSetResponse toResponse(SessionSet set, @Context Map<UUID, List<UnlockedAchievement>> achievementsBySetId);
 
     @IterableMapping(qualifiedByName = "withAchievements")
-    List<SessionSetResponseDTO> toResponseDTOs(
-            List<SessionSet> sets, @Context Map<UUID, List<UnlockedAchievementDTO>> achievementsBySetId);
+    List<SessionSetResponse> toResponses(
+            List<SessionSet> sets, @Context Map<UUID, List<UnlockedAchievement>> achievementsBySetId);
 
     @Named("withoutAchievements")
-    default SessionSetResponseDTO toResponseWithoutAchievements(SessionSet set) {
-        return toResponseDTO(set, Map.of());
+    default SessionSetResponse toResponseWithoutAchievements(SessionSet set) {
+        return toResponse(set, Map.of());
     }
 
-    default List<UnlockedAchievementDTO> getAchievements(
-            UUID setId, @Context Map<UUID, List<UnlockedAchievementDTO>> achievementsBySetId) {
+    default List<UnlockedAchievement> getAchievements(
+            UUID setId, @Context Map<UUID, List<UnlockedAchievement>> achievementsBySetId) {
 
         return achievementsBySetId.getOrDefault(setId, List.of());
     }

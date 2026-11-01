@@ -4,11 +4,11 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import dev.genesshoan.fitnesstrackerapi.workout.domain.SessionStatus;
+import dev.genesshoan.fitnesstrackerapi.common.domain.SessionStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Workout session response dto")
-public record WorkoutSessionResponseDTO(
+public record WorkoutSessionResponse(
         @Schema(description = "Session workout id") UUID id,
 
         @Schema(description = "Workout session current status", example = "IN_PROGRESS")
@@ -23,7 +23,7 @@ public record WorkoutSessionResponseDTO(
         @Schema(description = "Workout session notes") String notes,
 
         @Schema(description = "Exercise performed for the workout session")
-        List<SessionExerciseResponseDTO> exercises,
+        List<SessionExerciseResponse> exercises,
 
         @Schema(description = "Achievements unlocked by the event that produced this response")
-        List<UnlockedAchievementDTO> achievements) {}
+        List<UnlockedAchievement> achievements) {}

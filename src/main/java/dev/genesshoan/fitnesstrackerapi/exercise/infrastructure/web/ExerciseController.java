@@ -100,7 +100,7 @@ public class ExerciseController {
 
         var page = exerciseUseCase.getAllExercises(request, category, difficulty, muscleSlugs);
 
-        return ResponseEntity.ok(page.map(exerciseMapper::toItemDTO));
+        return ResponseEntity.ok(page.map(exerciseMapper::toItem));
     }
 
     /**
@@ -148,7 +148,7 @@ public class ExerciseController {
                     @Max(20)
                     Integer limit) {
         var results = exerciseUseCase.searchExercises(q, limit).stream()
-                .map(exerciseMapper::toSearchResultDTO)
+                .map(exerciseMapper::toSearchResult)
                 .toList();
 
         return ResponseEntity.ok(new ExerciseSearchResponse(results));
@@ -198,7 +198,7 @@ public class ExerciseController {
     @GetMapping("/{slug}")
     public ResponseEntity<ExerciseDetail> getExerciseBySlug(
             @Parameter(description = "Slug of the exercise") @PathVariable @NotBlank String slug) {
-        return ResponseEntity.ok(exerciseMapper.toDetailDTO(exerciseUseCase.getExerciseBySlug(slug)));
+        return ResponseEntity.ok(exerciseMapper.toDetail(exerciseUseCase.getExerciseBySlug(slug)));
     }
 
     /**
@@ -261,7 +261,7 @@ public class ExerciseController {
             @Parameter(description = "Exercise data") @Valid @RequestBody ExerciseRequest request) {
         var created = exerciseUseCase.createExercise(exerciseMapper.toCommand(request));
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(exerciseMapper.toDetailDTO(created));
+        return ResponseEntity.status(HttpStatus.CREATED).body(exerciseMapper.toDetail(created));
     }
 
     /**
@@ -325,7 +325,7 @@ public class ExerciseController {
             @Parameter(description = "New exercise data") @Valid @RequestBody ExerciseRequest request) {
         var updated = exerciseUseCase.updateExercise(slug, exerciseMapper.toCommand(request));
 
-        return ResponseEntity.ok(exerciseMapper.toDetailDTO(updated));
+        return ResponseEntity.ok(exerciseMapper.toDetail(updated));
     }
 
     /**

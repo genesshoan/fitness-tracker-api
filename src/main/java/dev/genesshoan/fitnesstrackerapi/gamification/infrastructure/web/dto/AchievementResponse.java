@@ -34,7 +34,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @param seen whether the user has seen the unlock
  */
 @Schema(description = "Achievement of the catalog with the state of the user")
-public record AchievementResponseDTO(
+public record AchievementResponse(
         @Schema(description = "Achievement code", example = "WORKOUTS_10")
         String code,
 
@@ -95,7 +95,7 @@ public record AchievementResponseDTO(
         @Schema(description = "Whether the user has seen the unlock")
         boolean seen) {
 
-    public AchievementResponseDTO {
+    public AchievementResponse {
         progressRatio = threshold == null || threshold <= 0 || progressValue == null
                 ? null
                 : Math.min(1.0, progressValue / threshold);

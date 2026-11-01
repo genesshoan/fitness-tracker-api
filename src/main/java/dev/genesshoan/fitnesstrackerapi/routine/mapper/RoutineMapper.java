@@ -1,22 +1,22 @@
 package dev.genesshoan.fitnesstrackerapi.routine.mapper;
 
 import dev.genesshoan.fitnesstrackerapi.routine.domain.Routine;
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineListItemDTO;
-import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineListItem;
+import dev.genesshoan.fitnesstrackerapi.routine.dto.RoutineResponse;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-/** Maps routine entities to API response DTOs. */
+/** Maps routine entities to API response. */
 @Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true), uses = RoutineExerciseMapper.class)
 public interface RoutineMapper {
     /**
-     * Maps a routine to its detailed response DTO.
+     * Maps a routine to its detailed response.
      *
      * @param routine the entity to map
      * @return the routine response
      */
-    RoutineResponseDTO toRoutineResponseDTO(Routine routine);
+    RoutineResponse toRoutineResponse(Routine routine);
 
     /**
      * Maps a routine to its list summary, including the exercise count.
@@ -25,5 +25,5 @@ public interface RoutineMapper {
      * @return the routine list item
      */
     @Mapping(target = "exerciseCount", expression = "java((long) routine.getExercises().size())")
-    RoutineListItemDTO toRoutineListItemDTO(Routine routine);
+    RoutineListItem toRoutineListItem(Routine routine);
 }

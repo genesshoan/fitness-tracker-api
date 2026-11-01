@@ -13,8 +13,8 @@ import org.springframework.data.domain.Pageable;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyExistsException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
-import dev.genesshoan.fitnesstrackerapi.progressrecord.dto.ProgressRecordRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.progressrecord.dto.ProgressRecordResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.progressrecord.dto.ProgressRecordRequest;
+import dev.genesshoan.fitnesstrackerapi.progressrecord.dto.ProgressRecordResponse;
 import dev.genesshoan.fitnesstrackerapi.progressrecord.mapper.ProgressRecordMapper;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.ProgressRecordBuilder;
 import dev.genesshoan.fitnesstrackerapi.testdata.builder.UserBuilder;
@@ -63,8 +63,8 @@ public class ProgressRecordServiceTest {
 
     private ProgressRecord progressRecord;
     private User user;
-    private ProgressRecordRequestDTO requestDTO;
-    private ProgressRecordResponseDTO responseDTO;
+    private ProgressRecordRequest request;
+    private ProgressRecordResponse response;
 
     @BeforeEach
     void setup() {
@@ -77,9 +77,9 @@ public class ProgressRecordServiceTest {
                 .withBodyFatPercentage(BODY_FAT_PERCENTAGE)
                 .build();
 
-        requestDTO = new ProgressRecordRequestDTO(RECORDED_AT, WEIGHT_KG, BODY_FAT_PERCENTAGE);
+        request = new ProgressRecordRequest(RECORDED_AT, WEIGHT_KG, BODY_FAT_PERCENTAGE);
 
-        responseDTO = new ProgressRecordResponseDTO(PROGRESS_RECORD_ID, RECORDED_AT, WEIGHT_KG, BODY_FAT_PERCENTAGE);
+        response = new ProgressRecordResponse(PROGRESS_RECORD_ID, RECORDED_AT, WEIGHT_KG, BODY_FAT_PERCENTAGE);
     }
 
     @Nested
@@ -89,38 +89,38 @@ public class ProgressRecordServiceTest {
         @Test
         @DisplayName("Should create a progress record successfully")
         void shouldCreateAProgressRecordSuccessfully() {
-            when(progressRecordMapper.toEntity(requestDTO)).thenReturn(progressRecord);
+            when(progressRecordMapper.toEntity(request)).thenReturn(progressRecord);
 
             when(userRepository.getReferenceById(USER_ID)).thenReturn(user);
 
-            when(progressRecordMapper.toResponseDTO(progressRecord)).thenReturn(responseDTO);
+            when(progressRecordMapper.toResponse(progressRecord)).thenReturn(response);
 
-            ProgressRecordResponseDTO result = progressRecordService.createProgressRecord(USER_ID, requestDTO);
+            ProgressRecordResponse result = progressRecordService.createProgressRecord(USER_ID, request);
 
-            assertThat(result).isSameAs(responseDTO);
+            assertThat(result).isSameAs(response);
             assertThat(progressRecord.getUser()).isSameAs(user);
 
-            verify(progressRecordMapper).toEntity(requestDTO);
+            verify(progressRecordMapper).toEntity(request);
             verify(userRepository).getReferenceById(USER_ID);
             verify(progressRecordRepository).save(progressRecord);
-            verify(progressRecordMapper).toResponseDTO(progressRecord);
+            verify(progressRecordMapper).toResponse(progressRecord);
         }
 
         @Test
         @DisplayName("Should throw when progress record already exists for date")
         void shouldThrowWhenProgressRecordAlreadyExists() {
-            when(progressRecordMapper.toEntity(requestDTO)).thenReturn(progressRecord);
+            when(progressRecordMapper.toEntity(request)).thenReturn(progressRecord);
             when(userRepository.getReferenceById(USER_ID)).thenReturn(user);
 
             when(progressRecordRepository.save(progressRecord))
                     .thenThrow(new DataIntegrityViolationException("duplicate key"));
 
-            assertThatThrownBy(() -> progressRecordService.createProgressRecord(USER_ID, requestDTO))
+            assertThatThrownBy(() -> progressRecordService.createProgressRecord(USER_ID, request))
                     .isInstanceOf(ResourceAlreadyExistsException.class)
                     .hasMessage("A progress record already exists for this date");
 
             verify(progressRecordRepository).save(progressRecord);
-            verify(progressRecordMapper, never()).toResponseDTO(any());
+            verify(progressRecordMapper, never()).toResponse(any());
         }
     }
 
@@ -156,19 +156,19 @@ public class ProgressRecordServiceTest {
                             USER_ID, from, to, pageable))
                     .thenReturn(progressRecords);
 
-            when(progressRecordMapper.toResponseDTO(progressRecord)).thenReturn(responseDTO);
+            when(progressRecordMapper.toResponse(progressRecord)).thenReturn(response);
 
-            Page<ProgressRecordResponseDTO> result =
+            Page<ProgressRecordResponse> result =
                     progressRecordService.getProgressRecordsInDateRange(USER_ID, from, to, pageable);
 
-            assertThat(result.getContent()).containsExactly(responseDTO);
+            assertThat(result.getContent()).containsExactly(response);
 
             assertThat(result.getTotalElements()).isEqualTo(1);
 
             verify(progressRecordRepository)
                     .findAllByUserIdAndRecordedAtBetweenOrderByRecordedAtAsc(USER_ID, from, to, pageable);
 
-            verify(progressRecordMapper).toResponseDTO(progressRecord);
+            verify(progressRecordMapper).toResponse(progressRecord);
         }
 
         @Test
@@ -181,7 +181,7 @@ public class ProgressRecordServiceTest {
                             USER_ID, date, date, pageable))
                     .thenReturn(Page.empty(pageable));
 
-            Page<ProgressRecordResponseDTO> result =
+            Page<ProgressRecordResponse> result =
                     progressRecordService.getProgressRecordsInDateRange(USER_ID, date, date, pageable);
 
             assertThat(result).isEmpty();

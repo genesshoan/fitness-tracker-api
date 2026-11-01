@@ -12,8 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.BadRequestException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceAlreadyExistsException;
 import dev.genesshoan.fitnesstrackerapi.common.error.exception.ResourceNotFoundException;
-import dev.genesshoan.fitnesstrackerapi.progressrecord.dto.ProgressRecordRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.progressrecord.dto.ProgressRecordResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.progressrecord.dto.ProgressRecordRequest;
+import dev.genesshoan.fitnesstrackerapi.progressrecord.dto.ProgressRecordResponse;
 import dev.genesshoan.fitnesstrackerapi.progressrecord.mapper.ProgressRecordMapper;
 import dev.genesshoan.fitnesstrackerapi.user.infrastructure.persistence.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -54,10 +54,10 @@ public class ProgressRecordService {
      * @param from     the start date of the range (inclusive)
      * @param to       the end date of the range (inclusive)
      * @param pageable pagination parameters (page number, size, sort)
-     * @return a {@link Page} of {@link ProgressRecordResponseDTO} objects
+     * @return a {@link Page} of {@link ProgressRecordResponse} objects
      * @throws BadRequestException if {@code from} is after {@code to}
      */
-    public Page<ProgressRecordResponseDTO> getProgressRecordsInDateRange(
+    public Page<ProgressRecordResponse> getProgressRecordsInDateRange(
             UUID userId, LocalDate from, LocalDate to, Pageable pageable) {
         if (from.isAfter(to)) {
             throw new BadRequestException("The start date cannot be after the end date");
@@ -67,7 +67,7 @@ public class ProgressRecordService {
 
         return progressRecordRepository
                 .findAllByUserIdAndRecordedAtBetweenOrderByRecordedAtAsc(userId, from, to, pageable)
-                .map(progressRecordMapper::toResponseDTO);
+                .map(progressRecordMapper::toResponse);
     }
 
     /**
@@ -78,16 +78,16 @@ public class ProgressRecordService {
      * The recordedAt and weightKg fields are set as immutable (cannot be updated after creation).
      *
      * @param userId     the ID of the user creating the record
-     * @param requestDTO the progress record data (date, weight, optional body fat percentage)
-     * @return a {@link ProgressRecordResponseDTO} representing the created record
+     * @param request the progress record data (date, weight, optional body fat percentage)
+     * @return a {@link ProgressRecordResponse} representing the created record
      * @throws ResourceAlreadyExistsException if a progress record already exists for the user on the given date
      */
     @Transactional
-    public ProgressRecordResponseDTO createProgressRecord(UUID userId, ProgressRecordRequestDTO requestDTO) {
+    public ProgressRecordResponse createProgressRecord(UUID userId, ProgressRecordRequest request) {
 
-        log.debug("Creating progress record for user {} on {}", userId, requestDTO.recordedAt());
+        log.debug("Creating progress record for user {} on {}", userId, request.recordedAt());
 
-        ProgressRecord progressRecord = progressRecordMapper.toEntity(requestDTO);
+        ProgressRecord progressRecord = progressRecordMapper.toEntity(request);
         progressRecord.setUser(userRepository.getReferenceById(userId));
 
         try {
@@ -96,15 +96,15 @@ public class ProgressRecordService {
             log.warn(
                     "Progress record creation failed due to duplicate record for user {} on {}",
                     userId,
-                    requestDTO.recordedAt(),
+                    request.recordedAt(),
                     e);
 
             throw new ResourceAlreadyExistsException("A progress record already exists for this date");
         }
 
-        log.debug("Progress record created successfully for user {} on {}", userId, requestDTO.recordedAt());
+        log.debug("Progress record created successfully for user {} on {}", userId, request.recordedAt());
 
-        return progressRecordMapper.toResponseDTO(progressRecord);
+        return progressRecordMapper.toResponse(progressRecord);
     }
 
     /**

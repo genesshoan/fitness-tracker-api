@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import dev.genesshoan.fitnesstrackerapi.common.annotation.CurrentUserId;
 import dev.genesshoan.fitnesstrackerapi.workout.WorkoutSessionService;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionSetRequestDTO;
-import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionSetResponseDTO;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionSetRequest;
+import dev.genesshoan.fitnesstrackerapi.workout.dto.SessionSetResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -51,7 +51,7 @@ public class SessionSetController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = SessionSetResponseDTO.class))),
+                                schema = @Schema(implementation = SessionSetResponse.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Invalid request dto, workout session is already completed, or exercise category data",
@@ -82,13 +82,13 @@ public class SessionSetController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @PostMapping
-    public ResponseEntity<SessionSetResponseDTO> addSessionSet(
+    public ResponseEntity<SessionSetResponse> addSessionSet(
             @CurrentUserId UUID userId,
             @Parameter(description = "Workout session id") @PathVariable UUID sessionId,
             @Parameter(description = "Session exercise id") @PathVariable UUID sessionExerciseId,
-            @Valid @RequestBody SessionSetRequestDTO requestDTO) {
+            @Valid @RequestBody SessionSetRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(workoutSessionService.addNewSessionSet(sessionId, sessionExerciseId, userId, requestDTO));
+                .body(workoutSessionService.addNewSessionSet(sessionId, sessionExerciseId, userId, request));
     }
 
     @Operation(
@@ -101,7 +101,7 @@ public class SessionSetController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = SessionSetResponseDTO.class))),
+                                schema = @Schema(implementation = SessionSetResponse.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Workout session is already completed or set data is invalid for the exercise category",
@@ -132,14 +132,14 @@ public class SessionSetController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @PutMapping("/{sessionSetId}")
-    public ResponseEntity<SessionSetResponseDTO> updateSessionSet(
+    public ResponseEntity<SessionSetResponse> updateSessionSet(
             @CurrentUserId UUID userId,
             @Parameter(description = "Workout session id") @PathVariable UUID sessionId,
             @Parameter(description = "Session exercise id") @PathVariable UUID sessionExerciseId,
             @Parameter(description = "Session set id") @PathVariable UUID sessionSetId,
-            @Valid @RequestBody SessionSetRequestDTO requestDTO) {
+            @Valid @RequestBody SessionSetRequest request) {
         return ResponseEntity.ok(
-                workoutSessionService.updateSessionSet(sessionId, sessionExerciseId, sessionSetId, userId, requestDTO));
+                workoutSessionService.updateSessionSet(sessionId, sessionExerciseId, sessionSetId, userId, request));
     }
 
     @Operation(
@@ -152,7 +152,7 @@ public class SessionSetController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = SessionSetResponseDTO.class))),
+                                schema = @Schema(implementation = SessionSetResponse.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Workout session is already completed",
@@ -183,7 +183,7 @@ public class SessionSetController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @PatchMapping("/{sessionSetId}/incomplete")
-    public ResponseEntity<SessionSetResponseDTO> markSessionSetIncomplete(
+    public ResponseEntity<SessionSetResponse> markSessionSetIncomplete(
             @CurrentUserId UUID userId,
             @Parameter(description = "Workout session id") @PathVariable UUID sessionId,
             @Parameter(description = "Session exercise id") @PathVariable UUID sessionExerciseId,
@@ -202,7 +202,7 @@ public class SessionSetController {
                 content =
                         @Content(
                                 mediaType = "application/json",
-                                schema = @Schema(implementation = SessionSetResponseDTO.class))),
+                                schema = @Schema(implementation = SessionSetResponse.class))),
         @ApiResponse(
                 responseCode = "400",
                 description = "Workout session is already completed",
@@ -233,7 +233,7 @@ public class SessionSetController {
                                 schema = @Schema(implementation = ProblemDetail.class))),
     })
     @PatchMapping("/{sessionSetId}/complete")
-    public ResponseEntity<SessionSetResponseDTO> markSessionSetComplete(
+    public ResponseEntity<SessionSetResponse> markSessionSetComplete(
             @CurrentUserId UUID userId,
             @Parameter(description = "Workout session id") @PathVariable UUID sessionId,
             @Parameter(description = "Session exercise id") @PathVariable UUID sessionExerciseId,

@@ -13,6 +13,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @param achievementIds the identifiers of the achievements to mark
  */
 @Schema(description = "Achievements to mark as seen")
-public record MarkAchievementsSeenRequestDTO(
+public record MarkAchievementsSeenRequest(
         @NotEmpty @Schema(description = "Identifiers of the achievements to mark as seen")
         List<UUID> achievementIds) {}

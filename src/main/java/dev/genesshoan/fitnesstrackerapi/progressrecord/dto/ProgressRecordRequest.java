@@ -10,8 +10,8 @@ import jakarta.validation.constraints.Positive;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Request DTO for creating a progress record")
-public record ProgressRecordRequestDTO(
+@Schema(description = "Requestfor creating a progress record")
+public record ProgressRecordRequest(
         @Schema(description = "Date when the progress was recorded") @NotNull @PastOrPresent
         LocalDate recordedAt,
 

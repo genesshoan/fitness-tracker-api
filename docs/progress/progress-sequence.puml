@@ -26,8 +26,8 @@ else Date range valid
         PR --> USER : load user reference
     end
     PR --> PS : Page<ProgressRecord>
-    PS -> PS : map to ProgressRecordResponseDTO
-    PS --> API : Page<ProgressRecordResponseDTO>
+    PS -> PS : map to ProgressRecordResponse
+    PS --> API : Page<ProgressRecordResponse>
     API --> FE : HTTP 200 OK\n{ content: [...] }
     FE -> FE : Display chart/timeline\n(weight trend, body fat trend)
 end
@@ -35,8 +35,8 @@ end
 == Log Measurement ==
 User -> FE : Fill measurement form\n(date, weight, body fat)
 FE -> API : POST /api/v1/progress\nJSON body
-API -> PS : createProgressRecord(userId, requestDTO)
-PS -> PS : progressRecordMapper.toEntity(requestDTO)
+API -> PS : createProgressRecord(userId, request)
+PS -> PS : progressRecordMapper.toEntity(request)
 PS -> USER : getReferenceById(userId)
 PS -> PR : save(progressRecord)
 alt Duplicate date (DataIntegrityViolationException)
@@ -46,7 +46,7 @@ alt Duplicate date (DataIntegrityViolationException)
 else Success
     PR --> PS : saved record
     PS -> PS : map to response DTO
-    PS --> API : ProgressRecordResponseDTO
+    PS --> API : ProgressRecordResponse
     API --> FE : HTTP 201 Created\nJSON response
     FE -> FE : Add data point to chart/list
 end
