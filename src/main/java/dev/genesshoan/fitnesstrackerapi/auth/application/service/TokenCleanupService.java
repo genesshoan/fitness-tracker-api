@@ -25,7 +25,7 @@ public class TokenCleanupService {
      * Keeps refresh-token families with an active member for replay detection.
      * Families without one are safe to remove in full.
      */
-    @Scheduled(cron = "${AUTH_CLEANUP_CRON:0 0 3 * * *}", zone = "UTC")
+    @Scheduled(cron = "${app.auth.cleanup-cron}", zone = "UTC")
     @Transactional
     public void cleanup() {
         var now = clock.instant();
